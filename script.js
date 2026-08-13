@@ -688,11 +688,14 @@ function driveImageUrl(link){
 }
 
 function sheetCsvUrl(tabName){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+  // The &_=<timestamp> is a cache-buster — Google's CSV export can otherwise
+  // be served from a stale cache (by the browser or an intermediate CDN),
+  // showing old content even right after the sheet's been edited.
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_=${Date.now()}`;
 }
 
 function fetchSheetTab(tabName){
-  return fetch(sheetCsvUrl(tabName))
+  return fetch(sheetCsvUrl(tabName), { cache: "no-store" })
     .then(res => { if(!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
     .then(text => new Promise((resolve, reject) => {
       Papa.parse(text, {
