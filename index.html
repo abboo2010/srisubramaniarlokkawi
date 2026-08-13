@@ -86,10 +86,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 9 L9 6 V17 L3.5 15 Z" stroke-linejoin="round"/><path d="M9 7.5 L18 5 V17.5 L9 15.5 M16 9.5 C17 10.3 17 12.2 16 13" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span data-i18n="navNews">News &amp; Announcements</span>
       </button>
-      <button class="rail-btn" data-screen="membership">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5.5" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M6 16.2 C6 14.5 7.1 13.6 8.5 13.6 C9.9 13.6 11 14.5 11 16.2" stroke-linecap="round"/><path d="M13.5 10 H18 M13.5 13 H18" stroke-linecap="round"/></svg>
-        <span data-i18n="navMembership">Membership Status</span>
-      </button>
       <button class="rail-btn" data-screen="contact">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 C12 21 5 14.5 5 9.8 C5 6.3 7.7 4 11 4 C11.4 4 11.7 4 12 4.1 C12.3 4 12.6 4 13 4 C16.3 4 19 6.3 19 9.8 C19 14.5 12 21 12 21 Z" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2"/></svg>
         <span data-i18n="navContact">Contact Us</span>
@@ -128,9 +124,9 @@
 
       <!-- ===== HOME ===== -->
       <section class="screen active" id="screen-home">
-        <div class="hero" style="--hero-img:url('assets/hero/temple-exterior.jpg');">
+        <div class="hero">
           <div class="hero-eyebrow" id="heroEyebrow">Welcome to</div>
-          <h1>Sri Subramaniar Alayam<span class="hero-location">Lok Kawi</span></h1>
+          <h1>Sri Subramaniar Alayam</h1>
           <p class="tagline" id="heroTagline">A Divine Abode of Lord Murugan</p>
           <div class="hero-stats">
             <div class="hero-stat"><b>1996</b><span id="statEstablishedLabel">Established</span></div>
@@ -138,9 +134,9 @@
             <div class="hero-stat"><b>50+</b><span id="statEventsLabel">Annual Events</span></div>
             <div class="hero-stat"><b id="statCommunityValue">One Family</b><span id="statCommunityLabel">Community</span></div>
           </div>
-          <div class="hero-cta-row">
-            <button class="hero-cta hero-cta-primary" data-goto="calendar" data-i18n="panelUpcomingEvents">Upcoming Events</button>
-            <button class="hero-cta hero-cta-ghost" data-goto="timings" data-i18n="navTimings">Pooja Timings</button>
+          <div class="hero-btn-row">
+            <button class="hero-btn-solid" data-goto="calendar" id="heroBtnEvents">UPCOMING EVENTS</button>
+            <button class="hero-btn-outline" data-goto="timings" id="heroBtnTimings">POOJA TIMINGS</button>
           </div>
         </div>
 
@@ -294,45 +290,6 @@
       </section>
 
       <!-- ===== CONTACT ===== -->
-      <section class="screen" id="screen-membership">
-        <div class="section-head">
-          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
-          <h2 id="membershipHeadingText">Membership Status</h2>
-          <p id="membershipSubText">Enter your NRIC number to check your temple membership status.</p>
-        </div>
-
-        <div class="card membership-card">
-          <label class="membership-label" id="membershipInputLabel" for="membershipNricInput">NRIC Number</label>
-          <div class="membership-input-row">
-            <input type="text" id="membershipNricInput" class="membership-input" placeholder="XXXXXX-XX-XXXX" inputmode="numeric" maxlength="14" autocomplete="off" />
-            <button class="membership-check-btn" id="membershipCheckBtn">
-              <span id="membershipCheckBtnText">Check Status</span>
-            </button>
-          </div>
-          <p class="membership-hint" id="membershipHintText">Format: XXXXXX-XX-XXXX (numbers only)</p>
-          <p class="membership-error" id="membershipErrorText" style="display:none;"></p>
-
-          <div class="membership-result" id="membershipResult" style="display:none;">
-            <div class="membership-result-row">
-              <span class="membership-result-label" id="membershipResultNameLabel">Name</span>
-              <span class="membership-result-value" id="membershipResultName"></span>
-            </div>
-            <div class="membership-result-row">
-              <span class="membership-result-label" id="membershipResultNricLabel">NRIC</span>
-              <span class="membership-result-value" id="membershipResultNric"></span>
-            </div>
-            <div class="membership-result-row">
-              <span class="membership-result-label" id="membershipResultNoLabel">Membership No.</span>
-              <span class="membership-result-value" id="membershipResultNo"></span>
-            </div>
-            <div class="membership-result-row">
-              <span class="membership-result-label" id="membershipResultTypeLabel">Membership Type</span>
-              <span class="membership-result-value" id="membershipResultType"></span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section class="screen" id="screen-contact">
         <div class="section-head">
           <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
