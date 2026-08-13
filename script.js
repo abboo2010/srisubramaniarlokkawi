@@ -4,6 +4,22 @@
 // re-renders every screen's content, not just labels.
 // ============================================================
 
+// SPLASH SCREEN — wired up FIRST, before anything else in this file
+// runs. If a content edit (CMS, sheet, JSON) later causes a rendering
+// error further down, the Enter button must still work so nobody
+// gets permanently stuck on the splash screen because of a data
+// problem elsewhere on the site.
+(function setUpSplashScreenEarly(){
+  const splash = document.getElementById("splashScreen");
+  const enterBtn = document.getElementById("splashEnterBtn");
+  if (!splash || !enterBtn) return;
+  enterBtn.addEventListener("click", () => {
+    splash.classList.add("splash-hide");
+    if (typeof resetIdleTimer === "function") resetIdleTimer();
+    setTimeout(() => { splash.style.display = "none"; }, 650);
+  });
+})();
+
 let currentLang = "en";
 function eventTitle(ev){ return (currentLang === "ta" && ev.title_ta) ? ev.title_ta : ev.title; }
 function eventDesc(ev){ return (currentLang === "ta" && ev.desc_ta) ? ev.desc_ta : (ev.desc || ""); }
@@ -624,35 +640,37 @@ function renderContact(){
 // ============================================================
 // MASTER RENDER
 // ============================================================
+// Each section renders independently — if one section's content
+// (from the CMS or a live sheet) is in an unexpected shape and
+// throws, that error is caught and logged, and every other
+// section still renders normally instead of the whole page
+// silently breaking.
+function safeRender(name, fn){
+  try { fn(); }
+  catch (err) { console.error(`[render] "${name}" failed — that section may be blank, but the rest of the site is unaffected:`, err); }
+}
+
 function renderAll(){
-  renderStaticText();
-  renderHomeTiles();
-  renderHomeTimings();
-  renderHomeEvents();
-  renderHomeAnnounce();
-  renderAbout();
-  renderDeities();
-  renderCalendarWeekdays();
-  renderCalendarGrid();
-  renderTimingTabs();
-  renderTimingList();
-  renderGallery();
-  renderSevas();
-  renderNews();
-  renderContact();
-  tickClock();
+  safeRender("staticText", renderStaticText);
+  safeRender("homeTiles", renderHomeTiles);
+  safeRender("homeTimings", renderHomeTimings);
+  safeRender("homeEvents", renderHomeEvents);
+  safeRender("homeAnnounce", renderHomeAnnounce);
+  safeRender("about", renderAbout);
+  safeRender("deities", renderDeities);
+  safeRender("calendarWeekdays", renderCalendarWeekdays);
+  safeRender("calendarGrid", renderCalendarGrid);
+  safeRender("timingTabs", renderTimingTabs);
+  safeRender("timingList", renderTimingList);
+  safeRender("gallery", renderGallery);
+  safeRender("sevas", renderSevas);
+  safeRender("news", renderNews);
+  safeRender("contact", renderContact);
+  safeRender("clock", tickClock);
 }
 
 renderAll();
 goTo("home");
-
-// ---------- Splash / welcome screen ----------
-const splashScreen = document.getElementById("splashScreen");
-document.getElementById("splashEnterBtn").addEventListener("click", ()=>{
-  splashScreen.classList.add("splash-hide");
-  resetIdleTimer();
-  setTimeout(()=>{ splashScreen.style.display = "none"; }, 650);
-});
 
 // ---------- PWA: register service worker (enables install + offline) ----------
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
