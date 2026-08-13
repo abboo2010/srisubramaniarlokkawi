@@ -1,7 +1,7 @@
 // Sri Subramaniar Alayam — Service Worker
 // Caches core app files so the app can install and open offline.
 // Bump CACHE_NAME whenever core files change to force a refresh.
-const CACHE_NAME = "temple-kiosk-v3";
+const CACHE_NAME = "temple-kiosk-v6";
 
 const CORE_ASSETS = [
   "./index.html",
@@ -64,8 +64,33 @@ self.addEventListener("activate", (event) => {
 
 // Cache-first for core assets; fall back to network, and cache anything new
 // that gets fetched (e.g. Google Fonts) so subsequent visits work offline too.
+// EXCEPTION: Google Sheets content requests always go network-first — this
+// data is meant to update live when someone edits the sheet, so cache-first
+// would freeze it at whatever was fetched the very first time.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  // Browser extensions (ad blockers, password managers, etc.) can trigger
+  // requests with schemes the Cache API doesn't support (chrome-extension:,
+  // moz-extension:, etc.) — only handle real http(s) requests.
+  if (!event.request.url.startsWith("http")) return;
+
+  const isLiveSheetRequest = event.request.url.includes("docs.google.com/spreadsheets");
+
+  if (isLiveSheetRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
