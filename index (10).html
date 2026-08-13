@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Sri Subramaniar Alayam</title>
+
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#26070b" />
+<link rel="icon" href="assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Sri Subramaniar" />
+<meta name="mobile-web-app-capable" content="yes" />
+
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ============ SPLASH / WELCOME SCREEN ============ -->
+<div id="splashScreen" class="splash-screen">
+  <div class="splash-bg">
+    <img src="assets/deities/sri-subramaniar.jpg" alt="Lord Murugan" class="splash-bg-img" />
+    <div class="splash-bg-veil"></div>
+  </div>
+  <div class="splash-halo"></div>
+  <div class="splash-rays"></div>
+  <div class="splash-content">
+    <div class="splash-vel">வேல்! வேல்! வெற்றி வேல்!</div>
+    <div class="splash-logo-wrap">
+      <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="splash-logo" />
+    </div>
+    <h1 class="splash-title">Sri Subramaniar Alayam</h1>
+    <div class="splash-loc">Lok Kawi, Kota Kinabalu, Sabah</div>
+    <button id="splashEnterBtn" class="splash-enter-btn">
+      <span class="splash-enter-main">Enter</span>
+      <span class="splash-enter-sub">Masuk · துவங்கு</span>
+    </button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ============ LEFT NAV RAIL ============ -->
+  <nav class="rail">
+    <div class="rail-brand">
+      <div class="rail-emblem">
+        <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" />
+      </div>
+      <h1>Sri Subramaniar<br/>Alayam</h1>
+      <div class="rail-loc">Lok Kawi, Kota Kinabalu</div>
+    </div>
+
+    <div class="rail-nav" id="railNav">
+      <button class="rail-btn" data-screen="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11 L12 3 L21 11 M5 10 V21 H19 V10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navHome">Home</span>
+      </button>
+      <button class="rail-btn" data-screen="about">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21 V9 L12 3 L20 9 V21 M9 21 V14 H15 V21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navAbout">About Temple</span>
+      </button>
+      <button class="rail-btn" data-screen="deities">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M6 21 C6 16 8.5 13.5 12 13.5 C15.5 13.5 18 16 18 21" stroke-linecap="round"/></svg>
+        <span data-i18n="navDeities">Deities</span>
+      </button>
+      <button class="rail-btn" data-screen="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10 H20.5 M8 3 V6.5 M16 3 V6.5" stroke-linecap="round"/></svg>
+        <span data-i18n="navCalendar">Event Calendar</span>
+      </button>
+      <button class="rail-btn" data-screen="timings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15.2 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navTimings">Pooja Timings</span>
+      </button>
+      <button class="rail-btn" data-screen="gallery">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17.5 L9.5 12.5 L13 15.5 L16.5 12 L20.5 16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navGallery">Gallery</span>
+      </button>
+      <button class="rail-btn" data-screen="sevas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 C7 17 3.5 13.8 3.5 9.9 C3.5 7.2 5.6 5 8.2 5 C9.8 5 11.1 5.8 12 7 C12.9 5.8 14.2 5 15.8 5 C18.4 5 20.5 7.2 20.5 9.9 C20.5 13.8 17 17 12 21 Z" stroke-linejoin="round"/></svg>
+        <span data-i18n="navSevas">Sevas &amp; Donations</span>
+      </button>
+      <button class="rail-btn" data-screen="news">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 9 L9 6 V17 L3.5 15 Z" stroke-linejoin="round"/><path d="M9 7.5 L18 5 V17.5 L9 15.5 M16 9.5 C17 10.3 17 12.2 16 13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navNews">News &amp; Announcements</span>
+      </button>
+      <button class="rail-btn" data-screen="membership">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5.5" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M6 16.2 C6 14.5 7.1 13.6 8.5 13.6 C9.9 13.6 11 14.5 11 16.2" stroke-linecap="round"/><path d="M13.5 10 H18 M13.5 13 H18" stroke-linecap="round"/></svg>
+        <span data-i18n="navMembership">Membership Status</span>
+      </button>
+      <button class="rail-btn" data-screen="contact">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 C12 21 5 14.5 5 9.8 C5 6.3 7.7 4 11 4 C11.4 4 11.7 4 12 4.1 C12.3 4 12.6 4 13 4 C16.3 4 19 6.3 19 9.8 C19 14.5 12 21 12 21 Z" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2"/></svg>
+        <span data-i18n="navContact">Contact Us</span>
+      </button>
+    </div>
+
+    <div class="rail-hours">
+      <strong id="railHoursTitle">Temple Hours — Daily</strong>
+      <div><span id="railMorningLabel">Morning</span><span>5:30–12:30</span></div>
+      <div><span id="railEveningLabel">Evening</span><span>4:30–9:00</span></div>
+    </div>
+  </nav>
+  <div class="rail-backdrop" id="railBackdrop"></div>
+
+  <!-- ============ MAIN COLUMN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7 H20 M4 12 H20 M4 17 H20" stroke-linecap="round"/></svg>
+      </button>
+      <div class="topbar-crumb" id="crumb">Home</div>
+      <div class="topbar-right">
+        <div class="lang-pill">
+          <button class="active" data-lang="en">EN</button>
+          <button data-lang="bm">BM</button>
+          <button data-lang="ta">தமிழ்</button>
+        </div>
+        <div class="topbar-clock">
+          <b id="clockTime">--:--</b>
+          <span id="clockDate">-- --- ----</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="screen-wrap" id="screenWrap">
+
+      <!-- ===== HOME ===== -->
+      <section class="screen active" id="screen-home">
+        <div class="hero" style="--hero-img:url('assets/hero/temple-exterior.jpg');">
+          <div class="hero-eyebrow" id="heroEyebrow">Welcome to</div>
+          <h1>Sri Subramaniar Alayam<span class="hero-location">Lok Kawi</span></h1>
+          <p class="tagline" id="heroTagline">A Divine Abode of Lord Murugan</p>
+          <div class="hero-stats">
+            <div class="hero-stat"><b>1996</b><span id="statEstablishedLabel">Established</span></div>
+            <div class="hero-stat"><b>10K+</b><span id="statDevoteesLabel">Devotees</span></div>
+            <div class="hero-stat"><b>50+</b><span id="statEventsLabel">Annual Events</span></div>
+            <div class="hero-stat"><b id="statCommunityValue">One Family</b><span id="statCommunityLabel">Community</span></div>
+          </div>
+          <div class="hero-cta-row">
+            <button class="hero-cta hero-cta-primary" data-goto="calendar" data-i18n="panelUpcomingEvents">Upcoming Events</button>
+            <button class="hero-cta hero-cta-ghost" data-goto="timings" data-i18n="navTimings">Pooja Timings</button>
+          </div>
+        </div>
+
+        <div class="tile-grid" id="homeTiles"></div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15.2 14" stroke-linecap="round"/></svg>
+              <span id="panelTodayTimingsLabel">TODAY'S POOJA TIMES</span>
+            </div>
+            <div class="panel-body" id="homeTimings"></div>
+            <button class="panel-btn" data-goto="timings" id="btnViewFullTimings">View Full Timings →</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10 H20.5"/></svg>
+              <span id="panelUpcomingEventsLabel">UPCOMING EVENTS</span>
+            </div>
+            <div class="panel-body" id="homeEvents"></div>
+            <button class="panel-btn" data-goto="calendar" id="btnViewFullCalendar">View Full Calendar →</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 9 L9 6 V17 L3.5 15 Z"/><path d="M9 7.5 L18 5 V17.5 L9 15.5"/></svg>
+              <span id="panelNewsAnnouncementsLabel">NEWS &amp; ANNOUNCEMENTS</span>
+            </div>
+            <div class="panel-body" id="homeAnnounce"></div>
+            <button class="panel-btn" data-goto="news" id="btnNewsAnnouncements">News &amp; Announcements →</button>
+          </div>
+        </div>
+
+        <div class="subscribe-strip">
+          <div class="msg"><b id="velBlessingText">Vel! Vel! Vetri Vel!</b><span id="velBlessingDescText">May Lord Murugan bless you and your family with peace, prosperity &amp; good health.</span></div>
+        </div>
+      </section>
+
+      <!-- ===== ABOUT ===== -->
+      <section class="screen" id="screen-about">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="aboutHeadingText">About the Temple</h2>
+          <p id="aboutSubText">History, vision, and daily life at Sri Subramaniar Alayam.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card card-scroll">
+            <h3 id="aboutHistoryTitleText">Our History</h3>
+            <div class="scroll-box" id="aboutHistory"></div>
+          </div>
+          <div>
+            <div class="card"><h3 id="aboutVisionTitleText">Vision</h3><p id="aboutVision"></p></div>
+            <div class="card"><h3 id="aboutMissionTitleText">Mission</h3><p id="aboutMission"></p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 id="aboutActivitiesTitleText">Temple Activities</h3>
+          <div id="aboutActivities"></div>
+        </div>
+      </section>
+
+      <!-- ===== DEITIES ===== -->
+      <section class="screen" id="screen-deities">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="deitiesHeadingText">Deities</h2>
+          <p id="deitiesSubText">Sri Subramaniar and the shrines within our temple complex.</p>
+        </div>
+        <div class="grid-4" id="deityGrid"></div>
+      </section>
+
+      <!-- ===== EVENT CALENDAR ===== -->
+      <section class="screen" id="screen-calendar">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="calendarHeadingText">Event Calendar</h2>
+          <p id="calendarSubText">Upcoming poojas, festivals, and special events.</p>
+        </div>
+
+        <div class="cal-card">
+          <div class="cal-toolbar">
+            <div class="cal-toolbar-left">
+              <button class="cal-nav-btn" id="calToday">Today</button>
+              <button class="cal-arrow" id="calPrev" aria-label="Previous month">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6 L9 12 L15 18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="cal-arrow" id="calNext" aria-label="Next month">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6 L15 12 L9 18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="cal-month-label" id="calMonthLabel">Month Year</div>
+            </div>
+          </div>
+
+          <div class="cal-weekdays" id="calWeekdays"></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <div class="card" id="calendarEventDetail">
+          <h3 id="calendarListHeading">Festival Calendar</h3>
+          <div id="calendarList"></div>
+        </div>
+      </section>
+
+      <!-- ===== POOJA TIMINGS ===== -->
+      <section class="screen" id="screen-timings">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="timingsHeadingText">Pooja Timings</h2>
+          <p id="timingsSubText">Daily schedule of poojas and special-day timings.</p>
+        </div>
+        <div class="tab-row" id="timingTabs"></div>
+        <div class="card" id="timingList"></div>
+      </section>
+
+      <!-- ===== GALLERY ===== -->
+      <section class="screen" id="screen-gallery">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="galleryHeadingText">Gallery</h2>
+          <p id="gallerySubText">Moments from festivals, poojas, and community events.</p>
+        </div>
+        <div class="grid-4" id="galleryGrid"></div>
+      </section>
+
+      <!-- ===== SEVAS & DONATIONS ===== -->
+      <section class="screen" id="screen-sevas">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="sevasHeadingText">Sevas &amp; Donations</h2>
+          <p id="sevasSubText">Support the temple through sevas, sponsorships, and donations.</p>
+        </div>
+        <div class="grid-4" id="sevaGrid"></div>
+        <div class="donate-banner">
+          <div>
+            <h3 id="donateBannerTitleText">Every contribution matters</h3>
+            <p id="donateBannerDescText">Your generosity keeps daily poojas, festivals, and community programs running for thousands of devotees.</p>
+          </div>
+          <button class="donate-btn" id="donateNowBtn">Donate Now</button>
+        </div>
+      </section>
+
+      <!-- ===== NEWS & ANNOUNCEMENTS ===== -->
+      <section class="screen" id="screen-news">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="newsHeadingText">News &amp; Announcements</h2>
+          <p id="newsSubText">The latest updates from the temple.</p>
+        </div>
+        <div class="card" id="newsList"></div>
+      </section>
+
+      <!-- ===== CONTACT ===== -->
+      <section class="screen" id="screen-membership">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="membershipHeadingText">Membership Status</h2>
+          <p id="membershipSubText">Enter your NRIC number to check your temple membership status.</p>
+        </div>
+
+        <div class="card membership-card">
+          <label class="membership-label" id="membershipInputLabel" for="membershipNricInput">NRIC Number</label>
+          <div class="membership-input-row">
+            <input type="text" id="membershipNricInput" class="membership-input" placeholder="XXXXXX-XX-XXXX" inputmode="numeric" maxlength="14" autocomplete="off" />
+            <button class="membership-check-btn" id="membershipCheckBtn">
+              <span id="membershipCheckBtnText">Check Status</span>
+            </button>
+          </div>
+          <p class="membership-hint" id="membershipHintText">Format: XXXXXX-XX-XXXX (numbers only)</p>
+          <p class="membership-error" id="membershipErrorText" style="display:none;"></p>
+
+          <div class="membership-result" id="membershipResult" style="display:none;">
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultNameLabel">Name</span>
+              <span class="membership-result-value" id="membershipResultName"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultNricLabel">NRIC</span>
+              <span class="membership-result-value" id="membershipResultNric"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultNoLabel">Membership No.</span>
+              <span class="membership-result-value" id="membershipResultNo"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultTypeLabel">Membership Type</span>
+              <span class="membership-result-value" id="membershipResultType"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-contact">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="contactHeadingText">Contact Us</h2>
+          <p id="contactSubText">Visit, call, or write to us.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card" id="contactDetails"></div>
+          <div class="card qr-contact-card">
+            <h3 id="enquiriesTitleText">For Any Enquiries</h3>
+            <div class="whatsapp-qr-box">
+              <img src="assets/whatsapp-qr.png" alt="WhatsApp QR code" />
+            </div>
+            <p class="whatsapp-caption" id="whatsappCaptionText">Scan to chat with us on WhatsApp</p>
+            <div class="whatsapp-number" id="whatsappNumber"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="idle-badge" id="idleBadge"><span class="dot"></span> <span id="idleBadgeText">Returning to Home…</span></div>
+
+<!-- ============ QR PAYMENT MODAL ============ -->
+<div class="qr-overlay" id="qrOverlay">
+  <div class="qr-modal">
+    <button class="qr-close" id="qrClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="qr-eyebrow" id="qrEyebrowText">Scan to Pay</div>
+    <h3 id="qrTitle">Archanai</h3>
+    <div class="qr-code-box" id="qrCodeBox"></div>
+    <div class="qr-amount" id="qrAmount">RM 10</div>
+    <div class="qr-account" id="qrAccount"></div>
+    <p class="qr-note" id="qrNoteText">Scan with any DuitNow-enabled banking or e-wallet app.</p>
+  </div>
+</div>
+
+<div class="deity-overlay" id="deityOverlay">
+  <div class="deity-modal">
+    <button class="deity-modal-close" id="deityModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="deity-modal-figure"><img id="deityModalImg" src="" alt="" /></div>
+    <div class="deity-modal-body">
+      <h3 id="deityModalName"></h3>
+      <div class="deity-modal-role" id="deityModalRole"></div>
+      <p id="deityModalDesc"></p>
+    </div>
+  </div>
+</div>
+
+<div class="event-overlay" id="eventOverlay">
+  <div class="event-modal">
+    <button class="event-modal-close" id="eventModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="event-modal-badge">
+      <b id="eventModalDay"></b>
+      <span id="eventModalMonth"></span>
+    </div>
+    <h3 id="eventModalTitle"></h3>
+    <p id="eventModalDate"></p>
+    <p id="eventModalDesc" class="event-modal-desc"></p>
+  </div>
+</div>
+
+<div class="announce-overlay" id="announceOverlay">
+  <div class="announce-modal">
+    <button class="announce-modal-close" id="announceModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <h3 id="announceModalTitle"></h3>
+    <p id="announceModalDesc"></p>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="content-data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
