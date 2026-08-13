@@ -1,0 +1,60 @@
+{
+  "items": [
+    {
+      "name_en": "Archanai",
+      "name_bm": "Archanai",
+      "name_ta": "அர்ச்சனை",
+      "price_en": "RM 10",
+      "price_bm": "RM 10",
+      "price_ta": "RM 10",
+      "desc_en": "Individual prayer offering with your name and star (nakshatra) invoked.",
+      "desc_bm": "Persembahan doa individu dengan nama dan bintang (nakshatra) anda disebut.",
+      "desc_ta": "உங்கள் பெயரும் நட்சத்திரமும் கூறி செய்யப்படும் தனிப்பட்ட பிரார்த்தனை காணிக்கை.",
+      "cta_en": "Pay Archanai",
+      "cta_bm": "Bayar Archanai",
+      "cta_ta": "அர்ச்சனை செலுத்த"
+    },
+    {
+      "name_en": "Abhishekam Sponsorship",
+      "name_bm": "Penajaan Abhishekam",
+      "name_ta": "அபிஷேக நிதியுதவி",
+      "price_en": "RM 100",
+      "price_bm": "RM 100",
+      "price_ta": "RM 100",
+      "desc_en": "Sponsor the sacred bathing ritual for a chosen deity on a date of your choice.",
+      "desc_bm": "Taja upacara pemandian suci untuk dewa pilihan anda pada tarikh pilihan anda.",
+      "desc_ta": "நீங்கள் தேர்ந்தெடுக்கும் நாளில் ஒரு தெய்வத்திற்கு புனித அபிஷேகத்தை நிதியுதவி செய்யுங்கள்.",
+      "cta_en": "Sponsor Abhishekam",
+      "cta_bm": "Taja Abhishekam",
+      "cta_ta": "அபிஷேகத்திற்கு நிதியுதவி செய்ய"
+    },
+    {
+      "name_en": "Annadhanam Sponsorship",
+      "name_bm": "Penajaan Annadhanam",
+      "name_ta": "அன்னதான நிதியுதவி",
+      "price_en": "RM 500",
+      "price_bm": "RM 500",
+      "price_ta": "RM 500",
+      "desc_en": "Sponsor a full day's community meal for visiting devotees.",
+      "desc_bm": "Taja hidangan makanan komuniti sepanjang hari untuk penganut yang datang melawat.",
+      "desc_ta": "வருகை தரும் பக்தர்களுக்கு ஒரு நாள் முழு உணவை நிதியுதவி செய்யுங்கள்.",
+      "cta_en": "Sponsor Annadhanam",
+      "cta_bm": "Taja Annadhanam",
+      "cta_ta": "அன்னதானத்திற்கு நிதியுதவி செய்ய"
+    },
+    {
+      "name_en": "General Donation",
+      "name_bm": "Derma Am",
+      "name_ta": "பொது நன்கொடை",
+      "price_en": "Any Amount",
+      "price_bm": "Sebarang Jumlah",
+      "price_ta": "எந்த தொகையும்",
+      "desc_en": "Support ongoing temple maintenance, utilities, and welfare programs.",
+      "desc_bm": "Sokong penyelenggaraan kuil, utiliti, dan program kebajikan yang berterusan.",
+      "desc_ta": "கோயில் பராமரிப்பு, பயன்பாடுகள் மற்றும் நலத்திட்டங்களுக்கு தொடர்ந்து ஆதரவு அளியுங்கள்.",
+      "cta_en": "Donate Now",
+      "cta_bm": "Derma Sekarang",
+      "cta_ta": "இப்போது நன்கொடை அளிக்க"
+    }
+  ]
+}
