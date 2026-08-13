@@ -6,6 +6,14 @@
 
 let currentLang = "en";
 function eventTitle(ev){ return (currentLang === "ta" && ev.title_ta) ? ev.title_ta : ev.title; }
+function eventDesc(ev){ return (currentLang === "ta" && ev.desc_ta) ? ev.desc_ta : (ev.desc || ""); }
+// Extracts just the first sentence from a longer text, for preview lists.
+// Returns the whole string unchanged if there's only one sentence.
+function firstSentence(text){
+  if (!text) return "";
+  const match = text.match(/^.*?[.!?](?=\s|$)/);
+  return match ? match[0] : text;
+}
 function t(key){ return (UI[currentLang] && UI[currentLang][key]) || UI.en[key] || ""; }
 function tf(obj, field){ return obj[field + "_" + currentLang] || obj[field + "_en"]; }
 
@@ -32,7 +40,8 @@ const railBtns = document.querySelectorAll(".rail-btn");
 const crumb = document.getElementById("crumb");
 const CRUMB_KEY = {
   home:"navHome", about:"navAbout", deities:"navDeities", calendar:"navCalendar",
-  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", news:"navNews", contact:"navContact"
+  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", news:"navNews",
+  membership:"navMembership", contact:"navContact"
 };
 let currentScreen = "home";
 
@@ -159,6 +168,17 @@ function renderStaticText(){
   document.getElementById("newsHeadingText").textContent = t("newsHeading");
   document.getElementById("newsSubText").textContent = t("newsSub");
 
+  document.getElementById("membershipHeadingText").textContent = t("membershipHeading");
+  document.getElementById("membershipSubText").textContent = t("membershipSub");
+  document.getElementById("membershipInputLabel").textContent = t("membershipInputLabel");
+  document.getElementById("membershipNricInput").placeholder = t("membershipPlaceholder");
+  document.getElementById("membershipCheckBtnText").textContent = t("membershipCheckBtn");
+  document.getElementById("membershipHintText").textContent = t("membershipHint");
+  document.getElementById("membershipResultNameLabel").textContent = t("membershipResultName");
+  document.getElementById("membershipResultNricLabel").textContent = t("membershipResultNric");
+  document.getElementById("membershipResultNoLabel").textContent = t("membershipResultNo");
+  document.getElementById("membershipResultTypeLabel").textContent = t("membershipResultType");
+
   document.getElementById("contactHeadingText").textContent = t("contactHeading");
   document.getElementById("contactSubText").textContent = t("contactSub");
   document.getElementById("enquiriesTitleText").textContent = t("enquiriesTitle");
@@ -208,12 +228,14 @@ function renderHomeEvents(){
     .filter(e => e.iso >= todayIso)
     .slice(0,3)
     .forEach(e=>{
-      homeEvents.appendChild(el(`
+      const row = el(`
         <div class="event-row">
           <div class="event-date"><b>${dayNum(e.iso)}</b><small>${monthAbbr(e.iso)}</small></div>
           <div><h4>${eventTitle(e)}</h4><p>${formatEventDate(e.iso)}</p></div>
         </div>
-      `));
+      `);
+      row.addEventListener("click", () => openEventModal(e));
+      homeEvents.appendChild(row);
     });
 }
 
@@ -221,12 +243,14 @@ function renderHomeAnnounce(){
   const homeAnnounce = document.getElementById("homeAnnounce");
   homeAnnounce.innerHTML = "";
   ANNOUNCEMENTS.slice(0,3).forEach(a=>{
-    homeAnnounce.appendChild(el(`
+    const row = el(`
       <div class="announce-row">
         <div class="announce-dot"></div>
-        <div><h4>${tf(a,"title")}</h4><p>${tf(a,"desc")}</p></div>
+        <div><h4>${tf(a,"title")}</h4><p>${firstSentence(tf(a,"desc"))}</p></div>
       </div>
-    `));
+    `);
+    row.addEventListener("click", () => openAnnounceModal(a));
+    homeAnnounce.appendChild(row);
   });
 }
 
@@ -256,7 +280,7 @@ function renderDeities(){
   const deityGrid = document.getElementById("deityGrid");
   deityGrid.innerHTML = "";
   DEITIES.forEach(d=>{
-    deityGrid.appendChild(el(`
+    const card = el(`
       <div class="deity-card">
         <div class="deity-figure"><img src="${d.image}" alt="${tf(d,"name")}" loading="lazy" /></div>
         <div class="deity-body">
@@ -265,15 +289,37 @@ function renderDeities(){
           <p>${tf(d,"description")}</p>
         </div>
       </div>
-    `));
+    `);
+    card.addEventListener("click", () => openDeityModal(d));
+    deityGrid.appendChild(card);
   });
 }
+
+const deityOverlay = document.getElementById("deityOverlay");
+function openDeityModal(d){
+  document.getElementById("deityModalImg").src = d.image;
+  document.getElementById("deityModalImg").alt = tf(d, "name");
+  document.getElementById("deityModalName").textContent = tf(d, "name");
+  document.getElementById("deityModalRole").textContent = tf(d, "role");
+  document.getElementById("deityModalDesc").textContent = tf(d, "description");
+  deityOverlay.classList.add("show");
+}
+function closeDeityModal(){ deityOverlay.classList.remove("show"); }
+document.getElementById("deityModalClose").addEventListener("click", closeDeityModal);
+deityOverlay.addEventListener("click", (e)=>{ if(e.target === deityOverlay) closeDeityModal(); });
 
 // ============================================================
 // EVENT CALENDAR (Google-Calendar-style month grid)
 // ============================================================
-const eventsByDate = {};
-EVENTS.forEach(e=>{ (eventsByDate[e.iso] = eventsByDate[e.iso] || []).push(e); });
+// eventsByDate is rebuilt on every render (not built once at load) — this
+// matters because EVENTS gets replaced with fresh data from the Google
+// Sheet after the page has already loaded, and this lookup needs to stay
+// in sync with whatever EVENTS currently holds.
+function buildEventsByDate(){
+  const map = {};
+  EVENTS.forEach(e => { (map[e.iso] = map[e.iso] || []).push(e); });
+  return map;
+}
 
 const MONTH_NAMES = {
   en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
@@ -322,6 +368,7 @@ function renderCalendarWeekdays(){
 function renderCalendarGrid(){
   const grid = document.getElementById("calGrid");
   grid.innerHTML = "";
+  const eventsByDate = buildEventsByDate();
   const monthNames = MONTH_NAMES[currentLang] || MONTH_NAMES.en;
   document.getElementById("calMonthLabel").textContent = `${monthNames[calMonth]} ${calYear}`;
 
@@ -358,7 +405,7 @@ function renderCalendarGrid(){
 
     dayEvents.slice(0,2).forEach(ev=>{
       const chip = el(`<button class="cal-event-chip" title="${eventTitle(ev)}">${eventTitle(ev)}</button>`);
-      chip.addEventListener("click", ()=>showEventDetail(ev));
+      chip.addEventListener("click", ()=>openEventModal(ev));
       cell.appendChild(chip);
     });
     if(dayEvents.length > 2){
@@ -385,24 +432,32 @@ function renderMonthEventList(){
   }
 
   monthEvents.forEach(e=>{
-    calendarList.appendChild(el(`
-      <div class="event-row" id="ev-${e.iso}-${e.title.replace(/\s+/g,"")}">
+    const row = el(`
+      <div class="event-row">
         <div class="event-date"><b>${dayNum(e.iso)}</b><small>${monthAbbr(e.iso)}</small></div>
         <div><h4>${eventTitle(e)}</h4><p>${formatEventDate(e.iso)}</p></div>
       </div>
-    `));
+    `);
+    row.addEventListener("click", () => openEventModal(e));
+    calendarList.appendChild(row);
   });
 }
 
-function showEventDetail(ev){
-  const detail = document.getElementById("calendarEventDetail");
-  detail.querySelectorAll(".event-row.highlighted").forEach(r=>r.classList.remove("highlighted"));
-  const row = document.getElementById("ev-" + ev.iso + "-" + ev.title.replace(/\s+/g,""));
-  if(row){
-    row.classList.add("highlighted");
-    row.scrollIntoView({behavior:"smooth", block:"center"});
-  }
+const eventOverlay = document.getElementById("eventOverlay");
+function openEventModal(e){
+  document.getElementById("eventModalDay").textContent = dayNum(e.iso);
+  document.getElementById("eventModalMonth").textContent = monthAbbr(e.iso);
+  document.getElementById("eventModalTitle").textContent = eventTitle(e);
+  document.getElementById("eventModalDate").textContent = formatEventDate(e.iso);
+  const descEl = document.getElementById("eventModalDesc");
+  const desc = eventDesc(e);
+  descEl.textContent = desc;
+  descEl.style.display = desc ? "block" : "none";
+  eventOverlay.classList.add("show");
 }
+function closeEventModal(){ eventOverlay.classList.remove("show"); }
+document.getElementById("eventModalClose").addEventListener("click", closeEventModal);
+eventOverlay.addEventListener("click", (ev)=>{ if(ev.target === eventOverlay) closeEventModal(); });
 
 document.getElementById("calPrev").addEventListener("click", ()=>{
   calMonth--; if(calMonth < 0){ calMonth = 11; calYear--; }
@@ -478,12 +533,16 @@ function renderSevas(){
     card.querySelector(".seva-btn").addEventListener("click", ()=> openQrModal(tf(s,"name"), tf(s,"price")));
     sevaGrid.appendChild(card);
   });
-  document.getElementById("donateNowBtn").textContent = tf(SEVAS[3], "cta");
+  // "Donate Now" always refers to whichever seva is listed last — by
+  // convention that's the general/catch-all donation option — rather than
+  // a fixed position, so this stays correct even if rows are added/reordered.
+  document.getElementById("donateNowBtn").textContent = tf(SEVAS[SEVAS.length - 1], "cta");
 }
 
-document.getElementById("donateNowBtn").addEventListener("click", ()=>
-  openQrModal(tf(SEVAS[3],"name"), tf(SEVAS[3],"price"))
-);
+document.getElementById("donateNowBtn").addEventListener("click", ()=>{
+  const lastSeva = SEVAS[SEVAS.length - 1];
+  openQrModal(tf(lastSeva,"name"), tf(lastSeva,"price"));
+});
 
 const qrOverlay = document.getElementById("qrOverlay");
 function openQrModal(title, amount){
@@ -508,14 +567,32 @@ function renderNews(){
   const newsList = document.getElementById("newsList");
   newsList.innerHTML = "";
   ANNOUNCEMENTS.forEach(a=>{
-    newsList.appendChild(el(`
+    const fullDesc = tf(a,"desc");
+    const preview = firstSentence(fullDesc);
+    const hasMore = preview.trim() !== fullDesc.trim();
+    const row = el(`
       <div class="announce-row">
         <div class="announce-dot"></div>
-        <div><h4>${tf(a,"title")}</h4><p>${tf(a,"desc")}</p></div>
+        <div>
+          <h4>${tf(a,"title")}</h4>
+          <p>${preview}${hasMore ? ` <span class="announce-more-btn">${t("readMoreBtn")}</span>` : ""}</p>
+        </div>
       </div>
-    `));
+    `);
+    row.addEventListener("click", () => openAnnounceModal(a));
+    newsList.appendChild(row);
   });
 }
+
+const announceOverlay = document.getElementById("announceOverlay");
+function openAnnounceModal(a){
+  document.getElementById("announceModalTitle").textContent = tf(a,"title");
+  document.getElementById("announceModalDesc").textContent = tf(a,"desc");
+  announceOverlay.classList.add("show");
+}
+function closeAnnounceModal(){ announceOverlay.classList.remove("show"); }
+document.getElementById("announceModalClose").addEventListener("click", closeAnnounceModal);
+announceOverlay.addEventListener("click", (ev)=>{ if(ev.target === announceOverlay) closeAnnounceModal(); });
 
 // ============================================================
 // CONTACT
@@ -584,4 +661,236 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
       console.error("Service worker registration failed:", err);
     });
   });
+}
+
+// ============================================================
+// LIVE CONTENT FROM A GOOGLE SHEET (optional — safe if unset)
+// ============================================================
+// Fill in SHEET_ID once the Sheet exists and its sharing is set to
+// "Anyone with the link — Viewer". Until then this is a no-op and the
+// site just uses the bundled content, exactly as before.
+const SHEET_ID = "18_VoVU1CGM8uRhxcRJP_LSUCDRuc-GDrmefMj3debMg";
+
+// Snapshot of the bundled deity photos/colors, keyed by English name, taken
+// before any live sheet data overwrites DEITIES. Used so that leaving the
+// "Photo Link" cell blank in the sheet means "keep using the current photo"
+// instead of showing a broken image.
+const BUNDLED_DEITIES_BY_NAME = {};
+DEITIES.forEach(d => { BUNDLED_DEITIES_BY_NAME[d.name_en] = d; });
+
+// Converts a normal Google Drive "share" link (any common format) into a
+// URL that actually works in an <img src="">. If the input doesn't look
+// like a Drive link, it's returned as-is (so a direct image URL from
+// anywhere else still works too).
+function driveImageUrl(link){
+  if (!link) return "";
+  const match = link.match(/[-\w]{25,}/); // Drive file IDs are long alphanumeric tokens
+  if (match && link.includes("drive.google.com")) {
+    return `https://lh3.googleusercontent.com/d/${match[0]}=w800`;
+  }
+  return link;
+}
+
+function sheetCsvUrl(tabName){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+}
+
+function fetchSheetTab(tabName){
+  return fetch(sheetCsvUrl(tabName))
+    .then(res => { if(!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
+    .then(text => new Promise((resolve, reject) => {
+      Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => resolve(results.data),
+        error: reject
+      });
+    }))
+    .catch(err => {
+      // A problem with ONE tab (wrong name, doesn't exist yet, etc.) must
+      // never take down the others — resolve to "no rows" instead of
+      // rejecting, so every other tab still updates normally.
+      console.warn(`Could not load the "${tabName}" sheet tab — that section will keep its current content:`, err);
+      return [];
+    });
+}
+
+function loadLiveContent(){
+  if (!SHEET_ID) return;
+
+  Promise.all([
+    fetchSheetTab("Events"),
+    fetchSheetTab("Announcements"),
+    fetchSheetTab("PoojaTimings"),
+    fetchSheetTab("PoojaNames"),
+    fetchSheetTab("Sevas"),
+    fetchSheetTab("Deities")
+  ]).then(([eventsRows, annRows, timingsRows, namesRows, sevasRows, deitiesRows]) => {
+
+    if (eventsRows.length){
+      const fresh = eventsRows
+        .map(r => ({
+          iso: (r["Date (YYYY-MM-DD)"] || "").trim(),
+          title: (r["Title"] || "").trim(),
+          title_ta: (r["Title (Tamil)"] || "").trim(),
+          desc: (r["Description"] || "").trim(),
+          desc_ta: (r["Description (Tamil)"] || "").trim()
+        }))
+        .filter(e => e.iso && e.title);
+      if (fresh.length){ EVENTS.length = 0; fresh.forEach(e => EVENTS.push(e)); }
+    }
+
+    if (annRows.length){
+      const fresh = annRows.map(r => ({
+        title_en: r["Title (English)"] || "", title_bm: r["Title (Malay)"] || "", title_ta: r["Title (Tamil)"] || "",
+        desc_en: r["Description (English)"] || "", desc_bm: r["Description (Malay)"] || "", desc_ta: r["Description (Tamil)"] || ""
+      })).filter(a => a.title_en);
+      if (fresh.length){ ANNOUNCEMENTS.length = 0; fresh.forEach(a => ANNOUNCEMENTS.push(a)); }
+    }
+
+    if (timingsRows.length){
+      const byList = { today: [], daily: [], friday: [], fullMoon: [] };
+      timingsRows.forEach(r => {
+        const list = (r["List (today / daily / friday / fullMoon)"] || "").trim();
+        const name = (r["Pooja Name"] || "").trim();
+        const time = (r["Time"] || "").trim();
+        if (byList[list] && name && time) byList[list].push({ name, time });
+      });
+      if (byList.today.length){ POOJA_TIMINGS_TODAY.length = 0; byList.today.forEach(x => POOJA_TIMINGS_TODAY.push(x)); }
+      if (byList.daily.length) POOJA_TIMINGS_WEEKLY.daily = byList.daily;
+      if (byList.friday.length) POOJA_TIMINGS_WEEKLY.friday = byList.friday;
+      if (byList.fullMoon.length) POOJA_TIMINGS_WEEKLY.fullMoon = byList.fullMoon;
+    }
+
+    if (namesRows.length){
+      namesRows.forEach(r => {
+        const key = (r["Key (must match Pooja Name above)"] || "").trim();
+        if (key) POOJA_NAME[key] = { bm: r["Malay"] || "", ta: r["Tamil"] || "" };
+      });
+    }
+
+    if (sevasRows.length){
+      const fresh = sevasRows.map(r => ({
+        name_en: r["Name (EN)"] || "", name_bm: r["Name (BM)"] || "", name_ta: r["Name (TA)"] || "",
+        price_en: r["Price (EN)"] || "", price_bm: r["Price (BM)"] || "", price_ta: r["Price (TA)"] || "",
+        desc_en: r["Description (EN)"] || "", desc_bm: r["Description (BM)"] || "", desc_ta: r["Description (TA)"] || "",
+        cta_en: r["Button Text (EN)"] || "", cta_bm: r["Button Text (BM)"] || "", cta_ta: r["Button Text (TA)"] || ""
+      })).filter(s => s.name_en);
+      if (fresh.length){ SEVAS.length = 0; fresh.forEach(s => SEVAS.push(s)); }
+    }
+
+    if (deitiesRows.length){
+      const fresh = deitiesRows.map(r => {
+        const name_en = (r["Name (EN)"] || "").trim();
+        const bundled = BUNDLED_DEITIES_BY_NAME[name_en];
+        const photoInput = (r["Photo Link (leave blank to keep current photo)"] || "").trim();
+        return {
+          name_en,
+          name_bm: r["Name (BM)"] || "",
+          name_ta: r["Name (TA)"] || "",
+          role_en: r["Role (EN)"] || "",
+          role_bm: r["Role (BM)"] || "",
+          role_ta: r["Role (TA)"] || "",
+          description_en: r["Description (EN)"] || "",
+          description_bm: r["Description (BM)"] || "",
+          description_ta: r["Description (TA)"] || "",
+          color: bundled ? bundled.color : "#711821",
+          image: photoInput ? driveImageUrl(photoInput) : (bundled ? bundled.image : "")
+        };
+      }).filter(d => d.name_en);
+      if (fresh.length){ DEITIES.length = 0; fresh.forEach(d => DEITIES.push(d)); }
+    }
+
+    renderAll();
+  }).catch(err => {
+    console.warn("Could not load live sheet content — using bundled content instead:", err);
+  });
+}
+
+loadLiveContent();
+
+// ============================================================
+// MEMBERSHIP STATUS CHECK
+// Looks up a member by NRIC via a secure server-side function
+// (netlify/functions/check-membership.js). The full member list
+// is never sent to the browser — only the single matched record
+// (or a not-found result) for the NRIC the visitor typed in.
+// ============================================================
+const NRIC_PATTERN = /^\d{6}-\d{2}-\d{4}$/;
+const membershipNricInput = document.getElementById("membershipNricInput");
+const membershipCheckBtn = document.getElementById("membershipCheckBtn");
+const membershipErrorText = document.getElementById("membershipErrorText");
+const membershipResult = document.getElementById("membershipResult");
+
+// Auto-insert dashes as the visitor types digits, so the field
+// always ends up formatted as XXXXXX-XX-XXXX without them needing
+// to type the dashes themselves.
+function formatNric(raw){
+  const digits = raw.replace(/\D/g, "").slice(0, 12);
+  let out = digits.slice(0, 6);
+  if (digits.length > 6) out += "-" + digits.slice(6, 8);
+  if (digits.length > 8) out += "-" + digits.slice(8, 12);
+  return out;
+}
+
+if (membershipNricInput){
+  membershipNricInput.addEventListener("input", () => {
+    const pos = membershipNricInput.selectionStart;
+    const before = membershipNricInput.value;
+    membershipNricInput.value = formatNric(before);
+    // Keep the cursor roughly in place after reformatting.
+    const diff = membershipNricInput.value.length - before.length;
+    membershipNricInput.setSelectionRange(pos + diff, pos + diff);
+    hideMembershipError();
+    hideMembershipResult();
+  });
+  membershipNricInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkMembership();
+  });
+}
+if (membershipCheckBtn) membershipCheckBtn.addEventListener("click", checkMembership);
+
+function hideMembershipError(){ membershipErrorText.style.display = "none"; }
+function showMembershipError(key){
+  membershipErrorText.textContent = t(key);
+  membershipErrorText.style.display = "block";
+}
+function hideMembershipResult(){ membershipResult.style.display = "none"; }
+
+async function checkMembership(){
+  const nric = membershipNricInput.value.trim();
+  hideMembershipError();
+  hideMembershipResult();
+
+  if (!NRIC_PATTERN.test(nric)){
+    showMembershipError("membershipInvalidFormat");
+    return;
+  }
+
+  membershipCheckBtn.disabled = true;
+  const originalLabel = document.getElementById("membershipCheckBtnText").textContent;
+  document.getElementById("membershipCheckBtnText").textContent = t("membershipChecking");
+
+  try {
+    const res = await fetch(`/.netlify/functions/check-membership?nric=${encodeURIComponent(nric)}`);
+    if (res.status === 404){
+      showMembershipError("membershipNotFound");
+    } else if (!res.ok){
+      showMembershipError("membershipError");
+    } else {
+      const data = await res.json();
+      document.getElementById("membershipResultName").textContent = data.name || "";
+      document.getElementById("membershipResultNric").textContent = data.nric || nric;
+      document.getElementById("membershipResultNo").textContent = data.membershipNo || "";
+      const typeKey = (data.membershipType || "").trim().toLowerCase() === "life" ? "membershipTypeLife" : "membershipTypeOrdinary";
+      document.getElementById("membershipResultType").textContent = t(typeKey);
+      membershipResult.style.display = "block";
+    }
+  } catch (err){
+    console.warn("Membership check failed:", err);
+    showMembershipError("membershipError");
+  } finally {
+    membershipCheckBtn.disabled = false;
+    document.getElementById("membershipCheckBtnText").textContent = originalLabel;
+  }
 }

@@ -7,22 +7,29 @@ Earlier versions of this app were deployed by dragging the folder onto Netlify. 
 
 ## One-time setup (you need to do this — I can't do it for you, it needs your own accounts)
 
-**1. Push this folder to a new GitHub repo**
-- Create a new repo on github.com (can be private)
-- Push everything in this `temple-kiosk` folder to it (a plain `git init` / `git add .` / `git commit` / `git push` from this folder works, or use GitHub Desktop if you prefer a GUI)
+Steps 1–2 (push to GitHub, connect to Netlify) are done for your site already. What's left is turning on login access for the CMS.
 
-**2. Connect that repo to Netlify**
-- In Netlify: **Add new site → Import an existing project → GitHub** → pick the repo
-- Build settings should auto-detect from `netlify.toml` (Build command: `node build.js`, Publish directory: `.`) — confirm and deploy
+**Note on login method:** Netlify Identity (their old built-in login system) has been unreliable for newly created projects, so this CMS is configured to use **GitHub login** instead — simpler, and not affected by that issue. The trade-off: whoever edits content needs their own free GitHub account and to be added as a collaborator on the repo.
 
-**3. Enable Netlify Identity + Git Gateway** (this is what lets committee members log in to the CMS)
-- In your Netlify site dashboard: **Site configuration → Identity → Enable Identity**
-- Under Identity settings, set **Registration → Invite only** (so random people can't sign up)
-- Still under Identity: **Services → Git Gateway → Enable Git Gateway**
+**3. Register a GitHub OAuth App**
+- Go to https://github.com/settings/developers → **OAuth Apps → New OAuth App**
+- Application name: anything (e.g. "Temple CMS")
+- Homepage URL: `https://srisubramaniarlokkawi.netlify.app`
+- **Authorization callback URL** (must be exact): `https://api.netlify.com/auth/done`
+- Register → copy the **Client ID** → click **Generate a new client secret** → copy that too
 
-**4. Invite whoever should be able to edit content**
-- **Site configuration → Identity → Invite users** → enter their email
-- They'll get an email to set a password — that's their CMS login
+**4. Add those to Netlify**
+- Netlify dashboard → your site → **Project configuration → Access & security → OAuth**
+- Under **Authentication Providers** → **Install provider** → choose **GitHub**
+- Paste in the Client ID and Client Secret from step 3 → Save
+
+**5. Give committee members access**
+- On GitHub: go to the repo (`github.com/abboo2010/srisubramaniarlokkawi`) → **Settings → Collaborators** → **Add people** → enter their GitHub username or email
+- They need to accept the invite (check their email/GitHub notifications)
+
+**6. Open the CMS**
+- Go to `https://srisubramaniarlokkawi.netlify.app/admin/`
+- Click **Login with GitHub** → authorize → you're in
 
 **5. Open the CMS**
 - Go to `https://your-site.netlify.app/admin/`
@@ -37,6 +44,42 @@ CMS edit → commits JSON to /content/*.json on GitHub
          → site publishes with the new content-data.js
 ```
 You never touch `content-data.js` directly — it's regenerated fresh on every save. If you ever need to edit content without the CMS (e.g. bulk changes), edit the files in `/content/*.json` directly and push — same result.
+
+## Membership Status check — one-time setup
+
+The site has a "Membership Status" page where a visitor types their NRIC (`XXXXXX-XX-XXXX`) and sees their Name / NRIC / Membership No. / Membership Type. This is deliberately **not** built like the sheet-sync used elsewhere in this app — NRIC numbers are sensitive, so the full member list is never sent to visitors' browsers. Instead, a secure server-side function (`netlify/functions/check-membership.js`) looks up one NRIC at a time in a **separate, restricted** Google Sheet and returns only that one match.
+
+**You need to do the following once — I can't do this part for you, it needs your own Google account:**
+
+**1. Create the membership Google Sheet**
+- Make a new, separate Google Sheet (do **not** reuse the "subramaniar" sheet)
+- First row = headers, exactly: `Name`, `NRIC`, `Membership No.`, `Membership Type`
+- Membership Type values should be exactly `Life` or `Ordinary`
+- NRIC values should be in `XXXXXX-XX-XXXX` format
+- Name the tab `Members` (or note your own tab name for step 5)
+- **Do not** set sharing to "Anyone with the link" — leave it private. Access is granted only to the service account below.
+
+**2. Create a Google Cloud service account**
+- Go to https://console.cloud.google.com/ → create a project (or use an existing one)
+- **APIs & Services → Library** → search "Google Sheets API" → **Enable**
+- **APIs & Services → Credentials** → **Create Credentials → Service account** → give it any name (e.g. "temple-membership-check") → Create
+- Open the new service account → **Keys** tab → **Add Key → Create new key → JSON** → this downloads a `.json` file — keep it safe, don't commit it to GitHub
+
+**3. Share the Sheet with the service account**
+- Open the downloaded JSON file, copy the `client_email` value (looks like `something@your-project.iam.gserviceaccount.com`)
+- In your membership Google Sheet, click **Share** → paste that email → set to **Viewer** → Send/Share
+
+**4. Add environment variables in Netlify**
+- Netlify dashboard → your site → **Project configuration → Environment variables → Add a variable**, add all four:
+  - `GOOGLE_SERVICE_ACCOUNT_EMAIL` — the `client_email` from the JSON file
+  - `GOOGLE_PRIVATE_KEY` — the `private_key` value from the JSON file (paste the whole thing, including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`)
+  - `MEMBERSHIP_SHEET_ID` — the long ID from the sheet's URL, e.g. in `https://docs.google.com/spreadsheets/d/THIS_PART/edit`, copy `THIS_PART`
+  - `MEMBERSHIP_SHEET_TAB` — the tab name from step 1 (skip this variable entirely if you named it `Members`, since that's the default)
+- Trigger a redeploy (Netlify → Deploys → Trigger deploy) so the function picks up the new variables
+
+**5. Test it**
+- Go to your site → Membership Status → enter an NRIC that exists in your sheet → should show the member's details
+- Enter one that doesn't exist → should show "No membership record was found"
 
 ## What's NOT in the CMS
 Interface text (nav labels, button text, section headings) and the home-screen tile blurbs stay in `data.js` as developer-owned config — they rarely change and aren't really "temple content." Everything the committee actually needs to update regularly (festival dates, announcements, sevas, deity info, photos, contact details) is in the CMS.

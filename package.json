@@ -1,0 +1,9 @@
+{
+  "name": "sri-subramaniar-alayam-kiosk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sri Subramaniar Alayam kiosk/PWA + membership status check",
+  "dependencies": {
+    "googleapis": "^140.0.0"
+  }
+}
