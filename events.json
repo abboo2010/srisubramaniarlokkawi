@@ -1,0 +1,409 @@
+{
+  "items": [
+    {
+      "iso": "2026-05-01",
+      "title": "Chitra Pournami",
+      "title_bm": "Chitra Pournami",
+      "title_ta": "சித்திரை பௌர்ணமி",
+      "desc": "The full moon day of the Tamil month Chithirai, observed with special poojas.",
+      "desc_bm": "Hari bulan purnama bagi bulan Tamil Chithirai, disambut dengan pooja istimewa.",
+      "desc_ta": "சித்திரை மாத பௌர்ணமி நாள், சிறப்பு பூஜைகளுடன் கொண்டாடப்படுகிறது."
+    },
+    {
+      "iso": "2026-05-21",
+      "title": "MIC Kuttu Pirathanai",
+      "title_bm": "MIC Kuttu Pirathanai",
+      "title_ta": "MIC கூட்டு பிரார்த்தனை",
+      "desc": "A community collective-prayer gathering held at the temple.",
+      "desc_bm": "Perhimpunan doa bersama komuniti yang diadakan di kuil.",
+      "desc_ta": "கோயிலில் நடைபெறும் சமூக கூட்டு பிரார்த்தனை நிகழ்வு."
+    },
+    {
+      "iso": "2026-05-28",
+      "title": "Andu Vila",
+      "title_bm": "Andu Vila",
+      "title_ta": "ஆண்டு விழா",
+      "desc": "The temple's annual anniversary festival.",
+      "desc_bm": "Perayaan ulang tahun tahunan kuil.",
+      "desc_ta": "கோயிலின் ஆண்டு விழா."
+    },
+    {
+      "iso": "2026-05-30",
+      "title": "Vaikasi Visagam",
+      "title_bm": "Vaikasi Visagam",
+      "title_ta": "வைகாசி விசாகம்",
+      "desc": "The birthday of Lord Murugan, celebrated under the Visagam star in the month of Vaikasi.",
+      "desc_bm": "Hari lahir Lord Murugan, disambut di bawah bintang Visagam pada bulan Vaikasi.",
+      "desc_ta": "வைகாசி மாதம் விசாக நட்சத்திரத்தில் கொண்டாடப்படும் முருகப்பெருமானின் அவதார தினம்."
+    },
+    {
+      "iso": "2026-06-01",
+      "title": "Guru Peyarchi",
+      "title_bm": "Guru Peyarchi",
+      "title_ta": "குரு பெயர்ச்சி",
+      "desc": "The astrological transit of Jupiter (Guru) into a new zodiac sign, marked with special prayers.",
+      "desc_bm": "Peralihan astrologi planet Musytari (Guru) ke tanda zodiak baharu, disambut dengan doa istimewa.",
+      "desc_ta": "குரு பகவான் புதிய ராசிக்கு மாறும் நாள், சிறப்பு பிரார்த்தனைகளுடன் அனுசரிக்கப்படுகிறது."
+    },
+    {
+      "iso": "2026-07-17",
+      "title": "First Aadi Velli",
+      "title_bm": "Aadi Velli Pertama",
+      "title_ta": "முதல் ஆடி வெள்ளி",
+      "desc": "The first Friday of the Tamil month Aadi, an auspicious day to worship the Goddess.",
+      "desc_bm": "Hari Jumaat pertama bagi bulan Tamil Aadi, hari yang baik untuk menyembah Dewi.",
+      "desc_ta": "ஆடி மாதத்தின் முதல் வெள்ளிக்கிழமை, அம்மனை வழிபட உகந்த நாள்."
+    },
+    {
+      "iso": "2026-07-24",
+      "title": "Second Aadi Velli",
+      "title_bm": "Aadi Velli Kedua",
+      "title_ta": "இரண்டாம் ஆடி வெள்ளி",
+      "desc": "The second Friday of the Tamil month Aadi, an auspicious day to worship the Goddess.",
+      "desc_bm": "Hari Jumaat kedua bagi bulan Tamil Aadi, hari yang baik untuk menyembah Dewi.",
+      "desc_ta": "ஆடி மாதத்தின் இரண்டாம் வெள்ளிக்கிழமை, அம்மனை வழிபட உகந்த நாள்."
+    },
+    {
+      "iso": "2026-07-31",
+      "title": "Third Aadi Velli",
+      "title_bm": "Aadi Velli Ketiga",
+      "title_ta": "மூன்றாம் ஆடி வெள்ளி",
+      "desc": "The third Friday of the Tamil month Aadi, an auspicious day to worship the Goddess.",
+      "desc_bm": "Hari Jumaat ketiga bagi bulan Tamil Aadi, hari yang baik untuk menyembah Dewi.",
+      "desc_ta": "ஆடி மாதத்தின் மூன்றாம் வெள்ளிக்கிழமை, அம்மனை வழிபட உகந்த நாள்."
+    },
+    {
+      "iso": "2026-08-03",
+      "title": "Aadi Perukku",
+      "title_bm": "Aadi Perukku",
+      "title_ta": "ஆடி பெருக்கு",
+      "desc": "A harvest and water festival in the month of Aadi, giving thanks for rivers and fertility.",
+      "desc_bm": "Perayaan penuaian dan air pada bulan Aadi, sebagai tanda kesyukuran terhadap sungai dan kesuburan.",
+      "desc_ta": "ஆடி மாதத்தில் நீர்நிலைகளுக்கு நன்றி செலுத்தும் அறுவடைத் திருவிழா."
+    },
+    {
+      "iso": "2026-08-07",
+      "title": "Aadi Krithigai (Nagamma Pongal)",
+      "title_bm": "Aadi Krithigai (Nagamma Pongal)",
+      "title_ta": "ஆடி கார்த்திகை (நாகம்மா பொங்கல்)",
+      "desc": "A special day in Aadi month honoring Sri Nagamma with a Pongal offering.",
+      "desc_bm": "Hari istimewa pada bulan Aadi untuk menghormati Sri Nagamma dengan persembahan Pongal.",
+      "desc_ta": "ஆடி மாதத்தில் ஸ்ரீ நாகம்மாவுக்கு பொங்கல் படைத்து வழிபடும் நாள்."
+    },
+    {
+      "iso": "2026-08-14",
+      "title": "Aadi Pooram",
+      "title_bm": "Aadi Pooram",
+      "title_ta": "ஆடி பூரம்",
+      "desc": "A festival honoring the Goddess, celebrated under the Pooram star in Aadi month.",
+      "desc_bm": "Perayaan untuk menghormati Dewi, disambut di bawah bintang Pooram pada bulan Aadi.",
+      "desc_ta": "ஆடி மாதம் பூரம் நட்சத்திரத்தில் அம்மனை வழிபடும் திருவிழா."
+    },
+    {
+      "iso": "2026-08-17",
+      "title": "Garudan Panchami",
+      "title_bm": "Garudan Panchami",
+      "title_ta": "கருடன் பஞ்சமி",
+      "desc": "A day honoring Sri Garudar, the divine eagle and vahana of Lord Perumal.",
+      "desc_bm": "Hari untuk menghormati Sri Garudar, burung helang suci dan kenderaan Lord Perumal.",
+      "desc_ta": "ஸ்ரீ பெருமாளின் வாகனமான கருடனை வழிபடும் நாள்."
+    },
+    {
+      "iso": "2026-08-21",
+      "title": "Varalakshmi Viratham / Kuttu Vilakku Pooja",
+      "title_bm": "Varalakshmi Viratham / Kuttu Vilakku Pooja",
+      "title_ta": "வரலட்சுமி விரதம் / கூட்டு விளக்கு பூஜை",
+      "desc": "A vow observed for Goddess Varalakshmi's blessings, together with a communal lamp-lighting pooja.",
+      "desc_bm": "Ikrar puasa untuk memohon keberkatan Dewi Varalakshmi, bersama pooja menyalakan pelita secara bersama.",
+      "desc_ta": "வரலட்சுமியின் அருளை வேண்டி மேற்கொள்ளும் விரதமும் கூட்டு விளக்கு பூஜையும்."
+    },
+    {
+      "iso": "2026-09-04",
+      "title": "Krishna Jeyanthi",
+      "title_bm": "Krishna Jeyanthi",
+      "title_ta": "கிருஷ்ண ஜெயந்தி",
+      "desc": "The birthday of Lord Krishna.",
+      "desc_bm": "Hari lahir Lord Krishna.",
+      "desc_ta": "கிருஷ்ண பகவானின் அவதார தினம்."
+    },
+    {
+      "iso": "2026-09-14",
+      "title": "Vinayagar Chathurthi",
+      "title_bm": "Vinayagar Chathurthi",
+      "title_ta": "விநாயகர் சதுர்த்தி",
+      "desc": "The birthday of Lord Vinayagar, marked with special poojas.",
+      "desc_bm": "Hari lahir Lord Vinayagar, disambut dengan pooja istimewa.",
+      "desc_ta": "விநாயகப் பெருமானின் அவதார தினம், சிறப்பு பூஜைகளுடன் கொண்டாடப்படுகிறது."
+    },
+    {
+      "iso": "2026-09-19",
+      "title": "1st Puratasi",
+      "title_bm": "Puratasi Pertama",
+      "title_ta": "முதல் புரட்டாசி",
+      "desc": "The first Saturday of the Tamil month Purattasi, dedicated to Lord Perumal.",
+      "desc_bm": "Hari Sabtu pertama bagi bulan Tamil Purattasi, dikhususkan untuk Lord Perumal.",
+      "desc_ta": "புரட்டாசி மாதத்தின் முதல் சனிக்கிழமை, பெருமாளுக்கு உரியது."
+    },
+    {
+      "iso": "2026-09-26",
+      "title": "2nd Puratasi / Pournami",
+      "title_bm": "Puratasi Kedua / Pournami",
+      "title_ta": "இரண்டாம் புரட்டாசி / பௌர்ணமி",
+      "desc": "The second Saturday of Purattasi, also the full moon day, dedicated to Lord Perumal.",
+      "desc_bm": "Hari Sabtu kedua bagi bulan Purattasi, juga hari bulan purnama, dikhususkan untuk Lord Perumal.",
+      "desc_ta": "புரட்டாசி மாதத்தின் இரண்டாம் சனிக்கிழமையும் பௌர்ணமியும், பெருமாளுக்கு உரியது."
+    },
+    {
+      "iso": "2026-10-03",
+      "title": "3rd Puratasi",
+      "title_bm": "Puratasi Ketiga",
+      "title_ta": "மூன்றாம் புரட்டாசி",
+      "desc": "The third Saturday of the Tamil month Purattasi, dedicated to Lord Perumal.",
+      "desc_bm": "Hari Sabtu ketiga bagi bulan Tamil Purattasi, dikhususkan untuk Lord Perumal.",
+      "desc_ta": "புரட்டாசி மாதத்தின் மூன்றாம் சனிக்கிழமை, பெருமாளுக்கு உரியது."
+    },
+    {
+      "iso": "2026-10-10",
+      "title": "4th Puratasi",
+      "title_bm": "Puratasi Keempat",
+      "title_ta": "நான்காம் புரட்டாசி",
+      "desc": "The fourth Saturday of the Tamil month Purattasi, dedicated to Lord Perumal.",
+      "desc_bm": "Hari Sabtu keempat bagi bulan Tamil Purattasi, dikhususkan untuk Lord Perumal.",
+      "desc_ta": "புரட்டாசி மாதத்தின் நான்காம் சனிக்கிழமை, பெருமாளுக்கு உரியது."
+    },
+    {
+      "iso": "2026-10-11",
+      "title": "Navarathiri Start (Durga Pooja)",
+      "title_bm": "Permulaan Navarathiri (Durga Pooja)",
+      "title_ta": "நவராத்திரி தொடக்கம் (துர்கா பூஜை)",
+      "desc": "The beginning of the nine-night festival honoring the Goddess in her many forms.",
+      "desc_bm": "Permulaan perayaan sembilan malam untuk menghormati Dewi dalam pelbagai wujudnya.",
+      "desc_ta": "தேவியை பல்வேறு வடிவங்களில் வழிபடும் ஒன்பது இரவு திருவிழாவின் தொடக்கம்."
+    },
+    {
+      "iso": "2026-10-12",
+      "title": "Durga Pooja",
+      "title_bm": "Durga Pooja",
+      "title_ta": "துர்கா பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Durga.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Durga.",
+      "desc_ta": "துர்க்கை அம்மனுக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-13",
+      "title": "Durga Pooja",
+      "title_bm": "Durga Pooja",
+      "title_ta": "துர்கா பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Durga.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Durga.",
+      "desc_ta": "துர்க்கை அம்மனுக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-14",
+      "title": "Lakshmi Pooja",
+      "title_bm": "Lakshmi Pooja",
+      "title_ta": "லட்சுமி பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Lakshmi.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Lakshmi.",
+      "desc_ta": "லட்சுமி தேவிக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-15",
+      "title": "Lakshmi Pooja",
+      "title_bm": "Lakshmi Pooja",
+      "title_ta": "லட்சுமி பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Lakshmi.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Lakshmi.",
+      "desc_ta": "லட்சுமி தேவிக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-16",
+      "title": "Lakshmi Pooja",
+      "title_bm": "Lakshmi Pooja",
+      "title_ta": "லட்சுமி பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Lakshmi.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Lakshmi.",
+      "desc_ta": "லட்சுமி தேவிக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-17",
+      "title": "5th Puratasi",
+      "title_bm": "Puratasi Kelima",
+      "title_ta": "ஐந்தாம் புரட்டாசி",
+      "desc": "The fifth Saturday of the Tamil month Purattasi, dedicated to Lord Perumal.",
+      "desc_bm": "Hari Sabtu kelima bagi bulan Tamil Purattasi, dikhususkan untuk Lord Perumal.",
+      "desc_ta": "புரட்டாசி மாதத்தின் ஐந்தாம் சனிக்கிழமை, பெருமாளுக்கு உரியது."
+    },
+    {
+      "iso": "2026-10-17",
+      "title": "Saraswathi Pooja",
+      "title_bm": "Saraswathi Pooja",
+      "title_ta": "சரஸ்வதி பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Saraswathi.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Saraswathi.",
+      "desc_ta": "சரஸ்வதி தேவிக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-18",
+      "title": "Saraswathi Pooja",
+      "title_bm": "Saraswathi Pooja",
+      "title_ta": "சரஸ்வதி பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Saraswathi.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Saraswathi.",
+      "desc_ta": "சரஸ்வதி தேவிக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-19",
+      "title": "Saraswathi Pooja",
+      "title_bm": "Saraswathi Pooja",
+      "title_ta": "சரஸ்வதி பூஜை",
+      "desc": "A day of Navarathri dedicated to Goddess Saraswathi.",
+      "desc_bm": "Hari Navarathri yang dikhususkan untuk Dewi Saraswathi.",
+      "desc_ta": "சரஸ்வதி தேவிக்கு உரிய நவராத்திரி நாள்."
+    },
+    {
+      "iso": "2026-10-20",
+      "title": "Saraswathi Pooja (Ayudha Pooja)",
+      "title_bm": "Saraswathi Pooja (Ayudha Pooja)",
+      "title_ta": "சரஸ்வதி பூஜை (ஆயுத பூஜை)",
+      "desc": "Saraswathi Pooja day that also includes Ayudha Pooja, blessing tools and instruments of one's trade.",
+      "desc_bm": "Hari Saraswathi Pooja yang turut merangkumi Ayudha Pooja, memberkati alat dan peralatan pekerjaan.",
+      "desc_ta": "சரஸ்வதி பூஜையுடன் கருவிகளையும் ஆயுதங்களையும் வழிபடும் ஆயுத பூஜை நாள்."
+    },
+    {
+      "iso": "2026-10-21",
+      "title": "Vijaya Dasami",
+      "title_bm": "Vijaya Dasami",
+      "title_ta": "விஜய தசமி",
+      "desc": "The tenth and concluding day of Navarathri, marking the Goddess's victory over evil.",
+      "desc_bm": "Hari kesepuluh dan penutup Navarathri, menandakan kemenangan Dewi ke atas kejahatan.",
+      "desc_ta": "நவராத்திரியின் இறுதி நாள், தீமையின் மீது தேவியின் வெற்றியைக் குறிக்கிறது."
+    },
+    {
+      "iso": "2026-11-08",
+      "title": "Deepavali",
+      "title_bm": "Deepavali",
+      "title_ta": "தீபாவளி",
+      "desc": "The festival of lights, celebrating the victory of light over darkness.",
+      "desc_bm": "Perayaan cahaya, meraikan kemenangan cahaya ke atas kegelapan.",
+      "desc_ta": "இருளின் மீது ஒளியின் வெற்றியைக் கொண்டாடும் தீபங்களின் திருநாள்."
+    },
+    {
+      "iso": "2026-11-10",
+      "title": "Start of Kanda Shasti Fast",
+      "title_bm": "Permulaan Puasa Kanda Shasti",
+      "title_ta": "கந்த சஷ்டி விரத தொடக்கம்",
+      "desc": "The beginning of the six-day fast leading up to Soora Samharam.",
+      "desc_bm": "Permulaan puasa enam hari sebelum Soora Samharam.",
+      "desc_ta": "சூரசம்ஹாரத்திற்கு முன் மேற்கொள்ளும் ஆறு நாள் கந்த சஷ்டி விரதத்தின் தொடக்கம்."
+    },
+    {
+      "iso": "2026-11-11",
+      "title": "Kanda Shasti Fast",
+      "title_bm": "Puasa Kanda Shasti",
+      "title_ta": "கந்த சஷ்டி விரதம்",
+      "desc": "A day of the six-day Kanda Shasti fast, commemorating Lord Murugan's battle against Soorapadman.",
+      "desc_bm": "Salah satu daripada enam hari puasa Kanda Shasti, memperingati pertempuran Lord Murugan menentang Soorapadman.",
+      "desc_ta": "முருகப்பெருமான் சூரபத்மனுடன் போரிட்ட நிகழ்வை நினைவுகூரும் கந்த சஷ்டி விரத நாள்."
+    },
+    {
+      "iso": "2026-11-12",
+      "title": "Kanda Shasti Fast",
+      "title_bm": "Puasa Kanda Shasti",
+      "title_ta": "கந்த சஷ்டி விரதம்",
+      "desc": "A day of the six-day Kanda Shasti fast, commemorating Lord Murugan's battle against Soorapadman.",
+      "desc_bm": "Salah satu daripada enam hari puasa Kanda Shasti, memperingati pertempuran Lord Murugan menentang Soorapadman.",
+      "desc_ta": "முருகப்பெருமான் சூரபத்மனுடன் போரிட்ட நிகழ்வை நினைவுகூரும் கந்த சஷ்டி விரத நாள்."
+    },
+    {
+      "iso": "2026-11-13",
+      "title": "Kanda Shasti Fast",
+      "title_bm": "Puasa Kanda Shasti",
+      "title_ta": "கந்த சஷ்டி விரதம்",
+      "desc": "A day of the six-day Kanda Shasti fast, commemorating Lord Murugan's battle against Soorapadman.",
+      "desc_bm": "Salah satu daripada enam hari puasa Kanda Shasti, memperingati pertempuran Lord Murugan menentang Soorapadman.",
+      "desc_ta": "முருகப்பெருமான் சூரபத்மனுடன் போரிட்ட நிகழ்வை நினைவுகூரும் கந்த சஷ்டி விரத நாள்."
+    },
+    {
+      "iso": "2026-11-14",
+      "title": "Kanda Shasti Fast",
+      "title_bm": "Puasa Kanda Shasti",
+      "title_ta": "கந்த சஷ்டி விரதம்",
+      "desc": "A day of the six-day Kanda Shasti fast, commemorating Lord Murugan's battle against Soorapadman.",
+      "desc_bm": "Salah satu daripada enam hari puasa Kanda Shasti, memperingati pertempuran Lord Murugan menentang Soorapadman.",
+      "desc_ta": "முருகப்பெருமான் சூரபத்மனுடன் போரிட்ட நிகழ்வை நினைவுகூரும் கந்த சஷ்டி விரத நாள்."
+    },
+    {
+      "iso": "2026-11-15",
+      "title": "Soora Samharam (End of Kanda Shasti Fast)",
+      "title_bm": "Soora Samharam (Penamat Puasa Kanda Shasti)",
+      "title_ta": "சூரசம்ஹாரம் (கந்த சஷ்டி விரத முடிவு)",
+      "desc": "Re-enactment of Lord Murugan's victory over the demon Soorapadman.",
+      "desc_bm": "Lakonan semula kemenangan Lord Murugan ke atas raksasa Soorapadman.",
+      "desc_ta": "முருகப்பெருமான் சூரபத்மனை வென்ற நிகழ்வின் மறு நிகழ்த்துதல்."
+    },
+    {
+      "iso": "2026-11-16",
+      "title": "Kandha Sasthi Fast Breaking — Murugan / Vallitheivanai Thirukalyanam",
+      "title_bm": "Berbuka Puasa Kandha Sasthi — Murugan / Vallitheivanai Thirukalyanam",
+      "title_ta": "கந்த சஷ்டி விரத முடிவு — முருகன் / வள்ளி தெய்வானை திருக்கல்யாணம்",
+      "desc": "The fast-breaking day, also celebrating the divine wedding of Murugan to Valli and Deivanai.",
+      "desc_bm": "Hari berbuka puasa, turut meraikan perkahwinan suci Murugan dengan Valli dan Deivanai.",
+      "desc_ta": "விரத நிறைவு நாள், முருகனுக்கும் வள்ளி தெய்வானைக்கும் இடையிலான திருக்கல்யாணமும் கொண்டாடப்படுகிறது."
+    },
+    {
+      "iso": "2026-11-24",
+      "title": "Pournami / Karthigai Deepam",
+      "title_bm": "Pournami / Karthigai Deepam",
+      "title_ta": "பௌர்ணமி / கார்த்திகை தீபம்",
+      "desc": "The full moon of Karthigai month, marked by the lighting of lamps.",
+      "desc_bm": "Bulan purnama bagi bulan Karthigai, disambut dengan menyalakan pelita.",
+      "desc_ta": "கார்த்திகை மாத பௌர்ணமி, தீபம் ஏற்றி கொண்டாடப்படுகிறது."
+    },
+    {
+      "iso": "2026-12-01",
+      "title": "Kala Bhairava Ashtami",
+      "title_bm": "Kala Bhairava Ashtami",
+      "title_ta": "கால பைரவ அஷ்டமி",
+      "desc": "A day devoted to Sri Bairavar, the fierce guardian form of Lord Shiva.",
+      "desc_bm": "Hari yang dikhususkan untuk Sri Bairavar, wujud penjaga yang gagah bagi Lord Shiva.",
+      "desc_ta": "சிவபெருமானின் உக்கிர வடிவமான ஸ்ரீ பைரவருக்கு உரிய நாள்."
+    },
+    {
+      "iso": "2026-12-10",
+      "title": "Hanuman Jayanthi",
+      "title_bm": "Hanuman Jayanthi",
+      "title_ta": "அனுமன் ஜெயந்தி",
+      "desc": "The birthday of Lord Anjenayar (Hanuman).",
+      "desc_bm": "Hari lahir Lord Anjenayar (Hanuman).",
+      "desc_ta": "அஞ்சநேயரின் (அனுமன்) அவதார தினம்."
+    },
+    {
+      "iso": "2026-12-20",
+      "title": "Vaikunda Ekadesi",
+      "title_bm": "Vaikunda Ekadesi",
+      "title_ta": "வைகுண்ட ஏகாதசி",
+      "desc": "A sacred day devoted to Lord Perumal, believed to open the gates of Vaikuntam.",
+      "desc_bm": "Hari suci yang dikhususkan untuk Lord Perumal, dipercayai membuka pintu gerbang Vaikuntam.",
+      "desc_ta": "வைகுண்ட வாசல் திறக்கப்படுவதாக நம்பப்படும் பெருமாளுக்கு உரிய புனித நாள்."
+    },
+    {
+      "iso": "2026-12-23",
+      "title": "Thiruvathirai Abisegam / Pournami",
+      "title_bm": "Thiruvathirai Abisegam / Pournami",
+      "title_ta": "திருவாதிரை அபிஷேகம் / பௌர்ணமி",
+      "desc": "A full moon day sacred to Lord Shiva, marked with abhishekam.",
+      "desc_bm": "Hari bulan purnama yang suci bagi Lord Shiva, disambut dengan abhishekam.",
+      "desc_ta": "சிவபெருமானுக்கு உரிய பௌர்ணமி நாள், அபிஷேகத்துடன் கொண்டாடப்படுகிறது."
+    },
+    {
+      "iso": "2026-12-24",
+      "title": "Thiruvathirai Darshanam",
+      "title_bm": "Thiruvathirai Darshanam",
+      "title_ta": "திருவாதிரை தரிசனம்",
+      "desc": "A special darshan associated with the Thiruvathirai festival honoring Lord Shiva.",
+      "desc_bm": "Darshan istimewa yang berkaitan dengan perayaan Thiruvathirai untuk menghormati Lord Shiva.",
+      "desc_ta": "சிவபெருமானைப் போற்றும் திருவாதிரை திருநாளின் சிறப்பு தரிசனம்."
+    }
+  ]
+}

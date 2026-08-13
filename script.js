@@ -5,8 +5,16 @@
 // ============================================================
 
 let currentLang = "en";
-function eventTitle(ev){ return (currentLang === "ta" && ev.title_ta) ? ev.title_ta : ev.title; }
-function eventDesc(ev){ return (currentLang === "ta" && ev.desc_ta) ? ev.desc_ta : (ev.desc || ""); }
+function eventTitle(ev){
+  if (currentLang === "ta" && ev.title_ta) return ev.title_ta;
+  if (currentLang === "bm" && ev.title_bm) return ev.title_bm;
+  return ev.title;
+}
+function eventDesc(ev){
+  if (currentLang === "ta" && ev.desc_ta) return ev.desc_ta;
+  if (currentLang === "bm" && ev.desc_bm) return ev.desc_bm;
+  return ev.desc || "";
+}
 // Extracts just the first sentence from a longer text, for preview lists.
 // Returns the whole string unchanged if there's only one sentence.
 function firstSentence(text){
@@ -40,8 +48,7 @@ const railBtns = document.querySelectorAll(".rail-btn");
 const crumb = document.getElementById("crumb");
 const CRUMB_KEY = {
   home:"navHome", about:"navAbout", deities:"navDeities", calendar:"navCalendar",
-  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", news:"navNews",
-  membership:"navMembership", contact:"navContact"
+  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", news:"navNews", contact:"navContact"
 };
 let currentScreen = "home";
 
@@ -167,17 +174,6 @@ function renderStaticText(){
 
   document.getElementById("newsHeadingText").textContent = t("newsHeading");
   document.getElementById("newsSubText").textContent = t("newsSub");
-
-  document.getElementById("membershipHeadingText").textContent = t("membershipHeading");
-  document.getElementById("membershipSubText").textContent = t("membershipSub");
-  document.getElementById("membershipInputLabel").textContent = t("membershipInputLabel");
-  document.getElementById("membershipNricInput").placeholder = t("membershipPlaceholder");
-  document.getElementById("membershipCheckBtnText").textContent = t("membershipCheckBtn");
-  document.getElementById("membershipHintText").textContent = t("membershipHint");
-  document.getElementById("membershipResultNameLabel").textContent = t("membershipResultName");
-  document.getElementById("membershipResultNricLabel").textContent = t("membershipResultNric");
-  document.getElementById("membershipResultNoLabel").textContent = t("membershipResultNo");
-  document.getElementById("membershipResultTypeLabel").textContent = t("membershipResultType");
 
   document.getElementById("contactHeadingText").textContent = t("contactHeading");
   document.getElementById("contactSubText").textContent = t("contactSub");
@@ -732,8 +728,10 @@ function loadLiveContent(){
         .map(r => ({
           iso: (r["Date (YYYY-MM-DD)"] || "").trim(),
           title: (r["Title"] || "").trim(),
+          title_bm: (r["Title (Malay)"] || "").trim(),
           title_ta: (r["Title (Tamil)"] || "").trim(),
           desc: (r["Description"] || "").trim(),
+          desc_bm: (r["Description (Malay)"] || "").trim(),
           desc_ta: (r["Description (Tamil)"] || "").trim()
         }))
         .filter(e => e.iso && e.title);
@@ -808,89 +806,3 @@ function loadLiveContent(){
 }
 
 loadLiveContent();
-
-// ============================================================
-// MEMBERSHIP STATUS CHECK
-// Looks up a member by NRIC via a secure server-side function
-// (netlify/functions/check-membership.js). The full member list
-// is never sent to the browser — only the single matched record
-// (or a not-found result) for the NRIC the visitor typed in.
-// ============================================================
-const NRIC_PATTERN = /^\d{6}-\d{2}-\d{4}$/;
-const membershipNricInput = document.getElementById("membershipNricInput");
-const membershipCheckBtn = document.getElementById("membershipCheckBtn");
-const membershipErrorText = document.getElementById("membershipErrorText");
-const membershipResult = document.getElementById("membershipResult");
-
-// Auto-insert dashes as the visitor types digits, so the field
-// always ends up formatted as XXXXXX-XX-XXXX without them needing
-// to type the dashes themselves.
-function formatNric(raw){
-  const digits = raw.replace(/\D/g, "").slice(0, 12);
-  let out = digits.slice(0, 6);
-  if (digits.length > 6) out += "-" + digits.slice(6, 8);
-  if (digits.length > 8) out += "-" + digits.slice(8, 12);
-  return out;
-}
-
-if (membershipNricInput){
-  membershipNricInput.addEventListener("input", () => {
-    const pos = membershipNricInput.selectionStart;
-    const before = membershipNricInput.value;
-    membershipNricInput.value = formatNric(before);
-    // Keep the cursor roughly in place after reformatting.
-    const diff = membershipNricInput.value.length - before.length;
-    membershipNricInput.setSelectionRange(pos + diff, pos + diff);
-    hideMembershipError();
-    hideMembershipResult();
-  });
-  membershipNricInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") checkMembership();
-  });
-}
-if (membershipCheckBtn) membershipCheckBtn.addEventListener("click", checkMembership);
-
-function hideMembershipError(){ membershipErrorText.style.display = "none"; }
-function showMembershipError(key){
-  membershipErrorText.textContent = t(key);
-  membershipErrorText.style.display = "block";
-}
-function hideMembershipResult(){ membershipResult.style.display = "none"; }
-
-async function checkMembership(){
-  const nric = membershipNricInput.value.trim();
-  hideMembershipError();
-  hideMembershipResult();
-
-  if (!NRIC_PATTERN.test(nric)){
-    showMembershipError("membershipInvalidFormat");
-    return;
-  }
-
-  membershipCheckBtn.disabled = true;
-  const originalLabel = document.getElementById("membershipCheckBtnText").textContent;
-  document.getElementById("membershipCheckBtnText").textContent = t("membershipChecking");
-
-  try {
-    const res = await fetch(`/.netlify/functions/check-membership?nric=${encodeURIComponent(nric)}`);
-    if (res.status === 404){
-      showMembershipError("membershipNotFound");
-    } else if (!res.ok){
-      showMembershipError("membershipError");
-    } else {
-      const data = await res.json();
-      document.getElementById("membershipResultName").textContent = data.name || "";
-      document.getElementById("membershipResultNric").textContent = data.nric || nric;
-      document.getElementById("membershipResultNo").textContent = data.membershipNo || "";
-      const typeKey = (data.membershipType || "").trim().toLowerCase() === "life" ? "membershipTypeLife" : "membershipTypeOrdinary";
-      document.getElementById("membershipResultType").textContent = t(typeKey);
-      membershipResult.style.display = "block";
-    }
-  } catch (err){
-    console.warn("Membership check failed:", err);
-    showMembershipError("membershipError");
-  } finally {
-    membershipCheckBtn.disabled = false;
-    document.getElementById("membershipCheckBtnText").textContent = originalLabel;
-  }
-}
