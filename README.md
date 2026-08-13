@@ -1,5 +1,5 @@
 # Sri Subramaniar Alayam — App (browser + tablet kiosk + installable mobile app)
-
+ 
 One responsive site — same code, same deploy — that works as a fixed touchscreen kiosk, a browsable website, and an installable PWA on phones/tablets. Content is edited through a proper admin dashboard (Decap CMS), no code editing needed for day-to-day updates.
 
 ## ⚠️ Deployment changed — read this first
