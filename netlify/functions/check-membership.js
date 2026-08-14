@@ -48,11 +48,12 @@ exports.handler = async (event) => {
   const {
     GOOGLE_SERVICE_ACCOUNT_EMAIL,
     GOOGLE_PRIVATE_KEY,
+    GOOGLE_PRIVATE_KEY_B64,
     MEMBERSHIP_SHEET_ID,
     MEMBERSHIP_SHEET_TAB
   } = process.env;
 
-  if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY || !MEMBERSHIP_SHEET_ID) {
+  if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !(GOOGLE_PRIVATE_KEY || GOOGLE_PRIVATE_KEY_B64) || !MEMBERSHIP_SHEET_ID) {
     console.error("Missing required environment variables for membership lookup.");
     return {
       statusCode: 500,
@@ -106,6 +107,11 @@ exports.handler = async (event) => {
     const match = rows.slice(1).find((row) => (row[nricIdx] || "").trim() === nric);
 
     if (!match) {
+      console.error(
+        "No match. Searched nric:", JSON.stringify(nric),
+        "| tab used:", tab,
+        "| sheet NRIC values:", JSON.stringify(rows.slice(1).map((r) => r[nricIdx]))
+      );
       return { statusCode: 404, body: JSON.stringify({ error: "No membership record found." }) };
     }
 
