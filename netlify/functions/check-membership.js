@@ -61,12 +61,21 @@ exports.handler = async (event) => {
   }
 
   try {
+    // Netlify's env var UI can corrupt PEM line breaks/quotes on paste.
+    // Support a base64-encoded key (recommended, set via
+    // GOOGLE_PRIVATE_KEY_B64) as well as the raw PEM value, to sidestep
+    // that entirely.
+    let privateKey;
+    if (process.env.GOOGLE_PRIVATE_KEY_B64) {
+      privateKey = Buffer.from(process.env.GOOGLE_PRIVATE_KEY_B64, "base64").toString("utf8");
+    } else {
+      privateKey = GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
+    }
+
     const auth = new google.auth.JWT(
       GOOGLE_SERVICE_ACCOUNT_EMAIL,
       null,
-      // Netlify's env var UI sometimes stores the key with literal
-      // \n sequences instead of real newlines — normalize either form.
-      GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey,
       ["https://www.googleapis.com/auth/spreadsheets.readonly"]
     );
 
