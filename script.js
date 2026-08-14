@@ -21,8 +21,16 @@
 })();
 
 let currentLang = "en";
-function eventTitle(ev){ return (currentLang === "ta" && ev.title_ta) ? ev.title_ta : ev.title; }
-function eventDesc(ev){ return (currentLang === "ta" && ev.desc_ta) ? ev.desc_ta : (ev.desc || ""); }
+function eventTitle(ev){
+  if (currentLang === "ta" && ev.title_ta) return ev.title_ta;
+  if (currentLang === "bm" && ev.title_bm) return ev.title_bm;
+  return ev.title;
+}
+function eventDesc(ev){
+  if (currentLang === "ta" && ev.desc_ta) return ev.desc_ta;
+  if (currentLang === "bm" && ev.desc_bm) return ev.desc_bm;
+  return ev.desc || "";
+}
 // Extracts just the first sentence from a longer text, for preview lists.
 // Returns the whole string unchanged if there's only one sentence.
 function firstSentence(text){
