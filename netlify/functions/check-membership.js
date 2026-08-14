@@ -107,11 +107,6 @@ exports.handler = async (event) => {
     const match = rows.slice(1).find((row) => (row[nricIdx] || "").trim() === nric);
 
     if (!match) {
-      console.error(
-        "No match. Searched nric:", JSON.stringify(nric),
-        "| tab used:", tab,
-        "| sheet NRIC values:", JSON.stringify(rows.slice(1).map((r) => r[nricIdx]))
-      );
       return { statusCode: 404, body: JSON.stringify({ error: "No membership record found." }) };
     }
 
