@@ -761,8 +761,10 @@ function loadLiveContent(){
         .map(r => ({
           iso: (r["Date (YYYY-MM-DD)"] || "").trim(),
           title: (r["Title"] || "").trim(),
+          title_bm: (r["Title (Malay)"] || "").trim(),
           title_ta: (r["Title (Tamil)"] || "").trim(),
           desc: (r["Description"] || "").trim(),
+          desc_bm: (r["Description (Malay)"] || "").trim(),
           desc_ta: (r["Description (Tamil)"] || "").trim()
         }))
         .filter(e => e.iso && e.title);
