@@ -717,11 +717,14 @@ function driveImageUrl(link){
 }
 
 function sheetCsvUrl(tabName){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+  // A cache-busting timestamp param, since Google's gviz CSV export can
+  // otherwise serve a stale cached response for several minutes after a
+  // sheet edit, and the browser's own fetch cache can do the same.
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_=${Date.now()}`;
 }
 
 function fetchSheetTab(tabName){
-  return fetch(sheetCsvUrl(tabName))
+  return fetch(sheetCsvUrl(tabName), { cache: "no-store" })
     .then(res => { if(!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
     .then(text => new Promise((resolve, reject) => {
       Papa.parse(text, {
