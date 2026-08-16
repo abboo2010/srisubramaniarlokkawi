@@ -753,6 +753,11 @@ function fetchSheetTab(tabName){
       Papa.parse(text, {
         header: true,
         skipEmptyLines: true,
+        // Trims stray leading/trailing spaces in column headers (e.g. a
+        // header typed as "English " instead of "English"), since a
+        // mismatched key silently breaks every lookup for that column
+        // with no visible error.
+        transformHeader: (h) => h.trim(),
         complete: (results) => resolve(results.data),
         error: reject
       });
