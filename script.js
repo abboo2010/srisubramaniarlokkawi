@@ -739,7 +739,7 @@ function sheetCsvUrl(tabName){
 // even minutes after edits and even with cache-busting. The gid-based
 // export endpoint below has proven reliable for it, so HeroBanner uses
 // this instead. (Find a tab's gid in its URL: .../edit#gid=XXXXXXX)
-const TAB_GID = { HeroBanner: "171468680" };
+const TAB_GID = { HeroBanner: "171468680", Contact: "877259840" };
 
 function sheetCsvUrlByGid(gid){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&_=${Date.now()}`;
