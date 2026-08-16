@@ -141,6 +141,8 @@ function renderStaticText(){
   });
 
   document.getElementById("railHoursTitle").textContent = t("railHoursTitle");
+  document.getElementById("railBrandTitle").innerHTML = t("railBrandLine1") + "<br/>" + t("railBrandLine2");
+  document.getElementById("railBrandLoc").textContent = t("railBrandLoc");
   document.getElementById("railMorningLabel").textContent = t("railMorning");
   document.getElementById("railEveningLabel").textContent = t("railEvening");
 
