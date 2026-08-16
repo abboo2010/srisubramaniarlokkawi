@@ -147,12 +147,11 @@ function renderStaticText(){
   crumb.textContent = t(CRUMB_KEY[currentScreen]) || t("navHome");
 
   document.getElementById("heroEyebrow").textContent = t("heroEyebrow");
-  document.getElementById("heroTagline").textContent = t("heroTagline");
+  document.getElementById("heroTitleLine1").textContent = t("heroTitleLine1");
+  document.getElementById("heroTitleLine2").textContent = t("heroTitleLine2");
   document.getElementById("statEstablishedLabel").textContent = t("statEstablished");
   document.getElementById("statDevoteesLabel").textContent = t("statDevotees");
   document.getElementById("statEventsLabel").textContent = t("statEvents");
-  document.getElementById("statCommunityLabel").textContent = t("statCommunity");
-  document.getElementById("statCommunityValue").textContent = t("statCommunityValue");
 
   document.getElementById("panelTodayTimingsLabel").textContent = t("panelTodayTimings");
   document.getElementById("panelUpcomingEventsLabel").textContent = t("panelUpcomingEvents");
