@@ -723,8 +723,20 @@ function sheetCsvUrl(tabName){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_=${Date.now()}`;
 }
 
+// The name-based gviz/tq endpoint above has been observed to serve a
+// stubbornly stale cached response for the HeroBanner tab specifically,
+// even minutes after edits and even with cache-busting. The gid-based
+// export endpoint below has proven reliable for it, so HeroBanner uses
+// this instead. (Find a tab's gid in its URL: .../edit#gid=XXXXXXX)
+const TAB_GID = { HeroBanner: "171468680" };
+
+function sheetCsvUrlByGid(gid){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&_=${Date.now()}`;
+}
+
 function fetchSheetTab(tabName){
-  return fetch(sheetCsvUrl(tabName), { cache: "no-store" })
+  const url = TAB_GID[tabName] ? sheetCsvUrlByGid(TAB_GID[tabName]) : sheetCsvUrl(tabName);
+  return fetch(url, { cache: "no-store" })
     .then(res => { if(!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
     .then(text => new Promise((resolve, reject) => {
       Papa.parse(text, {
