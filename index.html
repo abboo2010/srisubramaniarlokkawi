@@ -1,171 +1,423 @@
-// ============================================================
-// DATA — Sri Subramaniar Alayam Kiosk App
-// Static, developer-owned config: interface text (3 languages) and
-// home-tile blurbs. This is NOT CMS-managed — it rarely changes and
-// isn't "temple content." Everything the CMS edits (deities, events,
-// sevas, announcements, gallery, about, contact, pooja timings) lives
-// in /content/*.json and is compiled into content-data.js by build.js
-// on every deploy. index.html loads this file, then content-data.js,
-// then script.js.
-// ============================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Sri Subramaniar Alayam</title>
 
-// ---------- UI chrome strings (nav, buttons, labels, headings) ----------
-const UI = {
-  en: {
-    navHome: "Home", navAbout: "About Temple", navDeities: "Deities",
-    navCalendar: "Event Calendar", navTimings: "Pooja Timings", navGallery: "Gallery",
-    navSevas: "Sevas & Donations", navNews: "News & Announcements",
-    navMembership: "Membership Status", navContact: "Contact Us",
-    railHoursTitle: "Temple Hours — Daily", railMorning: "Morning", railEvening: "Evening",
-    heroEyebrow: "Welcome to",
-    heroTitleLine1: "Sri Subramaniar Alayam", heroTitleLine2: "Lok Kawi",
-    statEstablished: "Established", statDevotees: "Devotees", statEvents: "Annual Events",
-    panelTodayTimings: "TODAY'S POOJA TIMES", panelUpcomingEvents: "UPCOMING EVENTS",
-    panelNewsAnnouncements: "NEWS & ANNOUNCEMENTS",
-    btnViewFullTimings: "View Full Timings →", btnViewFullCalendar: "View Full Calendar →",
-    btnNewsAnnouncements: "News & Announcements →",
-    velBlessing: "Vel! Vel! Vetri Vel!",
-    velBlessingDesc: "May Lord Murugan bless you and your family with peace, prosperity & good health.",
-    subscribePlaceholder: "Enter your email", subscribeBtn: "Subscribe",
-    aboutHeading: "About the Temple", aboutSub: "History, vision, and daily life at Sri Subramaniar Alayam.",
-    aboutHistoryTitle: "Our History", aboutVisionTitle: "Vision", aboutMissionTitle: "Mission",
-    aboutActivitiesTitle: "Temple Activities",
-    deitiesHeading: "Deities", deitiesSub: "Sri Subramaniar and the shrines within our temple complex.",
-    calendarHeading: "Event Calendar", calendarSub: "Upcoming poojas, festivals, and special events.",
-    calToday: "Today", calEventsSuffix: "Events", calNoEvents: "No events on record for this month.", readMoreBtn: "More",
-    timingsHeading: "Pooja Timings", timingsSub: "Daily schedule of poojas and special-day timings.",
-    galleryHeading: "Gallery", gallerySub: "Moments from festivals, poojas, and community events.",
-    sevasHeading: "Sevas & Donations", sevasSub: "Support the temple through sevas, sponsorships, and donations.",
-    donateBannerTitle: "Every contribution matters",
-    donateBannerDesc: "Your generosity keeps daily poojas, festivals, and community programs running for thousands of devotees.",
-    newsHeading: "News & Announcements", newsSub: "The latest updates from the temple.",
-    membershipHeading: "Membership Status", membershipSub: "Enter your NRIC number to check your temple membership status.",
-    membershipInputLabel: "NRIC Number", membershipPlaceholder: "XXXXXX-XX-XXXX",
-    membershipCheckBtn: "Check Status", membershipChecking: "Checking…",
-    membershipHint: "Format: XXXXXX-XX-XXXX (numbers only)",
-    membershipInvalidFormat: "Please enter a valid NRIC in the format XXXXXX-XX-XXXX.",
-    membershipNotFound: "No membership record was found for this NRIC.",
-    membershipError: "Something went wrong. Please try again in a moment.",
-    membershipResultName: "Name", membershipResultNric: "NRIC", membershipResultNo: "Membership No.",
-    membershipResultType: "Membership Type", membershipTypeLife: "Life", membershipTypeOrdinary: "Ordinary",
-    contactHeading: "Contact Us", contactSub: "Visit, call, or write to us.",
-    getInTouch: "Get in Touch", regNoLabel: "Reg. No", phoneLabel: "Phone",
-    emailLabel: "Email", followLabel: "Follow Us",
-    enquiriesTitle: "For Any Enquiries", whatsappCaption: "Scan to chat with us on WhatsApp",
-    qrScanToPay: "Scan to Pay", qrAccountName: "Account Name", qrBank: "Bank",
-    qrAccountNo: "Account No.", qrNote: "Scan with any DuitNow-enabled banking or e-wallet app.",
-    idleReturning: "Returning to Home…",
-    timingTabDaily: "Daily", timingTabFriday: "Friday (Special)", timingTabFullMoon: "Full Moon (Pournami)"
-  },
-  bm: {
-    navHome: "Utama", navAbout: "Tentang Kuil", navDeities: "Dewa-Dewi",
-    navCalendar: "Kalendar Acara", navTimings: "Waktu Pooja", navGallery: "Galeri",
-    navSevas: "Seva & Derma", navNews: "Berita & Pengumuman",
-    navMembership: "Status Keahlian", navContact: "Hubungi Kami",
-    railHoursTitle: "Waktu Kuil — Harian", railMorning: "Pagi", railEvening: "Petang",
-    heroEyebrow: "Selamat Datang ke",
-    heroTitleLine1: "Sri Subramaniar Alayam", heroTitleLine2: "Lok Kawi",
-    statEstablished: "Ditubuhkan", statDevotees: "Penganut", statEvents: "Acara Tahunan",
-    panelTodayTimings: "WAKTU POOJA HARI INI", panelUpcomingEvents: "ACARA AKAN DATANG",
-    panelNewsAnnouncements: "BERITA & PENGUMUMAN",
-    btnViewFullTimings: "Lihat Semua Waktu →", btnViewFullCalendar: "Lihat Kalendar Penuh →",
-    btnNewsAnnouncements: "Berita & Pengumuman →",
-    velBlessing: "Vel! Vel! Vetri Vel!",
-    velBlessingDesc: "Semoga Dewa Murugan memberkati anda dan keluarga dengan kedamaian, kemakmuran & kesihatan yang baik.",
-    subscribePlaceholder: "Masukkan e-mel anda", subscribeBtn: "Langgan",
-    aboutHeading: "Tentang Kuil", aboutSub: "Sejarah, visi, dan kehidupan seharian di Sri Subramaniar Alayam.",
-    aboutHistoryTitle: "Sejarah Kami", aboutVisionTitle: "Visi", aboutMissionTitle: "Misi",
-    aboutActivitiesTitle: "Aktiviti Kuil",
-    deitiesHeading: "Dewa-Dewi", deitiesSub: "Sri Subramaniar dan dewa-dewi lain di dalam kompleks kuil kami.",
-    calendarHeading: "Kalendar Acara", calendarSub: "Pooja, perayaan dan acara khas akan datang.",
-    calToday: "Hari Ini", calEventsSuffix: "Acara", calNoEvents: "Tiada acara direkodkan untuk bulan ini.", readMoreBtn: "Lagi",
-    timingsHeading: "Waktu Pooja", timingsSub: "Jadual harian pooja dan waktu hari khas.",
-    galleryHeading: "Galeri", gallerySub: "Detik-detik daripada perayaan, pooja, dan acara komuniti.",
-    sevasHeading: "Seva & Derma", sevasSub: "Sokong kuil melalui seva, penajaan, dan derma.",
-    donateBannerTitle: "Setiap sumbangan amat bermakna",
-    donateBannerDesc: "Kemurahan hati anda memastikan pooja harian, perayaan, dan program komuniti terus berjalan untuk ribuan penganut.",
-    newsHeading: "Berita & Pengumuman", newsSub: "Kemas kini terkini daripada kuil.",
-    membershipHeading: "Status Keahlian", membershipSub: "Masukkan nombor NRIC anda untuk menyemak status keahlian kuil anda.",
-    membershipInputLabel: "Nombor NRIC", membershipPlaceholder: "XXXXXX-XX-XXXX",
-    membershipCheckBtn: "Semak Status", membershipChecking: "Menyemak…",
-    membershipHint: "Format: XXXXXX-XX-XXXX (nombor sahaja)",
-    membershipInvalidFormat: "Sila masukkan NRIC yang sah dalam format XXXXXX-XX-XXXX.",
-    membershipNotFound: "Tiada rekod keahlian dijumpai untuk NRIC ini.",
-    membershipError: "Sesuatu tidak kena. Sila cuba lagi sebentar.",
-    membershipResultName: "Nama", membershipResultNric: "NRIC", membershipResultNo: "No. Keahlian",
-    membershipResultType: "Jenis Keahlian", membershipTypeLife: "Seumur Hidup", membershipTypeOrdinary: "Biasa",
-    contactHeading: "Hubungi Kami", contactSub: "Datang melawat, hubungi, atau tulis kepada kami.",
-    getInTouch: "Hubungi Kami", regNoLabel: "No. Pendaftaran", phoneLabel: "Telefon",
-    emailLabel: "E-mel", followLabel: "Ikuti Kami",
-    enquiriesTitle: "Sebarang Pertanyaan", whatsappCaption: "Imbas untuk berbual dengan kami di WhatsApp",
-    qrScanToPay: "Imbas untuk Bayar", qrAccountName: "Nama Akaun", qrBank: "Bank",
-    qrAccountNo: "No. Akaun", qrNote: "Imbas menggunakan mana-mana aplikasi perbankan atau e-dompet yang menyokong DuitNow.",
-    idleReturning: "Kembali ke Halaman Utama…",
-    timingTabDaily: "Harian", timingTabFriday: "Jumaat (Khas)", timingTabFullMoon: "Pournami (Bulan Purnama)"
-  },
-  ta: {
-    navHome: "முகப்பு", navAbout: "கோயில் பற்றி", navDeities: "தெய்வங்கள்",
-    navCalendar: "நிகழ்வு நாட்காட்டி", navTimings: "பூஜை நேரங்கள்", navGallery: "படத்தொகுப்பு",
-    navSevas: "சேவை & நன்கொடை", navNews: "செய்திகள் & அறிவிப்புகள்",
-    navMembership: "உறுப்பினர் நிலை", navContact: "தொடர்பு கொள்ள",
-    railHoursTitle: "கோயில் நேரம் — தினமும்", railMorning: "காலை", railEvening: "மாலை",
-    heroEyebrow: "வருக",
-    heroTitleLine1: "ஸ்ரீ சுப்ரமணியர் ஆலயம்", heroTitleLine2: "லோக் காவி",
-    statEstablished: "நிறுவப்பட்ட ஆண்டு", statDevotees: "பக்தர்கள்", statEvents: "ஆண்டு நிகழ்வுகள்",
-    panelTodayTimings: "இன்றைய பூஜை நேரங்கள்", panelUpcomingEvents: "வரவிருக்கும் நிகழ்வுகள்",
-    panelNewsAnnouncements: "செய்திகள் & அறிவிப்புகள்",
-    btnViewFullTimings: "முழு நேரங்களைக் காண →", btnViewFullCalendar: "முழு நாட்காட்டியைக் காண →",
-    btnNewsAnnouncements: "செய்திகள் & அறிவிப்புகள் →",
-    velBlessing: "வேல்! வேல்! வெற்றி வேல்!",
-    velBlessingDesc: "முருகப்பெருமான் உங்களையும் உங்கள் குடும்பத்தையும் அமைதி, செழிப்பு மற்றும் நல்வாழ்வுடன் ஆசீர்வதிக்கட்டும்.",
-    subscribePlaceholder: "உங்கள் மின்னஞ்சலை உள்ளிடவும்", subscribeBtn: "சந்தா செய்யவும்",
-    aboutHeading: "கோயில் பற்றி", aboutSub: "ஸ்ரீ சுப்ரமணியர் ஆலயத்தின் வரலாறு, நோக்கம் மற்றும் அன்றாட வாழ்க்கை.",
-    aboutHistoryTitle: "எங்கள் வரலாறு", aboutVisionTitle: "நோக்கம்", aboutMissionTitle: "பணி",
-    aboutActivitiesTitle: "கோயில் நடவடிக்கைகள்",
-    deitiesHeading: "தெய்வங்கள்", deitiesSub: "எங்கள் கோயில் வளாகத்தில் உள்ள ஸ்ரீ சுப்ரமணியரும் பிற தெய்வங்களும்.",
-    calendarHeading: "நிகழ்வு நாட்காட்டி", calendarSub: "வரவிருக்கும் பூஜைகள், திருவிழாக்கள் மற்றும் சிறப்பு நிகழ்வுகள்.",
-    calToday: "இன்று", calEventsSuffix: "நிகழ்வுகள்", calNoEvents: "இந்த மாதத்திற்கு நிகழ்வுகள் எதுவும் பதிவு செய்யப்படவில்லை.", readMoreBtn: "மேலும்",
-    timingsHeading: "பூஜை நேரங்கள்", timingsSub: "தினசரி பூஜை அட்டவணை மற்றும் சிறப்பு நாள் நேரங்கள்.",
-    galleryHeading: "படத்தொகுப்பு", gallerySub: "திருவிழாக்கள், பூஜைகள் மற்றும் சமூக நிகழ்வுகளின் தருணங்கள்.",
-    sevasHeading: "சேவை & நன்கொடை", sevasSub: "சேவைகள், நிதியுதவி மற்றும் நன்கொடைகள் மூலம் கோயிலுக்கு ஆதரவளியுங்கள்.",
-    donateBannerTitle: "ஒவ்வொரு பங்களிப்பும் முக்கியம்",
-    donateBannerDesc: "உங்கள் தாராள மனப்பான்மை ஆயிரக்கணக்கான பக்தர்களுக்காக தினசரி பூஜைகள், திருவிழாக்கள் மற்றும் சமூக நிகழ்ச்சிகளை நடத்த உதவுகிறது.",
-    newsHeading: "செய்திகள் & அறிவிப்புகள்", newsSub: "கோயிலின் சமீபத்திய புதுப்பிப்புகள்.",
-    membershipHeading: "உறுப்பினர் நிலை", membershipSub: "உங்கள் கோயில் உறுப்பினர் நிலையைச் சரிபார்க்க உங்கள் NRIC எண்ணை உள்ளிடவும்.",
-    membershipInputLabel: "NRIC எண்", membershipPlaceholder: "XXXXXX-XX-XXXX",
-    membershipCheckBtn: "நிலையைச் சரிபார்க்க", membershipChecking: "சரிபார்க்கிறது…",
-    membershipHint: "வடிவம்: XXXXXX-XX-XXXX (எண்கள் மட்டும்)",
-    membershipInvalidFormat: "XXXXXX-XX-XXXX வடிவத்தில் சரியான NRIC ஐ உள்ளிடவும்.",
-    membershipNotFound: "இந்த NRIC க்கு உறுப்பினர் பதிவு எதுவும் கிடைக்கவில்லை.",
-    membershipError: "ஏதோ தவறு நடந்தது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.",
-    membershipResultName: "பெயர்", membershipResultNric: "NRIC", membershipResultNo: "உறுப்பினர் எண்",
-    membershipResultType: "உறுப்பினர் வகை", membershipTypeLife: "வாழ்நாள்", membershipTypeOrdinary: "சாதாரண",
-    contactHeading: "தொடர்பு கொள்ள", contactSub: "வருகை தரவும், அழைக்கவும், அல்லது எழுதவும்.",
-    getInTouch: "எங்களைத் தொடர்பு கொள்ளுங்கள்", regNoLabel: "பதிவு எண்", phoneLabel: "தொலைபேசி",
-    emailLabel: "மின்னஞ்சல்", followLabel: "எங்களைப் பின்தொடரவும்",
-    enquiriesTitle: "எந்த விசாரணைக்கும்", whatsappCaption: "WhatsApp இல் எங்களுடன் அரட்டையடிக்க ஸ்கேன் செய்யவும்",
-    qrScanToPay: "செலுத்த ஸ்கேன் செய்யவும்", qrAccountName: "கணக்கு பெயர்", qrBank: "வங்கி",
-    qrAccountNo: "கணக்கு எண்", qrNote: "DuitNow ஆதரிக்கும் எந்த வங்கி அல்லது இ-வாலெட் செயலியிலும் ஸ்கேன் செய்யவும்.",
-    idleReturning: "முகப்புக்குத் திரும்புகிறது…",
-    timingTabDaily: "தினமும்", timingTabFriday: "வெள்ளி (சிறப்பு)", timingTabFullMoon: "பௌர்ணமி (முழு நிலவு)"
-  }
-};
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#26070b" />
+<link rel="icon" href="assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Sri Subramaniar" />
+<meta name="mobile-web-app-capable" content="yes" />
 
-// ---------- Home quick-nav tile copy (title/desc per language) ----------
-const TILE_META = [
-  { key: "about",
-    title: { en: "About Temple", bm: "Tentang Kuil", ta: "கோயில் பற்றி" },
-    desc:  { en: "History, Vision & Temple Activities", bm: "Sejarah, Visi & Aktiviti Kuil", ta: "வரலாறு, நோக்கம் & கோயில் நடவடிக்கைகள்" } },
-  { key: "deities",
-    title: { en: "Deities", bm: "Dewa-Dewi", ta: "தெய்வங்கள்" },
-    desc:  { en: "Sri Subramaniar & Other Deities", bm: "Sri Subramaniar & Dewa-Dewi Lain", ta: "ஸ்ரீ சுப்ரமணியர் & பிற தெய்வங்கள்" } },
-  { key: "calendar",
-    title: { en: "Event Calendar", bm: "Kalendar Acara", ta: "நிகழ்வு நாட்காட்டி" },
-    desc:  { en: "Poojas, Festivals & Special Events", bm: "Pooja, Perayaan & Acara Khas", ta: "பூஜைகள், திருவிழாக்கள் & சிறப்பு நிகழ்வுகள்" } },
-  { key: "timings",
-    title: { en: "Pooja Timings", bm: "Waktu Pooja", ta: "பூஜை நேரங்கள்" },
-    desc:  { en: "Daily Pooja & Darshan Timings", bm: "Waktu Pooja Harian & Darshan", ta: "தினசரி பூஜை & தரிசன நேரங்கள்" } },
-  { key: "sevas",
-    title: { en: "Sevas & Donations", bm: "Seva & Derma", ta: "சேவை & நன்கொடை" },
-    desc:  { en: "Support Temple & Sevas", bm: "Sokong Kuil & Seva", ta: "கோயிலுக்கும் சேவைகளுக்கும் ஆதரவு" } }
-];
+<link rel="stylesheet" href="style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+<!-- ============ SPLASH / WELCOME SCREEN ============ -->
+<div id="splashScreen" class="splash-screen">
+  <div class="splash-bg">
+    <img src="assets/deities/sri-subramaniar.jpg" alt="Lord Murugan" class="splash-bg-img" />
+    <div class="splash-bg-veil"></div>
+  </div>
+  <div class="splash-halo"></div>
+  <div class="splash-rays"></div>
+  <div class="splash-content">
+    <div class="splash-vel">வேல்! வேல்! வெற்றி வேல்!</div>
+    <div class="splash-logo-wrap">
+      <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="splash-logo" />
+    </div>
+    <h1 class="splash-title">Sri Subramaniar Alayam</h1>
+    <div class="splash-loc">Lok Kawi, Kota Kinabalu, Sabah</div>
+    <button id="splashEnterBtn" class="splash-enter-btn">
+      <span class="splash-enter-main">Enter</span>
+      <span class="splash-enter-sub">Masuk · துவங்கு</span>
+    </button>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ============ LEFT NAV RAIL ============ -->
+  <nav class="rail">
+    <div class="rail-brand">
+      <div class="rail-emblem">
+        <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" />
+      </div>
+      <h1>Sri Subramaniar<br/>Alayam</h1>
+      <div class="rail-loc">Lok Kawi, Kota Kinabalu</div>
+    </div>
+
+    <div class="rail-nav" id="railNav">
+      <button class="rail-btn" data-screen="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11 L12 3 L21 11 M5 10 V21 H19 V10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navHome">Home</span>
+      </button>
+      <button class="rail-btn" data-screen="about">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21 V9 L12 3 L20 9 V21 M9 21 V14 H15 V21" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navAbout">About Temple</span>
+      </button>
+      <button class="rail-btn" data-screen="deities">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M6 21 C6 16 8.5 13.5 12 13.5 C15.5 13.5 18 16 18 21" stroke-linecap="round"/></svg>
+        <span data-i18n="navDeities">Deities</span>
+      </button>
+      <button class="rail-btn" data-screen="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10 H20.5 M8 3 V6.5 M16 3 V6.5" stroke-linecap="round"/></svg>
+        <span data-i18n="navCalendar">Event Calendar</span>
+      </button>
+      <button class="rail-btn" data-screen="timings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15.2 14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navTimings">Pooja Timings</span>
+      </button>
+      <button class="rail-btn" data-screen="gallery">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17.5 L9.5 12.5 L13 15.5 L16.5 12 L20.5 16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navGallery">Gallery</span>
+      </button>
+      <button class="rail-btn" data-screen="sevas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 C7 17 3.5 13.8 3.5 9.9 C3.5 7.2 5.6 5 8.2 5 C9.8 5 11.1 5.8 12 7 C12.9 5.8 14.2 5 15.8 5 C18.4 5 20.5 7.2 20.5 9.9 C20.5 13.8 17 17 12 21 Z" stroke-linejoin="round"/></svg>
+        <span data-i18n="navSevas">Sevas &amp; Donations</span>
+      </button>
+      <button class="rail-btn" data-screen="news">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 9 L9 6 V17 L3.5 15 Z" stroke-linejoin="round"/><path d="M9 7.5 L18 5 V17.5 L9 15.5 M16 9.5 C17 10.3 17 12.2 16 13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="navNews">News &amp; Announcements</span>
+      </button>
+      <button class="rail-btn" data-screen="membership">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5.5" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M6 16.2 C6 14.5 7.1 13.6 8.5 13.6 C9.9 13.6 11 14.5 11 16.2" stroke-linecap="round"/><path d="M13.5 10 H18 M13.5 13 H18" stroke-linecap="round"/></svg>
+        <span data-i18n="navMembership">Membership Status</span>
+      </button>
+      <button class="rail-btn" data-screen="contact">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 C12 21 5 14.5 5 9.8 C5 6.3 7.7 4 11 4 C11.4 4 11.7 4 12 4.1 C12.3 4 12.6 4 13 4 C16.3 4 19 6.3 19 9.8 C19 14.5 12 21 12 21 Z" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2"/></svg>
+        <span data-i18n="navContact">Contact Us</span>
+      </button>
+    </div>
+
+    <div class="rail-hours">
+      <strong id="railHoursTitle">Temple Hours — Daily</strong>
+      <div><span id="railMorningLabel">Morning</span><span>5:30–12:30</span></div>
+      <div><span id="railEveningLabel">Evening</span><span>4:30–9:00</span></div>
+    </div>
+  </nav>
+  <div class="rail-backdrop" id="railBackdrop"></div>
+
+  <!-- ============ MAIN COLUMN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7 H20 M4 12 H20 M4 17 H20" stroke-linecap="round"/></svg>
+      </button>
+      <div class="topbar-crumb" id="crumb">Home</div>
+      <div class="topbar-right">
+        <div class="lang-pill">
+          <button class="active" data-lang="en">EN</button>
+          <button data-lang="bm">BM</button>
+          <button data-lang="ta">தமிழ்</button>
+        </div>
+        <div class="topbar-clock">
+          <b id="clockTime">--:--</b>
+          <span id="clockDate">-- --- ----</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="screen-wrap" id="screenWrap">
+
+      <!-- ===== HOME ===== -->
+      <section class="screen active" id="screen-home">
+        <div class="hero" style="--hero-img:url('assets/hero/temple-exterior.jpg');">
+          <div class="hero-eyebrow" id="heroEyebrow">Welcome to</div>
+          <h1><span id="heroTitleLine1">Sri Subramaniar Alayam</span><span class="hero-location" id="heroTitleLine2">Lok Kawi</span></h1>
+          <div class="hero-stats">
+            <div class="hero-stat"><b>1969</b><span id="statEstablishedLabel">Established</span></div>
+            <div class="hero-stat"><b>10K+</b><span id="statDevoteesLabel">Devotees</span></div>
+            <div class="hero-stat"><b>50+</b><span id="statEventsLabel">Annual Events</span></div>
+          </div>
+          <div class="hero-cta-row">
+            <button class="hero-cta hero-cta-primary" data-goto="calendar" data-i18n="panelUpcomingEvents">Upcoming Events</button>
+            <button class="hero-cta hero-cta-ghost" data-goto="timings" data-i18n="navTimings">Pooja Timings</button>
+          </div>
+        </div>
+
+        <div class="tile-grid" id="homeTiles"></div>
+
+        <div class="panel-grid">
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15.2 14" stroke-linecap="round"/></svg>
+              <span id="panelTodayTimingsLabel">TODAY'S POOJA TIMES</span>
+            </div>
+            <div class="panel-body" id="homeTimings"></div>
+            <button class="panel-btn" data-goto="timings" id="btnViewFullTimings">View Full Timings →</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10 H20.5"/></svg>
+              <span id="panelUpcomingEventsLabel">UPCOMING EVENTS</span>
+            </div>
+            <div class="panel-body" id="homeEvents"></div>
+            <button class="panel-btn" data-goto="calendar" id="btnViewFullCalendar">View Full Calendar →</button>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 9 L9 6 V17 L3.5 15 Z"/><path d="M9 7.5 L18 5 V17.5 L9 15.5"/></svg>
+              <span id="panelNewsAnnouncementsLabel">NEWS &amp; ANNOUNCEMENTS</span>
+            </div>
+            <div class="panel-body" id="homeAnnounce"></div>
+            <button class="panel-btn" data-goto="news" id="btnNewsAnnouncements">News &amp; Announcements →</button>
+          </div>
+        </div>
+
+        <div class="subscribe-strip">
+          <div class="msg"><b id="velBlessingText">Vel! Vel! Vetri Vel!</b><span id="velBlessingDescText">May Lord Murugan bless you and your family with peace, prosperity &amp; good health.</span></div>
+        </div>
+      </section>
+
+      <!-- ===== ABOUT ===== -->
+      <section class="screen" id="screen-about">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="aboutHeadingText">About the Temple</h2>
+          <p id="aboutSubText">History, vision, and daily life at Sri Subramaniar Alayam.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card card-scroll">
+            <h3 id="aboutHistoryTitleText">Our History</h3>
+            <div class="scroll-box" id="aboutHistory"></div>
+          </div>
+          <div>
+            <div class="card"><h3 id="aboutVisionTitleText">Vision</h3><p id="aboutVision"></p></div>
+            <div class="card"><h3 id="aboutMissionTitleText">Mission</h3><p id="aboutMission"></p></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 id="aboutActivitiesTitleText">Temple Activities</h3>
+          <div id="aboutActivities"></div>
+        </div>
+      </section>
+
+      <!-- ===== DEITIES ===== -->
+      <section class="screen" id="screen-deities">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="deitiesHeadingText">Deities</h2>
+          <p id="deitiesSubText">Sri Subramaniar and the shrines within our temple complex.</p>
+        </div>
+        <div class="grid-4" id="deityGrid"></div>
+      </section>
+
+      <!-- ===== EVENT CALENDAR ===== -->
+      <section class="screen" id="screen-calendar">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="calendarHeadingText">Event Calendar</h2>
+          <p id="calendarSubText">Upcoming poojas, festivals, and special events.</p>
+        </div>
+
+        <div class="cal-card">
+          <div class="cal-toolbar">
+            <div class="cal-toolbar-left">
+              <button class="cal-nav-btn" id="calToday">Today</button>
+              <button class="cal-arrow" id="calPrev" aria-label="Previous month">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6 L9 12 L15 18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button class="cal-arrow" id="calNext" aria-label="Next month">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6 L15 12 L9 18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="cal-month-label" id="calMonthLabel">Month Year</div>
+            </div>
+          </div>
+
+          <div class="cal-weekdays" id="calWeekdays"></div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <div class="card" id="calendarEventDetail">
+          <h3 id="calendarListHeading">Festival Calendar</h3>
+          <div id="calendarList"></div>
+        </div>
+      </section>
+
+      <!-- ===== POOJA TIMINGS ===== -->
+      <section class="screen" id="screen-timings">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="timingsHeadingText">Pooja Timings</h2>
+          <p id="timingsSubText">Daily schedule of poojas and special-day timings.</p>
+        </div>
+        <div class="tab-row" id="timingTabs"></div>
+        <div class="card" id="timingList"></div>
+      </section>
+
+      <!-- ===== GALLERY ===== -->
+      <section class="screen" id="screen-gallery">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="galleryHeadingText">Gallery</h2>
+          <p id="gallerySubText">Moments from festivals, poojas, and community events.</p>
+        </div>
+        <div class="grid-4" id="galleryGrid"></div>
+      </section>
+
+      <!-- ===== SEVAS & DONATIONS ===== -->
+      <section class="screen" id="screen-sevas">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="sevasHeadingText">Sevas &amp; Donations</h2>
+          <p id="sevasSubText">Support the temple through sevas, sponsorships, and donations.</p>
+        </div>
+        <div class="grid-4" id="sevaGrid"></div>
+        <div class="donate-banner">
+          <div>
+            <h3 id="donateBannerTitleText">Every contribution matters</h3>
+            <p id="donateBannerDescText">Your generosity keeps daily poojas, festivals, and community programs running for thousands of devotees.</p>
+          </div>
+          <button class="donate-btn" id="donateNowBtn">Donate Now</button>
+        </div>
+      </section>
+
+      <!-- ===== NEWS & ANNOUNCEMENTS ===== -->
+      <section class="screen" id="screen-news">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="newsHeadingText">News &amp; Announcements</h2>
+          <p id="newsSubText">The latest updates from the temple.</p>
+        </div>
+        <div class="card" id="newsList"></div>
+      </section>
+
+      <!-- ===== CONTACT ===== -->
+      <section class="screen" id="screen-membership">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="membershipHeadingText">Membership Status</h2>
+          <p id="membershipSubText">Enter your NRIC number to check your temple membership status.</p>
+        </div>
+
+        <div class="card membership-card">
+          <label class="membership-label" id="membershipInputLabel" for="membershipNricInput">NRIC Number</label>
+          <div class="membership-input-row">
+            <input type="text" id="membershipNricInput" class="membership-input" placeholder="XXXXXX-XX-XXXX" inputmode="numeric" maxlength="14" autocomplete="off" />
+            <button class="membership-check-btn" id="membershipCheckBtn">
+              <span id="membershipCheckBtnText">Check Status</span>
+            </button>
+          </div>
+          <p class="membership-hint" id="membershipHintText">Format: XXXXXX-XX-XXXX (numbers only)</p>
+          <p class="membership-error" id="membershipErrorText" style="display:none;"></p>
+
+          <div class="membership-result" id="membershipResult" style="display:none;">
+            <div class="membership-result-header">
+              <img src="assets/temple-logo.png" alt="Temple Logo" class="membership-result-logo" />
+              <div class="membership-result-org" id="membershipResultOrg">
+                PERTUBUHAN PENGURUSAN<br />KUIL SRI SUBRAMANIAR KEM LOK KAWI
+              </div>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultNameLabel">Name</span>:
+              <span class="membership-result-value" id="membershipResultName"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultNricLabel">NRIC</span>:
+              <span class="membership-result-value" id="membershipResultNric"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultNoLabel">Membership No.</span>:
+              <span class="membership-result-value" id="membershipResultNo"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultTypeLabel">Membership Type</span>:
+              <span class="membership-result-value" id="membershipResultType"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="screen-contact">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="contactHeadingText">Contact Us</h2>
+          <p id="contactSubText">Visit, call, or write to us.</p>
+        </div>
+        <div class="grid-2">
+          <div class="card" id="contactDetails"></div>
+          <div class="card qr-contact-card">
+            <h3 id="enquiriesTitleText">For Any Enquiries</h3>
+            <div class="whatsapp-qr-box">
+              <img src="assets/whatsapp-qr.png" alt="WhatsApp QR code" />
+            </div>
+            <p class="whatsapp-caption" id="whatsappCaptionText">Scan to chat with us on WhatsApp</p>
+            <div class="whatsapp-number" id="whatsappNumber"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<div class="idle-badge" id="idleBadge"><span class="dot"></span> <span id="idleBadgeText">Returning to Home…</span></div>
+
+<!-- ============ QR PAYMENT MODAL ============ -->
+<div class="qr-overlay" id="qrOverlay">
+  <div class="qr-modal">
+    <button class="qr-close" id="qrClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="qr-eyebrow" id="qrEyebrowText">Scan to Pay</div>
+    <h3 id="qrTitle">Archanai</h3>
+    <div class="qr-code-box" id="qrCodeBox"></div>
+    <div class="qr-amount" id="qrAmount">RM 10</div>
+    <div class="qr-account" id="qrAccount"></div>
+    <p class="qr-note" id="qrNoteText">Scan with any DuitNow-enabled banking or e-wallet app.</p>
+  </div>
+</div>
+
+<div class="deity-overlay" id="deityOverlay">
+  <div class="deity-modal">
+    <button class="deity-modal-close" id="deityModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="deity-modal-figure"><img id="deityModalImg" src="" alt="" /></div>
+    <div class="deity-modal-body">
+      <h3 id="deityModalName"></h3>
+      <div class="deity-modal-role" id="deityModalRole"></div>
+      <p id="deityModalDesc"></p>
+    </div>
+  </div>
+</div>
+
+<div class="event-overlay" id="eventOverlay">
+  <div class="event-modal">
+    <button class="event-modal-close" id="eventModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="event-modal-badge">
+      <b id="eventModalDay"></b>
+      <span id="eventModalMonth"></span>
+    </div>
+    <h3 id="eventModalTitle"></h3>
+    <p id="eventModalDate"></p>
+    <p id="eventModalDesc" class="event-modal-desc"></p>
+  </div>
+</div>
+
+<div class="announce-overlay" id="announceOverlay">
+  <div class="announce-modal">
+    <button class="announce-modal-close" id="announceModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <h3 id="announceModalTitle"></h3>
+    <p id="announceModalDesc"></p>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="content-data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
