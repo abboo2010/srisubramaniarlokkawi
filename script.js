@@ -149,6 +149,8 @@ function renderStaticText(){
   document.getElementById("heroEyebrow").textContent = t("heroEyebrow");
   document.getElementById("heroTitleLine1").textContent = t("heroTitleLine1");
   document.getElementById("heroTitleLine2").textContent = t("heroTitleLine2");
+  document.getElementById("heroBtnEvents").textContent = t("heroBtnEvents");
+  document.getElementById("heroBtnTimings").textContent = t("heroBtnTimings");
   document.getElementById("statEstablishedLabel").textContent = t("statEstablished");
   document.getElementById("statDevoteesLabel").textContent = t("statDevotees");
   document.getElementById("statEventsLabel").textContent = t("statEvents");
@@ -904,6 +906,21 @@ function loadLiveContent(){
       setText("Established Label", "statEstablished");
       setText("Devotees Label", "statDevotees");
       setText("Annual Events Label", "statEvents");
+      setText("Upcoming Events Label", "heroBtnEvents");
+      setText("Pooja Timings Label", "heroBtnTimings");
+
+      // Button destinations: which internal screen each hero button opens.
+      // Valid values: home, about, deities, calendar, timings, gallery,
+      // sevas, news, membership, contact. Falls back to the current
+      // destination if the sheet cell is blank or not one of these.
+      const VALID_SCREENS = ["home","about","deities","calendar","timings","gallery","sevas","news","membership","contact"];
+      const setLink = (field, elId) => {
+        const row = byField[field];
+        const dest = row && row.en ? row.en.trim().toLowerCase() : "";
+        if (VALID_SCREENS.includes(dest)) document.getElementById(elId).setAttribute("data-goto", dest);
+      };
+      setLink("Upcoming Events Link", "heroBtnEvents");
+      setLink("Pooja Timings Link", "heroBtnTimings");
 
       const setNumber = (field, elId) => {
         const row = byField[field];
