@@ -967,6 +967,20 @@ function loadLiveContent(){
         CONTACT.address_bm = addrRow.bm || addrRow.en;
         CONTACT.address_ta = addrRow.ta || addrRow.en;
       }
+
+      // Enquiries card: heading, caption, and the WhatsApp number shown
+      // there. Heading/caption are per-language; the number itself is
+      // the same regardless of language, sourced from the field above.
+      const setContactText = (field, key) => {
+        const row = byContactField[field];
+        if (row && row.en){
+          UI.en[key] = row.en;
+          UI.bm[key] = row.bm || row.en;
+          UI.ta[key] = row.ta || row.en;
+        }
+      };
+      setContactText("Enquiries Heading", "enquiriesTitle");
+      setContactText("Enquiries Caption", "whatsappCaption");
     }
 
     renderAll();
