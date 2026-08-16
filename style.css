@@ -275,7 +275,7 @@ img{display:block;max-width:100%;}
   padding:13px 24px;border-radius:999px;
   font-weight:800;font-size:13px;letter-spacing:.03em;white-space:nowrap;cursor:pointer;
 }
-.hero-cta{font-family:inherit;}
+.hero-cta{font-family:inherit;text-transform:uppercase;}
 .hero-cta-primary:hover{filter:brightness(1.08);}
 .hero-cta-ghost:hover{background:rgba(245,232,213,0.1);}
 .hero p.tagline{font-size:16px;color:var(--gold-100);opacity:0.92;margin:0 0 22px;max-width:480px;}
