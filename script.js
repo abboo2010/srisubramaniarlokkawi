@@ -630,7 +630,7 @@ function renderContact(){
     <h3>${t("getInTouch")}</h3>
     <div class="contact-row">
       <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 C12 21 5 14.5 5 9.8 C5 6.3 7.7 4 11 4 C11.4 4 11.7 4 12 4.1 C12.3 4 12.6 4 13 4 C16.3 4 19 6.3 19 9.8 C19 14.5 12 21 12 21 Z"/><circle cx="12" cy="9.5" r="2.2"/></svg></div>
-      <div><b>${CONTACT.orgName}</b><span>${t("regNoLabel")}: ${CONTACT.registrationNo}</span><span>${CONTACT.address}</span></div>
+      <div><b>${CONTACT.orgName}</b><span>${t("regNoLabel")}: ${CONTACT.registrationNo}</span><span>${CONTACT[\`address_${currentLang}\`] || CONTACT.address}</span></div>
     </div>
     <div class="contact-row">
       <div class="contact-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5 C4 14 10 20 19 20 L19 16.5 L15 15 L13 17 C10.5 15.5 8.5 13.5 7 11 L9 9 L7.5 5 Z" stroke-linejoin="round"/></svg></div>
@@ -698,6 +698,13 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 // Fill in SHEET_ID once the Sheet exists and its sharing is set to
 // "Anyone with the link — Viewer". Until then this is a no-op and the
 // site just uses the bundled content, exactly as before.
+// Seed per-language address fields from the bundled content, so the
+// contact card has something to show even before any live sheet data
+// arrives (and as the fallback for any language left blank in the sheet).
+if (!CONTACT.address_en) CONTACT.address_en = CONTACT.address;
+if (!CONTACT.address_bm) CONTACT.address_bm = CONTACT.address;
+if (!CONTACT.address_ta) CONTACT.address_ta = CONTACT.address;
+
 const SHEET_ID = "18_VoVU1CGM8uRhxcRJP_LSUCDRuc-GDrmefMj3debMg";
 
 // Snapshot of the bundled deity photos/colors, keyed by English name, taken
@@ -772,8 +779,9 @@ function loadLiveContent(){
     fetchSheetTab("AboutInfo"),
     fetchSheetTab("AboutHistory"),
     fetchSheetTab("AboutActivities"),
-    fetchSheetTab("HeroBanner")
-  ]).then(([eventsRows, annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows, heroRows]) => {
+    fetchSheetTab("HeroBanner"),
+    fetchSheetTab("Contact")
+  ]).then(([eventsRows, annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows, heroRows, contactRows]) => {
 
     if (eventsRows.length){
       const fresh = eventsRows
@@ -931,6 +939,34 @@ function loadLiveContent(){
       setNumber("Established Year", "statEstablishedValue");
       setNumber("Devotees", "statDevoteesValue");
       setNumber("Annual Events", "statEventsValue");
+    }
+
+    // Contact tab: one row per field. orgName/registrationNo/phone/email/
+    // whatsappNumber/social are the same regardless of language (English
+    // column only). Address is translated per language since it's the one
+    // field that genuinely differs — falls back to English if a language
+    // cell is left blank.
+    if (contactRows.length){
+      const byContactField = {};
+      contactRows.forEach(r => {
+        const field = (r["Field"] || "").trim();
+        if (field) byContactField[field] = { en: (r["English"] || "").trim(), bm: (r["Malay"] || "").trim(), ta: (r["Tamil"] || "").trim() };
+      });
+      const plain = (field) => byContactField[field] && byContactField[field].en;
+
+      if (plain("Organisation Name")) CONTACT.orgName = plain("Organisation Name");
+      if (plain("Registration No")) CONTACT.registrationNo = plain("Registration No");
+      if (plain("Phone")) CONTACT.phone = plain("Phone");
+      if (plain("Email")) CONTACT.email = plain("Email");
+      if (plain("WhatsApp Number")) CONTACT.whatsappNumber = plain("WhatsApp Number");
+      if (plain("Social Links")) CONTACT.social = plain("Social Links").split(",").map(s => s.trim()).filter(Boolean);
+
+      const addrRow = byContactField["Address"];
+      if (addrRow && addrRow.en){
+        CONTACT.address_en = addrRow.en;
+        CONTACT.address_bm = addrRow.bm || addrRow.en;
+        CONTACT.address_ta = addrRow.ta || addrRow.en;
+      }
     }
 
     renderAll();
