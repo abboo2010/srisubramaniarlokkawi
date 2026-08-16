@@ -263,6 +263,7 @@ img{display:block;max-width:100%;}
   line-height:1.12;
   max-width:560px;
 }
+.hero-location{display:block;}
 .hero-btn-row, .hero-cta-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
 .hero-btn-solid, .hero-cta-primary{
   background:var(--ember-500);color:#fff;border:none;
