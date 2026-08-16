@@ -752,8 +752,9 @@ function loadLiveContent(){
     fetchSheetTab("Deities"),
     fetchSheetTab("AboutInfo"),
     fetchSheetTab("AboutHistory"),
-    fetchSheetTab("AboutActivities")
-  ]).then(([eventsRows, annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows]) => {
+    fetchSheetTab("AboutActivities"),
+    fetchSheetTab("HeroBanner")
+  ]).then(([eventsRows, annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows, heroRows]) => {
 
     if (eventsRows.length){
       const fresh = eventsRows
@@ -862,6 +863,37 @@ function loadLiveContent(){
         ABOUT.activities_bm = bm.length === en.length ? bm : en;
         ABOUT.activities_ta = ta.length === en.length ? ta : en;
       }
+    }
+
+    // HeroBanner tab: one row per field, columns Field / English / Malay / Tamil.
+    // Text fields (Eyebrow, Title Line 1, Title Line 2) are per-language.
+    // Number fields (Established Year, Devotees, Annual Events) use the
+    // English column only, since digits don't change across languages.
+    if (heroRows.length){
+      const byField = {};
+      heroRows.forEach(r => {
+        const field = (r["Field"] || "").trim();
+        if (field) byField[field] = { en: (r["English"] || "").trim(), bm: (r["Malay"] || "").trim(), ta: (r["Tamil"] || "").trim() };
+      });
+      const setText = (field, key) => {
+        const row = byField[field];
+        if (row && row.en){
+          UI.en[key] = row.en;
+          UI.bm[key] = row.bm || row.en;
+          UI.ta[key] = row.ta || row.en;
+        }
+      };
+      setText("Eyebrow", "heroEyebrow");
+      setText("Title Line 1", "heroTitleLine1");
+      setText("Title Line 2", "heroTitleLine2");
+
+      const setNumber = (field, elId) => {
+        const row = byField[field];
+        if (row && row.en) document.getElementById(elId).textContent = row.en;
+      };
+      setNumber("Established Year", "statEstablishedValue");
+      setNumber("Devotees", "statDevoteesValue");
+      setNumber("Annual Events", "statEventsValue");
     }
 
     renderAll();
