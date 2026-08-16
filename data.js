@@ -13,6 +13,7 @@
 const UI = {
   en: {
     navHome: "Home", navAbout: "About Temple", navDeities: "Deities",
+    railBrandLine1: "Sri Subramaniar", railBrandLine2: "Alayam", railBrandLoc: "Lok Kawi, Kota Kinabalu",
     navCalendar: "Event Calendar", navTimings: "Pooja Timings", navGallery: "Gallery",
     navSevas: "Sevas & Donations", navNews: "News & Announcements",
     navMembership: "Membership Status", navContact: "Contact Us",
@@ -60,6 +61,7 @@ const UI = {
   },
   bm: {
     navHome: "Utama", navAbout: "Tentang Kuil", navDeities: "Dewa-Dewi",
+    railBrandLine1: "Sri Subramaniar", railBrandLine2: "Alayam", railBrandLoc: "Lok Kawi, Kota Kinabalu",
     navCalendar: "Kalendar Acara", navTimings: "Waktu Pooja", navGallery: "Galeri",
     navSevas: "Seva & Derma", navNews: "Berita & Pengumuman",
     navMembership: "Status Keahlian", navContact: "Hubungi Kami",
@@ -107,6 +109,7 @@ const UI = {
   },
   ta: {
     navHome: "முகப்பு", navAbout: "கோயில் பற்றி", navDeities: "தெய்வங்கள்",
+    railBrandLine1: "ஸ்ரீ சுப்ரமணியர்", railBrandLine2: "ஆலயம்", railBrandLoc: "லோக் காவி, கோத்தா கினபாலு",
     navCalendar: "நிகழ்வு நாட்காட்டி", navTimings: "பூஜை நேரங்கள்", navGallery: "படத்தொகுப்பு",
     navSevas: "சேவை & நன்கொடை", navNews: "செய்திகள் & அறிவிப்புகள்",
     navMembership: "உறுப்பினர் நிலை", navContact: "தொடர்பு கொள்ள",
