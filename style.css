@@ -258,12 +258,12 @@ img{display:block;max-width:100%;}
 .hero-eyebrow{font-size:12.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold-300);margin-bottom:8px;}
 .hero h1{
   font-family:var(--font-display);
-  font-size:38px;
+  font-size:30px;
   margin:0 0 10px;
   line-height:1.12;
   max-width:560px;
 }
-.hero-location{display:block;}
+.hero-location{display:block;margin-top:0.35em;line-height:1.5;}
 .hero-btn-row, .hero-cta-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
 .hero-btn-solid, .hero-cta-primary{
   background:var(--ember-500);color:#fff;border:none;
@@ -874,7 +874,7 @@ img{display:block;max-width:100%;}
   .lang-pill button{padding:6px 9px;font-size:11px;}
 
   .hero{padding:22px 20px;}
-  .hero h1{font-size:26px;}
+  .hero h1{font-size:21px;}
   .hero p.tagline{font-size:13.5px;}
   .hero-stats{gap:16px;}
   .hero-stat b{font-size:17px;}
@@ -914,7 +914,7 @@ img{display:block;max-width:100%;}
 
 @media (max-width:420px){
   .tile-grid{grid-template-columns:1fr;}
-  .hero h1{font-size:22px;}
+  .hero h1{font-size:18px;}
   .rail-hours{display:none;}
 }
 
