@@ -901,6 +901,9 @@ function loadLiveContent(){
       setText("Eyebrow", "heroEyebrow");
       setText("Title Line 1", "heroTitleLine1");
       setText("Title Line 2", "heroTitleLine2");
+      setText("Established Label", "statEstablished");
+      setText("Devotees Label", "statDevotees");
+      setText("Annual Events Label", "statEvents");
 
       const setNumber = (field, elId) => {
         const row = byField[field];
