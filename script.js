@@ -852,6 +852,33 @@ function showPrayerSuccess(role, data){
   if (role === "ubayakarar") msgKey = "prayersSuccessUbayakarar";
   else if (role === "participant") msgKey = data.fee ? "prayersSuccessParticipantPaid" : "prayersSuccessParticipantFree";
   document.getElementById("prayerSuccessMessage").textContent = t(msgKey);
+
+  // Ubayakarar (always) and a paid Participant slot need the devotee to pay
+  // via bank transfer/DuitNow, same as Sevas & Donations — show that QR
+  // right here instead of sending them hunting for it elsewhere.
+  // Annathanam is reserve-only (paid to the caterer directly), so it never
+  // shows this block.
+  const needsPayment = role === "ubayakarar" || (role === "participant" && data.fee);
+  const qrBlock = document.getElementById("prayerSuccessQr");
+  if (needsPayment){
+    document.getElementById("prayerSuccessQrEyebrow").textContent = t("qrScanToPay");
+    document.getElementById("prayerSuccessQrNote").textContent = t("qrNote");
+    const amountEl = document.getElementById("prayerSuccessQrAmount");
+    if (data.fee){
+      amountEl.textContent = "RM " + data.fee;
+      amountEl.style.display = "block";
+    } else {
+      amountEl.style.display = "none"; // fee "as arranged" — no fixed figure to show
+    }
+    document.getElementById("prayerSuccessQrAccount").innerHTML = `
+      <div><span>${t("qrAccountName")}</span><span>${DONATION_ACCOUNT.accountName}</span></div>
+      <div><span>${t("qrBank")}</span><span>${DONATION_ACCOUNT.bank}</span></div>
+      <div><span>${t("qrAccountNo")}</span><span>${DONATION_ACCOUNT.accountNumber}</span></div>
+    `;
+    qrBlock.style.display = "block";
+  } else {
+    qrBlock.style.display = "none";
+  }
 }
 
 document.getElementById("prayerSuccessCloseBtn").addEventListener("click", closePrayerModal);

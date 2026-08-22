@@ -72,9 +72,9 @@ const UI = {
     prayersFormName: "Full Name", prayersFormPhone: "Phone / WhatsApp Number", prayersFormParticipantCount: "Number of Participants",
     prayersFormNotes: "Remarks (optional)", prayersFormSubmit: "Submit Registration", prayersFormSubmitting: "Submitting…", prayersFormCancel: "Cancel",
     prayersSuccessTitle: "Registration received!", prayersSuccessRef: "Reference",
-    prayersSuccessUbayakarar: "Please complete payment via bank transfer or DuitNow QR (see Sevas & Donations), then send your proof of payment via WhatsApp, quoting your reference above.",
+    prayersSuccessUbayakarar: "Please complete payment via bank transfer or DuitNow QR, then send your proof of payment via WhatsApp, quoting your reference above.",
     prayersSuccessAnnathanam: "Your Annathanam sponsorship is reserved. Please contact your preferred caterer directly to arrange the meal — see the caterer list below.",
-    prayersSuccessParticipantPaid: "Please complete payment via bank transfer or DuitNow QR (see Sevas & Donations), then send your proof of payment via WhatsApp, quoting your reference above.",
+    prayersSuccessParticipantPaid: "Please complete payment via bank transfer or DuitNow QR, then send your proof of payment via WhatsApp, quoting your reference above.",
     prayersSuccessParticipantFree: "You're registered. We look forward to seeing you there!",
     prayersErrorGeneric: "Something went wrong. Please try again in a moment.", prayersCloseBtn: "Close"
   },
@@ -139,9 +139,9 @@ const UI = {
     prayersFormName: "Nama Penuh", prayersFormPhone: "Nombor Telefon / WhatsApp", prayersFormParticipantCount: "Bilangan Peserta",
     prayersFormNotes: "Catatan (pilihan)", prayersFormSubmit: "Hantar Pendaftaran", prayersFormSubmitting: "Menghantar…", prayersFormCancel: "Batal",
     prayersSuccessTitle: "Pendaftaran diterima!", prayersSuccessRef: "Rujukan",
-    prayersSuccessUbayakarar: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow (lihat Seva & Derma), kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
+    prayersSuccessUbayakarar: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow, kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
     prayersSuccessAnnathanam: "Penajaan Annathanam anda telah ditempah. Sila hubungi katerer pilihan anda terus untuk menguruskan hidangan — lihat senarai katerer di bawah.",
-    prayersSuccessParticipantPaid: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow (lihat Seva & Derma), kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
+    prayersSuccessParticipantPaid: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow, kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
     prayersSuccessParticipantFree: "Anda telah berdaftar. Kami menantikan kehadiran anda!",
     prayersErrorGeneric: "Sesuatu tidak kena. Sila cuba lagi sebentar.", prayersCloseBtn: "Tutup"
   },
@@ -206,9 +206,9 @@ const UI = {
     prayersFormName: "முழு பெயர்", prayersFormPhone: "தொலைபேசி / WhatsApp எண்", prayersFormParticipantCount: "பங்கேற்பாளர்கள் எண்ணிக்கை",
     prayersFormNotes: "குறிப்புகள் (விருப்பம்)", prayersFormSubmit: "பதிவை சமர்ப்பிக்க", prayersFormSubmitting: "சமர்ப்பிக்கிறது…", prayersFormCancel: "ரத்து செய்",
     prayersSuccessTitle: "பதிவு பெறப்பட்டது!", prayersSuccessRef: "குறிப்பு எண்",
-    prayersSuccessUbayakarar: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் (சேவை & நன்கொடை பார்க்கவும்) பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
+    prayersSuccessUbayakarar: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
     prayersSuccessAnnathanam: "உங்கள் அன்னதான நிதியுதவி பதிவு செய்யப்பட்டுள்ளது. உணவை ஏற்பாடு செய்ய உங்கள் விருப்பமான கேட்டரரை நேரடியாக தொடர்பு கொள்ளவும் — கீழே உள்ள கேட்டரர் பட்டியலைப் பார்க்கவும்.",
-    prayersSuccessParticipantPaid: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் (சேவை & நன்கொடை பார்க்கவும்) பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
+    prayersSuccessParticipantPaid: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
     prayersSuccessParticipantFree: "நீங்கள் பதிவு செய்யப்பட்டுள்ளீர்கள். உங்களை சந்திக்க காத்திருக்கிறோம்!",
     prayersErrorGeneric: "ஏதோ தவறு நடந்தது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.", prayersCloseBtn: "மூடு"
   }
