@@ -179,6 +179,7 @@
       <button id="printBookingsBtn">Print</button>
       <button id="exportBookingsBtn">Export CSV</button>
       <button class="primary" id="addBookingBtn">+ Add Booking</button>
+      <button class="primary" id="bulkAddBtn">+ Bulk Add Participants</button>
     </div>
 
     <div class="edit-panel" id="bookingEditPanel">
@@ -210,6 +211,31 @@
       <div class="edit-actions">
         <button class="save" id="saveBookingBtn">Save</button>
         <button class="cancel" id="cancelBookingBtn">Cancel</button>
+      </div>
+    </div>
+
+    <div class="edit-panel" id="bulkAddPanel">
+      <h2>Bulk Add Participants</h2>
+      <p class="panel-hint">For typing in a whole participant list at once — handy for a past pooja you need on record for the AGM. Pick the pooja, then paste or type one name per line. Add a comma and a number if more than one person came together, e.g. <code>Mr. &amp; Mrs. Ravi, 2</code>.</p>
+      <div class="edit-grid">
+        <div class="edit-field" style="grid-column:span 2;"><label>Pooja</label>
+          <select id="bulk_prayerId"></select>
+        </div>
+        <div class="edit-field"><label>Status</label>
+          <select id="bulk_status">
+            <option value="Confirmed">Confirmed</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Pending Payment">Pending Payment</option>
+          </select>
+        </div>
+        <div class="edit-field" style="grid-column:1/-1;">
+          <label>Participant Names (one per line)</label>
+          <textarea id="bulk_names" rows="8" placeholder="Kumaresan A/L Muthu&#10;Mr. &amp; Mrs. Ravi, 2&#10;Devi Ganesan"></textarea>
+        </div>
+      </div>
+      <div class="edit-actions">
+        <button class="save" id="saveBulkBtn">Add Participants</button>
+        <button class="cancel" id="cancelBulkBtn">Cancel</button>
       </div>
     </div>
 
@@ -524,6 +550,68 @@
       showStatus(`Booking saved — reference ${result.bookingId}.`, "ok");
       refreshBookings();
       if (role === "ubayakarar" || role === "annathanam") loadSchedule(); // sponsor field on the Schedule tab just changed too
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
+  });
+
+  // ---------- bulk add participants (paste a whole list at once) ----------
+  const bulkAddPanel = document.getElementById("bulkAddPanel");
+
+  document.getElementById("bulkAddBtn").addEventListener("click", async () => {
+    if (!allPrayers.length) await loadSchedule();
+    populateBulkPrayerSelect();
+    document.getElementById("bulk_status").value = "Confirmed";
+    document.getElementById("bulk_names").value = "";
+    bulkAddPanel.classList.add("show");
+    bulkAddPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  document.getElementById("cancelBulkBtn").addEventListener("click", () => bulkAddPanel.classList.remove("show"));
+
+  function populateBulkPrayerSelect(){
+    const select = document.getElementById("bulk_prayerId");
+    const current = select.value;
+    select.innerHTML = allPrayers
+      .slice()
+      .sort((a, b) => (b.date || "").localeCompare(a.date || "")) // most recent/past poojas first
+      .map(p => `<option value="${p.id}">${p.date} — ${p.name}${p.participantsEnabled ? "" : "  (participant registration is off for this one, but you can still add names here)"}</option>`)
+      .join("");
+    if (current && allPrayers.some(p => p.id === current)) select.value = current;
+  }
+
+  // Turns "Mr. & Mrs. Ravi, 2" or "Mr. & Mrs. Ravi x2" into {name, count}; a bare
+  // line like "Devi Ganesan" becomes count 1. Blank lines are dropped.
+  function parseBulkNames(text){
+    return text
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
+        const m = line.match(/^(.*?)[,x×]\s*(\d+)\s*$/i);
+        if (m && m[1].trim()){
+          return { name: m[1].trim(), count: Math.max(1, parseInt(m[2], 10) || 1) };
+        }
+        return { name: line, count: 1 };
+      });
+  }
+
+  document.getElementById("saveBulkBtn").addEventListener("click", async () => {
+    const prayerId = document.getElementById("bulk_prayerId").value;
+    const status = document.getElementById("bulk_status").value;
+    const entries = parseBulkNames(document.getElementById("bulk_names").value);
+    if (!prayerId || !entries.length){ showStatus("Pooja and at least one name are required.", "error"); return; }
+
+    try {
+      const res = await fetch("/.netlify/functions/admin-add-bulk-participants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ prayerId, entries, status })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      bulkAddPanel.classList.remove("show");
+      showStatus(`${result.inserted} participant${result.inserted === 1 ? "" : "s"} added.`, "ok");
+      refreshBookings();
     } catch (err){
       showStatus("Save failed.", "error");
     }
