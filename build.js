@@ -26,6 +26,8 @@ const about = readJSON("about");
 const contact = readJSON("contact");
 const templeInfo = readJSON("temple-info");
 const poojaTimings = readJSON("pooja-timings");
+const annualPrayers = readJSON("annual-prayers").items;
+const caterers = readJSON("caterers").items;
 
 const { donationAccount, ...contactRest } = contact;
 
@@ -59,6 +61,10 @@ const ANNOUNCEMENTS = ${JSON.stringify(announcements, null, 2)};
 const SEVAS = ${JSON.stringify(sevas, null, 2)};
 
 const GALLERY = ${JSON.stringify(gallery, null, 2)};
+
+const ANNUAL_PRAYERS = ${JSON.stringify(annualPrayers, null, 2)};
+
+const CATERERS = ${JSON.stringify(caterers, null, 2)};
 
 const CONTACT = ${JSON.stringify(contactRest, null, 2)};
 

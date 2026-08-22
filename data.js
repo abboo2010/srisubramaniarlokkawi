@@ -57,7 +57,26 @@ const UI = {
     qrScanToPay: "Scan to Pay", qrAccountName: "Account Name", qrBank: "Bank",
     qrAccountNo: "Account No.", qrNote: "Scan with any DuitNow-enabled banking or e-wallet app.",
     idleReturning: "Returning to Home…",
-    timingTabDaily: "Daily", timingTabFriday: "Friday (Special)", timingTabFullMoon: "Full Moon (Pournami)"
+    timingTabDaily: "Daily", timingTabFriday: "Friday (Special)", timingTabFullMoon: "Full Moon (Pournami)",
+    navPrayers: "Prayers & Registration",
+    prayersHeading: "Annual Prayers & Registration", prayersSub: "Sponsor a pooja as Ubayakarar or Annathanam sponsor, or register as a participant.",
+    prayersFilterAll: "All", prayersFilterUpcoming: "Upcoming", prayersFilterOver: "Completed",
+    prayersStatusUpcoming: "Upcoming", prayersStatusOver: "Completed",
+    prayersUbayakararLabel: "Ubayakarar", prayersAnnathanamLabel: "Annathanam Sponsor", prayersParticipantLabel: "Participant",
+    prayersOpenBadge: "Open", prayersTakenBadge: "Reserved",
+    prayersRegisterBtn: "Register", prayersFeeLabel: "Ubayam Fee", prayersPerPersonLabel: "Per Person", prayersAsArranged: "As arranged",
+    prayersCaterersHeading: "Annathanam Caterers", prayersCaterersSub: "Prefer to arrange the meal yourself? Contact any of our regular caterers directly.",
+    prayersParticipantsHeading: "Registered Participants", prayersNoParticipants: "No participant registrations were recorded for this pooja.",
+    prayersNotesLabel: "Notes",
+    prayersModalUbayakararTitle: "Register as Ubayakarar", prayersModalAnnathanamTitle: "Register as Annathanam Sponsor", prayersModalParticipantTitle: "Register as Participant",
+    prayersFormName: "Full Name", prayersFormPhone: "Phone / WhatsApp Number", prayersFormParticipantCount: "Number of Participants",
+    prayersFormNotes: "Remarks (optional)", prayersFormSubmit: "Submit Registration", prayersFormSubmitting: "Submitting…", prayersFormCancel: "Cancel",
+    prayersSuccessTitle: "Registration received!", prayersSuccessRef: "Reference",
+    prayersSuccessUbayakarar: "Please complete payment via bank transfer or DuitNow QR (see Sevas & Donations), then send your proof of payment via WhatsApp, quoting your reference above.",
+    prayersSuccessAnnathanam: "Your Annathanam sponsorship is reserved. Please contact your preferred caterer directly to arrange the meal — see the caterer list below.",
+    prayersSuccessParticipantPaid: "Please complete payment via bank transfer or DuitNow QR (see Sevas & Donations), then send your proof of payment via WhatsApp, quoting your reference above.",
+    prayersSuccessParticipantFree: "You're registered. We look forward to seeing you there!",
+    prayersErrorGeneric: "Something went wrong. Please try again in a moment.", prayersCloseBtn: "Close"
   },
   bm: {
     navHome: "Utama", navAbout: "Tentang Kuil", navDeities: "Dewa-Dewi",
@@ -105,7 +124,26 @@ const UI = {
     qrScanToPay: "Imbas untuk Bayar", qrAccountName: "Nama Akaun", qrBank: "Bank",
     qrAccountNo: "No. Akaun", qrNote: "Imbas menggunakan mana-mana aplikasi perbankan atau e-dompet yang menyokong DuitNow.",
     idleReturning: "Kembali ke Halaman Utama…",
-    timingTabDaily: "Harian", timingTabFriday: "Jumaat (Khas)", timingTabFullMoon: "Pournami (Bulan Purnama)"
+    timingTabDaily: "Harian", timingTabFriday: "Jumaat (Khas)", timingTabFullMoon: "Pournami (Bulan Purnama)",
+    navPrayers: "Pooja Tahunan & Pendaftaran",
+    prayersHeading: "Pooja Tahunan & Pendaftaran", prayersSub: "Taja pooja sebagai Ubayakarar atau penaja Annathanam, atau daftar sebagai peserta.",
+    prayersFilterAll: "Semua", prayersFilterUpcoming: "Akan Datang", prayersFilterOver: "Selesai",
+    prayersStatusUpcoming: "Akan Datang", prayersStatusOver: "Selesai",
+    prayersUbayakararLabel: "Ubayakarar", prayersAnnathanamLabel: "Penaja Annathanam", prayersParticipantLabel: "Peserta",
+    prayersOpenBadge: "Terbuka", prayersTakenBadge: "Ditempah",
+    prayersRegisterBtn: "Daftar", prayersFeeLabel: "Yuran Ubayam", prayersPerPersonLabel: "Setiap Orang", prayersAsArranged: "Mengikut aturan",
+    prayersCaterersHeading: "Katerer Annathanam", prayersCaterersSub: "Ingin uruskan hidangan sendiri? Hubungi mana-mana katerer tetap kami terus.",
+    prayersParticipantsHeading: "Peserta Berdaftar", prayersNoParticipants: "Tiada pendaftaran peserta direkodkan untuk pooja ini.",
+    prayersNotesLabel: "Catatan",
+    prayersModalUbayakararTitle: "Daftar sebagai Ubayakarar", prayersModalAnnathanamTitle: "Daftar sebagai Penaja Annathanam", prayersModalParticipantTitle: "Daftar sebagai Peserta",
+    prayersFormName: "Nama Penuh", prayersFormPhone: "Nombor Telefon / WhatsApp", prayersFormParticipantCount: "Bilangan Peserta",
+    prayersFormNotes: "Catatan (pilihan)", prayersFormSubmit: "Hantar Pendaftaran", prayersFormSubmitting: "Menghantar…", prayersFormCancel: "Batal",
+    prayersSuccessTitle: "Pendaftaran diterima!", prayersSuccessRef: "Rujukan",
+    prayersSuccessUbayakarar: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow (lihat Seva & Derma), kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
+    prayersSuccessAnnathanam: "Penajaan Annathanam anda telah ditempah. Sila hubungi katerer pilihan anda terus untuk menguruskan hidangan — lihat senarai katerer di bawah.",
+    prayersSuccessParticipantPaid: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow (lihat Seva & Derma), kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
+    prayersSuccessParticipantFree: "Anda telah berdaftar. Kami menantikan kehadiran anda!",
+    prayersErrorGeneric: "Sesuatu tidak kena. Sila cuba lagi sebentar.", prayersCloseBtn: "Tutup"
   },
   ta: {
     navHome: "முகப்பு", navAbout: "கோயில் பற்றி", navDeities: "தெய்வங்கள்",
@@ -153,7 +191,26 @@ const UI = {
     qrScanToPay: "செலுத்த ஸ்கேன் செய்யவும்", qrAccountName: "கணக்கு பெயர்", qrBank: "வங்கி",
     qrAccountNo: "கணக்கு எண்", qrNote: "DuitNow ஆதரிக்கும் எந்த வங்கி அல்லது இ-வாலெட் செயலியிலும் ஸ்கேன் செய்யவும்.",
     idleReturning: "முகப்புக்குத் திரும்புகிறது…",
-    timingTabDaily: "தினமும்", timingTabFriday: "வெள்ளி (சிறப்பு)", timingTabFullMoon: "பௌர்ணமி (முழு நிலவு)"
+    timingTabDaily: "தினமும்", timingTabFriday: "வெள்ளி (சிறப்பு)", timingTabFullMoon: "பௌர்ணமி (முழு நிலவு)",
+    navPrayers: "ஆண்டு பூஜைகள் & பதிவு",
+    prayersHeading: "ஆண்டு பூஜைகள் & பதிவு", prayersSub: "உபயகாரராகவோ அன்னதான நிதியுதவியாளராகவோ பூஜையை நிதியுதவி செய்யுங்கள், அல்லது பங்கேற்பாளராக பதிவு செய்யுங்கள்.",
+    prayersFilterAll: "அனைத்தும்", prayersFilterUpcoming: "வரவிருக்கும்", prayersFilterOver: "முடிந்தது",
+    prayersStatusUpcoming: "வரவிருக்கும்", prayersStatusOver: "முடிந்தது",
+    prayersUbayakararLabel: "உபயகாரர்", prayersAnnathanamLabel: "அன்னதான நிதியுதவியாளர்", prayersParticipantLabel: "பங்கேற்பாளர்",
+    prayersOpenBadge: "திறந்துள்ளது", prayersTakenBadge: "பதிவு செய்யப்பட்டது",
+    prayersRegisterBtn: "பதிவு செய்ய", prayersFeeLabel: "உபயம் கட்டணம்", prayersPerPersonLabel: "ஒருவருக்கு", prayersAsArranged: "ஏற்பாடு செய்யப்படும்",
+    prayersCaterersHeading: "அன்னதான கேட்டரர்கள்", prayersCaterersSub: "நீங்களே உணவை ஏற்பாடு செய்ய விரும்புகிறீர்களா? எங்கள் வழக்கமான கேட்டரர்களை நேரடியாக தொடர்பு கொள்ளுங்கள்.",
+    prayersParticipantsHeading: "பதிவு செய்த பங்கேற்பாளர்கள்", prayersNoParticipants: "இந்த பூஜைக்கு பங்கேற்பாளர் பதிவுகள் எதுவும் பதிவு செய்யப்படவில்லை.",
+    prayersNotesLabel: "குறிப்புகள்",
+    prayersModalUbayakararTitle: "உபயகாரராக பதிவு செய்ய", prayersModalAnnathanamTitle: "அன்னதான நிதியுதவியாளராக பதிவு செய்ய", prayersModalParticipantTitle: "பங்கேற்பாளராக பதிவு செய்ய",
+    prayersFormName: "முழு பெயர்", prayersFormPhone: "தொலைபேசி / WhatsApp எண்", prayersFormParticipantCount: "பங்கேற்பாளர்கள் எண்ணிக்கை",
+    prayersFormNotes: "குறிப்புகள் (விருப்பம்)", prayersFormSubmit: "பதிவை சமர்ப்பிக்க", prayersFormSubmitting: "சமர்ப்பிக்கிறது…", prayersFormCancel: "ரத்து செய்",
+    prayersSuccessTitle: "பதிவு பெறப்பட்டது!", prayersSuccessRef: "குறிப்பு எண்",
+    prayersSuccessUbayakarar: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் (சேவை & நன்கொடை பார்க்கவும்) பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
+    prayersSuccessAnnathanam: "உங்கள் அன்னதான நிதியுதவி பதிவு செய்யப்பட்டுள்ளது. உணவை ஏற்பாடு செய்ய உங்கள் விருப்பமான கேட்டரரை நேரடியாக தொடர்பு கொள்ளவும் — கீழே உள்ள கேட்டரர் பட்டியலைப் பார்க்கவும்.",
+    prayersSuccessParticipantPaid: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் (சேவை & நன்கொடை பார்க்கவும்) பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
+    prayersSuccessParticipantFree: "நீங்கள் பதிவு செய்யப்பட்டுள்ளீர்கள். உங்களை சந்திக்க காத்திருக்கிறோம்!",
+    prayersErrorGeneric: "ஏதோ தவறு நடந்தது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.", prayersCloseBtn: "மூடு"
   }
 };
 
@@ -173,5 +230,8 @@ const TILE_META = [
     desc:  { en: "Daily Pooja & Darshan Timings", bm: "Waktu Pooja Harian & Darshan", ta: "தினசரி பூஜை & தரிசன நேரங்கள்" } },
   { key: "sevas",
     title: { en: "Sevas & Donations", bm: "Seva & Derma", ta: "சேவை & நன்கொடை" },
-    desc:  { en: "Support Temple & Sevas", bm: "Sokong Kuil & Seva", ta: "கோயிலுக்கும் சேவைகளுக்கும் ஆதரவு" } }
+    desc:  { en: "Support Temple & Sevas", bm: "Sokong Kuil & Seva", ta: "கோயிலுக்கும் சேவைகளுக்கும் ஆதரவு" } },
+  { key: "prayers",
+    title: { en: "Prayers & Registration", bm: "Pooja Tahunan & Pendaftaran", ta: "ஆண்டு பூஜைகள் & பதிவு" },
+    desc:  { en: "Sponsor or Join a Pooja", bm: "Taja atau Sertai Pooja", ta: "பூஜையை நிதியுதவி செய்ய அல்லது பங்கேற்க" } }
 ];

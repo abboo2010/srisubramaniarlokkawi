@@ -46,7 +46,8 @@ const ICONS = {
   deities: `<circle cx="12" cy="8" r="3.4"/><path d="M6 21 C6 16 8.5 13.5 12 13.5 C15.5 13.5 18 16 18 21" stroke-linecap="round"/>`,
   calendar: `<rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10 H20.5 M8 3 V6.5 M16 3 V6.5" stroke-linecap="round"/>`,
   timings: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15.2 14" stroke-linecap="round" stroke-linejoin="round"/>`,
-  sevas: `<path d="M12 21 C7 17 3.5 13.8 3.5 9.9 C3.5 7.2 5.6 5 8.2 5 C9.8 5 11.1 5.8 12 7 C12.9 5.8 14.2 5 15.8 5 C18.4 5 20.5 7.2 20.5 9.9 C20.5 13.8 17 17 12 21 Z" stroke-linejoin="round"/>`
+  sevas: `<path d="M12 21 C7 17 3.5 13.8 3.5 9.9 C3.5 7.2 5.6 5 8.2 5 C9.8 5 11.1 5.8 12 7 C12.9 5.8 14.2 5 15.8 5 C18.4 5 20.5 7.2 20.5 9.9 C20.5 13.8 17 17 12 21 Z" stroke-linejoin="round"/>`,
+  prayers: `<path d="M12 3 C13 6 15 8 15 11 C15 13.5 13.5 15 12 15 C10.5 15 9 13.5 9 11 C9 8 11 6 12 3 Z" stroke-linejoin="round"/><path d="M6 19 C6 17 8.5 15.5 12 15.5 C15.5 15.5 18 17 18 19" stroke-linecap="round"/><path d="M4 19 H20" stroke-linecap="round"/>`
 };
 
 const PANEL_COLORS = ["#711821", "#8f202b", "#c1531f", "#3e7c52", "#2b1b12", "#8e4a9e", "#3e7c8c", "#b5651d"];
@@ -64,7 +65,7 @@ const railBtns = document.querySelectorAll(".rail-btn");
 const crumb = document.getElementById("crumb");
 const CRUMB_KEY = {
   home:"navHome", about:"navAbout", deities:"navDeities", calendar:"navCalendar",
-  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", news:"navNews",
+  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", prayers:"navPrayers", news:"navNews",
   membership:"navMembership", contact:"navContact"
 };
 let currentScreen = "home";
@@ -223,7 +224,7 @@ function renderStaticText(){
 function renderHomeTiles(){
   const tileGrid = document.getElementById("homeTiles");
   tileGrid.innerHTML = "";
-  const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas };
+  const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers };
   TILE_META.forEach(tItem=>{
     const btn = el(`
       <button class="tile" data-goto="${tItem.key}">
@@ -588,6 +589,319 @@ document.getElementById("qrClose").addEventListener("click", closeQrModal);
 qrOverlay.addEventListener("click", (e)=>{ if(e.target === qrOverlay) closeQrModal(); });
 
 // ============================================================
+// ANNUAL PRAYERS & REGISTRATION
+// ============================================================
+// The schedule (ANNUAL_PRAYERS/CATERERS, from content-data.js) is
+// bundled at build time as an offline fallback. fetchPrayersFromDb()
+// below replaces its contents with the live rows from Supabase on
+// load — the same "bundled default, live data overlays it" pattern
+// used elsewhere in this file (see loadLiveContent()/EVENTS). Once
+// live data has loaded, ubayakararOpen/annathanamOpen/sponsor names
+// on each prayer already reflect every confirmed site registration
+// (the register_prayer() Postgres function updates them atomically),
+// so no separate "is this taken" overlay is needed here any more.
+let PRAYER_PARTICIPANTS = {}; // { [prayerId]: [{name, participantCount}] }
+
+function prayerIsOver(p){
+  if (p.statusOverride === "completed") return true;
+  if (p.statusOverride === "upcoming") return false;
+  return p.date < todayIso;
+}
+function prayerRoleTaken(p, role){
+  return role === "ubayakarar" ? !p.ubayakararOpen : !p.annathanamOpen;
+}
+function prayerRoleSponsorDisplay(p, role){
+  return (role === "ubayakarar" ? p.ubayakararSponsor : p.annathanamSponsor) || null;
+}
+function formatPrayerDate(iso){ return formatEventDate(iso); }
+
+const PRAYER_FILTER_KEYS = ["upcoming", "over", "all"];
+const PRAYER_FILTER_UIKEY = { upcoming: "prayersFilterUpcoming", over: "prayersFilterOver", all: "prayersFilterAll" };
+let currentPrayerFilter = "upcoming";
+
+function renderPrayerFilterTabs(){
+  const wrap = document.getElementById("prayersFilterTabs");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  PRAYER_FILTER_KEYS.forEach(key=>{
+    const btn = el(`<button class="tab-btn${key===currentPrayerFilter ? " active" : ""}" data-key="${key}">${t(PRAYER_FILTER_UIKEY[key])}</button>`);
+    btn.addEventListener("click", ()=>{ currentPrayerFilter = key; renderPrayerFilterTabs(); renderPrayerGrid(); });
+    wrap.appendChild(btn);
+  });
+}
+
+function renderPrayerGrid(){
+  const grid = document.getElementById("prayerGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+  const list = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).slice().sort((a,b)=> a.date.localeCompare(b.date));
+  const filtered = list.filter(p=>{
+    const over = prayerIsOver(p);
+    if (currentPrayerFilter === "upcoming") return !over;
+    if (currentPrayerFilter === "over") return over;
+    return true;
+  });
+
+  if (!filtered.length){
+    grid.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;grid-column:1/-1;">${t("calNoEvents")}</p>`));
+    return;
+  }
+
+  filtered.forEach(p=>{
+    const over = prayerIsOver(p);
+    const ubayakararTaken = prayerRoleTaken(p, "ubayakarar");
+    const annathanamTaken = prayerRoleTaken(p, "annathanam");
+    const feeText = p.ubayamFee != null ? `RM ${p.ubayamFee.toLocaleString()}` : t("prayersAsArranged");
+    const card = el(`
+      <div class="prayer-card">
+        <div class="prayer-card-date"><b>${dayNum(p.date)}</b><small>${monthAbbr(p.date)}</small></div>
+        <div class="prayer-card-body">
+          <div class="prayer-card-top">
+            <h4>${p.name}</h4>
+            <span class="prayer-status-pill ${over ? "over" : "upcoming"}">${over ? t("prayersStatusOver") : t("prayersStatusUpcoming")}</span>
+          </div>
+          <div class="prayer-card-fee">${feeText}</div>
+          <div class="prayer-card-pills">
+            <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+            <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+            ${p.participantsEnabled ? `<span class="prayer-role-pill open">${t("prayersParticipantLabel")}</span>` : ""}
+          </div>
+        </div>
+      </div>
+    `);
+    card.addEventListener("click", ()=>openPrayerModal(p));
+    grid.appendChild(card);
+  });
+}
+
+const prayerOverlay = document.getElementById("prayerOverlay");
+let currentPrayerModal = null;
+let currentPrayerFormRole = null;
+
+function prayerRoleRow(p, role){
+  const label = role === "ubayakarar" ? t("prayersUbayakararLabel") : t("prayersAnnathanamLabel");
+  const taken = prayerRoleTaken(p, role);
+  const sponsor = prayerRoleSponsorDisplay(p, role);
+  return `
+    <div class="prayer-modal-row">
+      <span class="prayer-modal-row-label">${label}</span>
+      <span class="prayer-role-pill ${taken ? "taken" : "open"}">${taken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+      ${sponsor ? `<span class="prayer-modal-row-sponsor">${sponsor}</span>` : ""}
+    </div>
+  `;
+}
+
+function openPrayerModal(p){
+  currentPrayerModal = p;
+  showPrayerDetailView();
+  const over = prayerIsOver(p);
+
+  const badgeEl = document.getElementById("prayerModalStatusBadge");
+  badgeEl.textContent = over ? t("prayersStatusOver") : t("prayersStatusUpcoming");
+  badgeEl.className = "prayer-modal-badge " + (over ? "over" : "upcoming");
+  document.getElementById("prayerModalTitle").textContent = p.name;
+  document.getElementById("prayerModalDate").textContent = formatPrayerDate(p.date);
+
+  let rowsHtml = prayerRoleRow(p, "ubayakarar") + prayerRoleRow(p, "annathanam");
+  if (p.ubayamFee != null){
+    rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersFeeLabel")}</span><span class="prayer-modal-row-sponsor">RM ${p.ubayamFee.toLocaleString()}</span></div>`;
+  }
+  if (p.participantsEnabled){
+    const feeText = p.participantFee ? `RM ${p.participantFee} ${t("prayersPerPersonLabel")}` : t("prayersOpenBadge");
+    rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersParticipantLabel")}</span><span class="prayer-modal-row-sponsor">${feeText}</span></div>`;
+  }
+  document.getElementById("prayerModalRows").innerHTML = rowsHtml;
+
+  const notesEl = document.getElementById("prayerModalNotes");
+  notesEl.textContent = p.notes || "";
+  notesEl.style.display = p.notes ? "block" : "none";
+
+  const participantsWrap = document.getElementById("prayerModalParticipants");
+  if (over && p.participantsEnabled){
+    const regs = PRAYER_PARTICIPANTS[p.id] || [];
+    const listEl = document.getElementById("prayerParticipantsList");
+    listEl.innerHTML = regs.length
+      ? regs.map(r=>`<div class="list-row"><b>${r.name}</b><span>${r.participantCount && r.participantCount > 1 ? "×" + r.participantCount : ""}</span></div>`).join("")
+      : `<p style="font-size:13px;color:var(--ink-600);margin:0;">${t("prayersNoParticipants")}</p>`;
+    participantsWrap.style.display = "block";
+  } else {
+    participantsWrap.style.display = "none";
+  }
+
+  const actionsEl = document.getElementById("prayerModalActions");
+  actionsEl.innerHTML = "";
+  if (!over){
+    if (!prayerRoleTaken(p, "ubayakarar")){
+      const btn = el(`<button class="prayer-btn-solid">${t("prayersRegisterBtn")} — ${t("prayersUbayakararLabel")}</button>`);
+      btn.addEventListener("click", ()=>showPrayerForm(p, "ubayakarar"));
+      actionsEl.appendChild(btn);
+    }
+    if (!prayerRoleTaken(p, "annathanam")){
+      const btn = el(`<button class="prayer-btn-solid">${t("prayersRegisterBtn")} — ${t("prayersAnnathanamLabel")}</button>`);
+      btn.addEventListener("click", ()=>showPrayerForm(p, "annathanam"));
+      actionsEl.appendChild(btn);
+    }
+    if (p.participantsEnabled){
+      const btn = el(`<button class="prayer-btn-solid">${t("prayersRegisterBtn")} — ${t("prayersParticipantLabel")}</button>`);
+      btn.addEventListener("click", ()=>showPrayerForm(p, "participant"));
+      actionsEl.appendChild(btn);
+    }
+  }
+
+  prayerOverlay.classList.add("show");
+}
+
+function showPrayerDetailView(){
+  document.getElementById("prayerDetailView").style.display = "block";
+  document.getElementById("prayerFormView").style.display = "none";
+  document.getElementById("prayerSuccessView").style.display = "none";
+}
+
+function showPrayerForm(p, role){
+  currentPrayerFormRole = role;
+  document.getElementById("prayerDetailView").style.display = "none";
+  document.getElementById("prayerSuccessView").style.display = "none";
+  document.getElementById("prayerFormView").style.display = "block";
+
+  const titleKey = role === "ubayakarar" ? "prayersModalUbayakararTitle" : role === "annathanam" ? "prayersModalAnnathanamTitle" : "prayersModalParticipantTitle";
+  document.getElementById("prayerFormTitle").textContent = t(titleKey) + " — " + p.name;
+  document.getElementById("prayerFormNameLabel").textContent = t("prayersFormName");
+  document.getElementById("prayerFormPhoneLabel").textContent = t("prayersFormPhone");
+  document.getElementById("prayerFormParticipantCountLabel").textContent = t("prayersFormParticipantCount");
+  document.getElementById("prayerFormNotesLabel").textContent = t("prayersFormNotes");
+  document.getElementById("prayerFormSubmitBtnText").textContent = t("prayersFormSubmit");
+  document.getElementById("prayerFormCancelBtn").textContent = t("prayersFormCancel");
+  document.getElementById("prayerFormName").value = "";
+  document.getElementById("prayerFormPhone").value = "";
+  document.getElementById("prayerFormParticipantCount").value = "1";
+  document.getElementById("prayerFormNotes").value = "";
+  document.getElementById("prayerFormError").style.display = "none";
+  document.getElementById("prayerFormParticipantCountWrap").style.display = role === "participant" ? "block" : "none";
+}
+
+document.getElementById("prayerFormCancelBtn").addEventListener("click", ()=>{
+  if (currentPrayerModal) openPrayerModal(currentPrayerModal);
+});
+document.getElementById("prayerFormSubmitBtn").addEventListener("click", submitPrayerForm);
+
+async function submitPrayerForm(){
+  const p = currentPrayerModal;
+  const role = currentPrayerFormRole;
+  if (!p || !role) return;
+
+  const name = document.getElementById("prayerFormName").value.trim();
+  const phone = document.getElementById("prayerFormPhone").value.trim();
+  const participantCount = parseInt(document.getElementById("prayerFormParticipantCount").value, 10) || 1;
+  const notes = document.getElementById("prayerFormNotes").value.trim();
+  const errorEl = document.getElementById("prayerFormError");
+
+  if (!name || !phone){
+    errorEl.textContent = t("prayersErrorGeneric");
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const submitBtn = document.getElementById("prayerFormSubmitBtn");
+  submitBtn.disabled = true;
+  const originalLabel = document.getElementById("prayerFormSubmitBtnText").textContent;
+  document.getElementById("prayerFormSubmitBtnText").textContent = t("prayersFormSubmitting");
+  errorEl.style.display = "none";
+
+  try {
+    const res = await fetch("/.netlify/functions/register-prayer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prayerId: p.id, role, name, phone, participantCount, notes })
+    });
+    const data = await res.json();
+    if (!res.ok){
+      errorEl.textContent = data.error || t("prayersErrorGeneric");
+      errorEl.style.display = "block";
+      return;
+    }
+    // Reflect the new booking locally right away, so the grid/modal
+    // shows it as taken immediately rather than waiting on the next
+    // full refresh — mirrors exactly what register_prayer() just did
+    // server-side. p is the live object inside ANNUAL_PRAYERS, so this
+    // mutation is picked up by every render that reads that array.
+    if (role === "ubayakarar"){ p.ubayakararOpen = false; p.ubayakararSponsor = name; }
+    else if (role === "annathanam"){ p.annathanamOpen = false; p.annathanamSponsor = name; }
+    else if (role === "participant"){
+      if (!PRAYER_PARTICIPANTS[p.id]) PRAYER_PARTICIPANTS[p.id] = [];
+      PRAYER_PARTICIPANTS[p.id].push({ name, participantCount });
+    }
+    showPrayerSuccess(role, data);
+    renderPrayerGrid();
+  } catch (err){
+    console.warn("Prayer registration failed:", err);
+    errorEl.textContent = t("prayersErrorGeneric");
+    errorEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    document.getElementById("prayerFormSubmitBtnText").textContent = originalLabel;
+  }
+}
+
+function showPrayerSuccess(role, data){
+  document.getElementById("prayerFormView").style.display = "none";
+  document.getElementById("prayerSuccessView").style.display = "block";
+  document.getElementById("prayerSuccessTitleText").textContent = t("prayersSuccessTitle");
+  document.getElementById("prayerSuccessRef").textContent = t("prayersSuccessRef") + ": " + data.reference;
+
+  let msgKey = "prayersSuccessAnnathanam";
+  if (role === "ubayakarar") msgKey = "prayersSuccessUbayakarar";
+  else if (role === "participant") msgKey = data.fee ? "prayersSuccessParticipantPaid" : "prayersSuccessParticipantFree";
+  document.getElementById("prayerSuccessMessage").textContent = t(msgKey);
+}
+
+document.getElementById("prayerSuccessCloseBtn").addEventListener("click", closePrayerModal);
+function closePrayerModal(){
+  prayerOverlay.classList.remove("show");
+  currentPrayerModal = null;
+  currentPrayerFormRole = null;
+}
+document.getElementById("prayerModalClose").addEventListener("click", closePrayerModal);
+prayerOverlay.addEventListener("click", (e)=>{ if(e.target === prayerOverlay) closePrayerModal(); });
+
+function renderCaterers(){
+  const wrap = document.getElementById("caterersList");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  (typeof CATERERS !== "undefined" ? CATERERS : []).forEach(c=>{
+    wrap.appendChild(el(`
+      <div class="contact-row">
+        <div><b>${c.name}</b><span>${[c.contact, c.phone].filter(Boolean).join(" · ")}</span></div>
+      </div>
+    `));
+  });
+}
+
+function renderPrayers(){
+  document.getElementById("prayersHeadingText").textContent = t("prayersHeading");
+  document.getElementById("prayersSubText").textContent = t("prayersSub");
+  document.getElementById("prayersCaterersHeadingText").textContent = t("prayersCaterersHeading");
+  document.getElementById("prayersCaterersSubText").textContent = t("prayersCaterersSub");
+  document.getElementById("prayerParticipantsHeadingText").textContent = t("prayersParticipantsHeading");
+  renderPrayerFilterTabs();
+  renderPrayerGrid();
+  renderCaterers();
+}
+
+function fetchPrayersFromDb(){
+  fetch("/.netlify/functions/prayers-list", { cache: "no-store" })
+    .then(res => res.ok ? res.json() : { configured: false })
+    .then(data => {
+      if (!data.configured || !data.prayers) return; // not set up yet — bundled fallback content stays as-is
+      if (typeof ANNUAL_PRAYERS !== "undefined"){ ANNUAL_PRAYERS.length = 0; data.prayers.forEach(p => ANNUAL_PRAYERS.push(p)); }
+      if (typeof CATERERS !== "undefined" && data.caterers){ CATERERS.length = 0; data.caterers.forEach(c => CATERERS.push(c)); }
+      PRAYER_PARTICIPANTS = data.participants || {};
+      renderPrayers();
+      if (currentPrayerModal) openPrayerModal(currentPrayerModal);
+    })
+    .catch(err => console.warn("Could not load the live Annual Prayers schedule — showing bundled data only:", err));
+}
+
+// ============================================================
 // NEWS
 // ============================================================
 function renderNews(){
@@ -675,6 +989,7 @@ function renderAll(){
   safeRender("timingList", renderTimingList);
   safeRender("gallery", renderGallery);
   safeRender("sevas", renderSevas);
+  safeRender("prayers", renderPrayers);
   safeRender("news", renderNews);
   safeRender("contact", renderContact);
   safeRender("clock", tickClock);
@@ -995,6 +1310,7 @@ function loadLiveContent(){
 }
 
 loadLiveContent();
+fetchPrayersFromDb();
 
 // ============================================================
 // MEMBERSHIP STATUS CHECK

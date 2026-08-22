@@ -81,6 +81,55 @@ The site has a "Membership Status" page where a visitor types their NRIC (`XXXXX
 - Go to your site → Membership Status → enter an NRIC that exists in your sheet → should show the member's details
 - Enter one that doesn't exist → should show "No membership record was found"
 
+## Annual Prayers & Registration — one-time setup
+
+The site has a "Prayers & Registration" page listing every pooja/festival from the temple's annual schedule. For each one, devotees can see (and register for) up to three things:
+
+- **Ubayakarar** — the Ubayam/pooja sponsor
+- **Annathanam Sponsor** — the meal sponsor for that day. This is reserve-only: the site never collects payment for it, it just records who has claimed the slot. The devotee still arranges and pays the caterer directly — the page also lists the temple's regular caterers for that.
+- **Participant** — for the poojas where individual participation is separate from sponsorship (e.g. Guru Peyarchi at RM 31/person), open while `participantsEnabled` is true for that entry.
+
+A pooja is labelled **Upcoming** or **Completed** automatically, based on today's date vs. the pooja's date. Once a pooja is marked Completed, its recorded Ubayakarar, Annathanam sponsor, and (if applicable) full participant list stay visible — the temple's permanent record of who took part.
+
+**The schedule and every registration now live in a real database (Supabase/Postgres)**, not a spreadsheet. This is what makes double-booking impossible even if two devotees submit the same Ubayakarar slot within the same second — the database locks the row and only lets one succeed — and it's what lets the committee view, edit, and print/export everything from `/admin-prayers.html` instead of opening a spreadsheet.
+
+`content/annual-prayers.json` and `content/caterers.json` still exist in the repo, but only as a **fallback shown if the database is ever unreachable**. Once you complete the setup below, editing those files no longer changes anything on the live site — all day-to-day changes (new sponsor, reopening a slot, adding next year's dates, correcting a name) go through the admin page's **Schedule** tab instead.
+
+**You need to do the following once — I can't create third-party accounts on your behalf:**
+
+**1. Create a free Supabase project**
+- Go to https://supabase.com → sign up (free tier is enough for this) → **New project**
+- Pick any name/region, set a database password (you won't need it day-to-day — Supabase's own dashboard login is what you'll use), and wait ~2 minutes for it to provision
+
+**2. Create the tables and functions**
+- In the Supabase dashboard, open **SQL Editor** → **New query**
+- Paste in the entire contents of `supabase/schema.sql` from this repo → **Run**
+- New query again → paste in the entire contents of `supabase/seed.sql` → **Run** — this loads the same 2026 schedule and caterer list you sent, so you start with real data already in place
+- (`schema.sql` locks the tables down with Row Level Security and no public policies — the browser can never read or write the database directly, only the site's server-side functions can, using the service key from step 3)
+
+**3. Get your API credentials**
+- In the Supabase dashboard: **Project Settings → API**
+- Copy the **Project URL** and the **`service_role`** secret key (not the `anon` key — that one is intentionally not used anywhere in this project)
+
+**4. Add environment variables in Netlify**
+- Netlify dashboard → your site → **Project configuration → Environment variables → Add a variable**:
+  - `SUPABASE_URL` — the Project URL from step 3
+  - `SUPABASE_SERVICE_ROLE_KEY` — the `service_role` key from step 3
+  - `ADMIN_PASSWORD` — a password of your choice for the committee's admin page (see below) — reuse the existing one if you already set this for another feature
+- Trigger a redeploy (Netlify → Deploys → Trigger deploy) so the functions pick up the new variables
+- Note: `PRAYERS_SHEET_ID` / `PRAYERS_SHEET_TAB` and the old Bookings Google Sheet are no longer used by this feature and can be left alone or removed
+
+**5. Managing everything — `/admin-prayers.html`**
+- Go to `https://your-site.netlify.app/admin-prayers.html`, log in with `ADMIN_PASSWORD`
+- **Bookings tab:** filter/search every Ubayakarar, Annathanam, and Participant registration; mark one **Confirmed** once payment or the arrangement is verified, or **Cancelled** to automatically free that slot back up for someone else; **Print** or **Export CSV** the current filtered list
+- **Schedule tab:** view, add, edit, or delete any pooja's date, fees, sponsor names, open/closed status, participant settings, and notes — changes take effect on the live site immediately, no redeploy needed. Deleting a pooja is blocked if it already has bookings recorded, to protect the temple's records. The same tab also manages the Annathanam caterer directory. **Print** or **Export CSV** the schedule here too.
+- This page is not linked from the site's main navigation (committee-only, matches the pattern of other admin tooling in this project) — bookmark the URL
+
+**6. Test it**
+- Go to your site → Prayers & Registration → open a pooja that's still open → Register as Ubayakarar → submit with a test name/phone
+- Refresh the Prayers & Registration page — that slot should now show as Reserved to every visitor, not just you
+- Check `/admin-prayers.html` → Bookings tab shows the new registration; try the Schedule tab to edit a pooja's notes and confirm it updates live
+
 ## What's NOT in the CMS
 Interface text (nav labels, button text, section headings) and the home-screen tile blurbs stay in `data.js` as developer-owned config — they rarely change and aren't really "temple content." Everything the committee actually needs to update regularly (festival dates, announcements, sevas, deity info, photos, contact details) is in the CMS.
 

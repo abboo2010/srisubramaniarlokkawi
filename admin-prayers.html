@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Annual Prayers — Admin</title>
+<style>
+  :root{
+    --maroon-800:#521118; --ember-500:#c1531f; --gold-500:#c99a3e;
+    --ink-900:#2b1b12; --ink-600:#5b463a; --cream-50:#faf4e8; --cream-100:#f2e8d6;
+    --green-600:#3e7c52; --radius-sm:9px; --radius-md:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI', Arial, sans-serif; background:var(--cream-50); color:var(--ink-900);
+    padding:24px 16px 60px;
+  }
+  h1{font-size:19px; margin:0 0 4px;}
+  h2{font-size:15px; margin:0 0 12px;}
+  .sub{color:var(--ink-600); font-size:13px; margin:0 0 20px;}
+  .wrap{max-width:1200px; margin:0 auto;}
+
+  #loginBox{max-width:380px; margin:80px auto; background:#fff; border-radius:var(--radius-md); padding:28px 26px; box-shadow:0 6px 18px rgba(38,7,11,0.1); text-align:center;}
+  #loginBox h1{margin-bottom:16px;}
+  #loginBox input{width:100%; padding:11px 13px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:14px; margin-bottom:12px;}
+  #loginBox button{width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--ember-500); color:#fff; font-weight:700; font-size:14px; cursor:pointer;}
+  #loginError{color:#a4232f; font-size:13px; margin-top:10px; display:none;}
+
+  #appBox{display:none;}
+  .tab-switch{display:flex; gap:8px; margin-bottom:18px;}
+  .tab-switch button{padding:9px 18px; border-radius:20px; border:1.5px solid var(--cream-100); background:#fff; cursor:pointer; font-size:13px; font-weight:700; color:var(--ink-600);}
+  .tab-switch button.active{background:var(--maroon-800); color:#f6e9c8; border-color:var(--maroon-800);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px;}
+  .toolbar select, .toolbar input{padding:9px 11px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px;}
+  .toolbar input{flex:1; min-width:180px;}
+  .toolbar button{padding:9px 16px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); background:#fff; cursor:pointer; font-size:13px; font-weight:600;}
+  .toolbar button.primary{background:var(--ember-500); border-color:var(--ember-500); color:#fff;}
+
+  table{width:100%; border-collapse:collapse; background:#fff; border-radius:var(--radius-md); overflow:hidden; box-shadow:0 4px 14px rgba(38,7,11,0.06);}
+  th, td{text-align:left; padding:10px 12px; font-size:12.5px; border-bottom:1px solid var(--cream-100); vertical-align:top;}
+  th{background:var(--maroon-800); color:#f6e9c8; font-size:11px; text-transform:uppercase; letter-spacing:.03em; position:sticky; top:0;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--cream-50);}
+
+  .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:10.5px; font-weight:700; white-space:nowrap;}
+  .pill.pending{background:#fdf1dc; color:#a5680f;}
+  .pill.reserved{background:#e9f2fd; color:#2f6db3;}
+  .pill.confirmed{background:rgba(62,124,82,0.14); color:var(--green-600);}
+  .pill.cancelled{background:var(--cream-100); color:var(--ink-600);}
+  .pill.open{background:rgba(62,124,82,0.14); color:var(--green-600);}
+  .pill.taken{background:var(--cream-100); color:var(--ink-600);}
+
+  .row-actions{display:flex; gap:6px; flex-wrap:wrap;}
+  .row-actions button{padding:5px 10px; border-radius:6px; border:1px solid var(--cream-100); background:#fff; font-size:11px; cursor:pointer; font-weight:600;}
+  .row-actions button.confirm{color:var(--green-600); border-color:var(--green-600);}
+  .row-actions button.cancel, .row-actions button.delete{color:#a4232f; border-color:#a4232f;}
+  .row-actions button:disabled{opacity:.5; cursor:default;}
+
+  .empty-note{padding:30px; text-align:center; color:var(--ink-600); font-size:13px;}
+  .table-wrap{overflow-x:auto; max-height:65vh; overflow-y:auto;}
+  .refresh-note{font-size:12px; color:var(--ink-600); margin-top:10px;}
+  .status-msg{font-size:13px; margin:10px 0; padding:10px 14px; border-radius:var(--radius-sm);}
+  .status-msg.error{background:#fdecec; color:#a4232f;}
+  .status-msg.ok{background:rgba(62,124,82,0.12); color:var(--green-600);}
+
+  /* ---------- edit panel (slide-down form) ---------- */
+  .edit-panel{background:#fff; border-radius:var(--radius-md); padding:20px 22px; margin-bottom:18px; box-shadow:0 6px 18px rgba(38,7,11,0.1); display:none;}
+  .edit-panel.show{display:block;}
+  .edit-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px;}
+  .edit-field label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-600); margin-bottom:4px; text-transform:uppercase; letter-spacing:.02em;}
+  .edit-field input, .edit-field select, .edit-field textarea{width:100%; padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
+  .edit-field.checkbox{display:flex; align-items:center; gap:8px; margin-top:20px;}
+  .edit-field.checkbox label{margin:0;}
+  .edit-actions{display:flex; gap:10px; margin-top:16px;}
+  .edit-actions button{padding:10px 18px; border-radius:var(--radius-sm); border:none; font-size:13px; font-weight:700; cursor:pointer;}
+  .edit-actions .save{background:var(--ember-500); color:#fff;}
+  .edit-actions .cancel{background:var(--cream-100); color:var(--ink-600);}
+
+  .caterers-list{background:#fff; border-radius:var(--radius-md); padding:6px 0; margin-top:18px;}
+
+  @media print{
+    body{background:#fff; padding:0;}
+    .toolbar, .tab-switch, .edit-panel, .row-actions, #loginBox, .refresh-note, .status-msg{display:none !important;}
+    table{box-shadow:none;}
+    th{background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .table-wrap{max-height:none; overflow:visible;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h1>Annual Prayers — Admin</h1>
+  <p class="sub">Sri Subramaniar Alayam, Lok Kawi</p>
+  <input type="password" id="passwordInput" placeholder="Admin password" autocomplete="current-password" />
+  <button id="loginBtn">Log In</button>
+  <p id="loginError">Incorrect password.</p>
+</div>
+
+<div class="wrap" id="appBox">
+  <h1>Annual Prayers — Admin</h1>
+  <p class="sub">View and manage every registration, and edit the schedule itself — sponsors, fees, open/closed status — without needing a redeploy.</p>
+
+  <div id="statusMsg" class="status-msg" style="display:none;"></div>
+
+  <div class="tab-switch">
+    <button class="active" data-tab="bookings">Bookings</button>
+    <button data-tab="schedule">Schedule</button>
+  </div>
+
+  <!-- ================= BOOKINGS TAB ================= -->
+  <div class="tab-panel active" id="tab-bookings">
+    <div class="toolbar">
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option value="Pending Payment">Pending Payment</option>
+        <option value="Reserved">Reserved</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+      <select id="roleFilter">
+        <option value="">All roles</option>
+        <option value="ubayakarar">Ubayakarar</option>
+        <option value="annathanam">Annathanam</option>
+        <option value="participant">Participant</option>
+      </select>
+      <input type="text" id="searchInput" placeholder="Search name, pooja, or reference…" />
+      <button id="refreshBookingsBtn">Refresh</button>
+      <button id="printBookingsBtn">Print</button>
+      <button id="exportBookingsBtn">Export CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Pooja</th><th>Role</th><th>Name</th><th>Phone</th>
+            <th>Qty</th><th>Notes</th><th>Status</th><th>Reference</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bookingsBody"></tbody>
+      </table>
+      <div class="empty-note" id="bookingsEmptyNote" style="display:none;">No bookings match the current filters.</div>
+    </div>
+  </div>
+
+  <!-- ================= SCHEDULE TAB ================= -->
+  <div class="tab-panel" id="tab-schedule">
+    <div class="toolbar">
+      <input type="text" id="scheduleSearchInput" placeholder="Search pooja name…" />
+      <button id="refreshScheduleBtn">Refresh</button>
+      <button id="printScheduleBtn">Print</button>
+      <button id="exportScheduleBtn">Export CSV</button>
+      <button class="primary" id="addPrayerBtn">+ Add Pooja</button>
+    </div>
+
+    <div class="edit-panel" id="prayerEditPanel">
+      <h2 id="prayerEditPanelTitle">Add Pooja</h2>
+      <div class="edit-grid">
+        <div class="edit-field"><label>ID (used in booking references, e.g. p46)</label><input id="f_id" /></div>
+        <div class="edit-field"><label>Ref #</label><input id="f_ref" type="number" /></div>
+        <div class="edit-field"><label>Date</label><input id="f_date" type="date" /></div>
+        <div class="edit-field" style="grid-column:span 2;"><label>Name</label><input id="f_name" /></div>
+        <div class="edit-field"><label>Ubayam Fee (RM, blank = as arranged)</label><input id="f_ubayamFee" type="number" step="0.01" /></div>
+        <div class="edit-field"><label>Ubayakarar Sponsor (blank = open)</label><input id="f_ubayakararSponsor" /></div>
+        <div class="edit-field checkbox"><input type="checkbox" id="f_ubayakararOpen" /><label for="f_ubayakararOpen">Ubayakarar open for registration</label></div>
+        <div class="edit-field"><label>Annathanam Sponsor (blank = open)</label><input id="f_annathanamSponsor" /></div>
+        <div class="edit-field checkbox"><input type="checkbox" id="f_annathanamOpen" /><label for="f_annathanamOpen">Annathanam open for registration</label></div>
+        <div class="edit-field checkbox"><input type="checkbox" id="f_participantsEnabled" /><label for="f_participantsEnabled">Participant registration enabled</label></div>
+        <div class="edit-field"><label>Participant Fee (RM, blank = free)</label><input id="f_participantFee" type="number" step="0.01" /></div>
+        <div class="edit-field"><label>Status Override</label>
+          <select id="f_statusOverride">
+            <option value="">Automatic (by date)</option>
+            <option value="upcoming">Force Upcoming</option>
+            <option value="completed">Force Completed</option>
+          </select>
+        </div>
+        <div class="edit-field" style="grid-column:1/-1;"><label>Notes (shown to devotees)</label><textarea id="f_notes" rows="2"></textarea></div>
+      </div>
+      <div class="edit-actions">
+        <button class="save" id="savePrayerBtn">Save</button>
+        <button class="cancel" id="cancelPrayerBtn">Cancel</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Pooja</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
+            <th>Participants</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+      <div class="empty-note" id="scheduleEmptyNote" style="display:none;">No poojas match your search.</div>
+    </div>
+
+    <h2 style="margin-top:26px;">Annathanam Caterers</h2>
+    <div class="toolbar">
+      <button class="primary" id="addCatererBtn">+ Add Caterer</button>
+    </div>
+    <div class="edit-panel" id="catererEditPanel">
+      <h2 id="catererEditPanelTitle">Add Caterer</h2>
+      <div class="edit-grid">
+        <div class="edit-field"><label>Name</label><input id="c_name" /></div>
+        <div class="edit-field"><label>Contact Person</label><input id="c_contact" /></div>
+        <div class="edit-field"><label>Phone</label><input id="c_phone" /></div>
+      </div>
+      <div class="edit-actions">
+        <button class="save" id="saveCatererBtn">Save</button>
+        <button class="cancel" id="cancelCatererBtn">Cancel</button>
+      </div>
+    </div>
+    <div class="caterers-list table-wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Actions</th></tr></thead>
+        <tbody id="caterersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="refresh-note">Editing a pooja's sponsor/open fields here takes effect immediately on the live site — no redeploy needed. Cancelling a Ubayakarar or Annathanam booking on the Bookings tab automatically reopens that slot here too.</p>
+</div>
+
+<script>
+  let adminPassword = "";
+  let allBookings = [];
+  let allPrayers = [];
+  let allCaterers = [];
+  let editingPrayerId = null;
+  let editingCatererId = null;
+
+  const loginBox = document.getElementById("loginBox");
+  const appBox = document.getElementById("appBox");
+  const passwordInput = document.getElementById("passwordInput");
+  const loginError = document.getElementById("loginError");
+
+  document.getElementById("loginBtn").addEventListener("click", login);
+  passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+
+  async function login(){
+    const pw = passwordInput.value.trim();
+    if (!pw) return;
+    loginError.style.display = "none";
+    try {
+      const res = await fetch("/.netlify/functions/admin-prayer-bookings", { headers: { "X-Admin-Password": pw } });
+      if (!res.ok){ loginError.style.display = "block"; return; }
+      const data = await res.json();
+      adminPassword = pw;
+      allBookings = data.bookings || [];
+      loginBox.style.display = "none";
+      appBox.style.display = "block";
+      renderBookings();
+      loadSchedule();
+    } catch (err){
+      loginError.textContent = "Could not reach the server. Please try again.";
+      loginError.style.display = "block";
+    }
+  }
+
+  function showStatus(msg, kind){
+    const el = document.getElementById("statusMsg");
+    el.textContent = msg;
+    el.className = "status-msg " + kind;
+    el.style.display = "block";
+    setTimeout(() => { el.style.display = "none"; }, 3500);
+  }
+
+  function downloadCsv(filename, rows){
+    const csv = rows.map(r => r.map(cell => {
+      const s = String(cell == null ? "" : cell);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- tab switching ----------
+  document.querySelectorAll(".tab-switch button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-switch button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // ================= BOOKINGS =================
+  async function refreshBookings(){
+    try {
+      const res = await fetch("/.netlify/functions/admin-prayer-bookings", { headers: { "X-Admin-Password": adminPassword } });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      allBookings = data.bookings || [];
+      renderBookings();
+      showStatus("Bookings refreshed.", "ok");
+    } catch (err){
+      showStatus("Could not refresh bookings.", "error");
+    }
+  }
+  document.getElementById("refreshBookingsBtn").addEventListener("click", refreshBookings);
+  document.getElementById("statusFilter").addEventListener("change", renderBookings);
+  document.getElementById("roleFilter").addEventListener("change", renderBookings);
+  document.getElementById("searchInput").addEventListener("input", renderBookings);
+  document.getElementById("printBookingsBtn").addEventListener("click", () => window.print());
+  document.getElementById("exportBookingsBtn").addEventListener("click", () => {
+    const rows = [["Date","Pooja","Role","Name","Phone","Qty","Notes","Status","Reference"]];
+    filteredBookings().forEach(b => rows.push([b.date, b.prayerName, roleLabel(b.role), b.name, b.phone, b.participantCount, b.notes, b.status, b.bookingId]));
+    downloadCsv("annual-prayers-bookings.csv", rows);
+  });
+
+  function statusPillClass(status){
+    const s = (status || "").toLowerCase();
+    if (s === "confirmed") return "confirmed";
+    if (s === "cancelled") return "cancelled";
+    if (s === "reserved") return "reserved";
+    return "pending";
+  }
+  function roleLabel(role){
+    return { ubayakarar: "Ubayakarar", annathanam: "Annathanam", participant: "Participant" }[role] || role;
+  }
+
+  function filteredBookings(){
+    const statusFilter = document.getElementById("statusFilter").value;
+    const roleFilter = document.getElementById("roleFilter").value;
+    const search = document.getElementById("searchInput").value.trim().toLowerCase();
+    return allBookings
+      .slice()
+      .sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.timestamp || "").localeCompare(b.timestamp || ""))
+      .filter(b => !statusFilter || b.status === statusFilter)
+      .filter(b => !roleFilter || b.role === roleFilter)
+      .filter(b => !search || [b.name, b.prayerName, b.bookingId, b.phone].join(" ").toLowerCase().includes(search));
+  }
+
+  function renderBookings(){
+    const filtered = filteredBookings();
+    const body = document.getElementById("bookingsBody");
+    const emptyNote = document.getElementById("bookingsEmptyNote");
+    body.innerHTML = "";
+
+    if (!filtered.length){ emptyNote.style.display = "block"; return; }
+    emptyNote.style.display = "none";
+
+    filtered.forEach(b => {
+      const tr = document.createElement("tr");
+      const canAct = b.status !== "Cancelled";
+      tr.innerHTML = `
+        <td>${b.date || ""}</td>
+        <td>${b.prayerName || ""}</td>
+        <td>${roleLabel(b.role)}</td>
+        <td>${b.name || ""}</td>
+        <td>${b.phone || ""}</td>
+        <td>${b.participantCount || ""}</td>
+        <td>${b.notes || ""}</td>
+        <td><span class="pill ${statusPillClass(b.status)}">${b.status || ""}</span></td>
+        <td>${b.bookingId || ""}</td>
+        <td class="row-actions">
+          <button class="confirm" ${b.status === "Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Confirmed">Confirm</button>
+          <button class="cancel" ${!canAct ? "disabled" : ""} data-id="${b.bookingId}" data-status="Cancelled">Cancel</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("button[data-id]").forEach(btn => {
+      btn.addEventListener("click", () => updateBooking(btn.dataset.id, btn.dataset.status));
+    });
+  }
+
+  async function updateBooking(bookingId, status){
+    try {
+      const res = await fetch("/.netlify/functions/admin-update-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ bookingId, status })
+      });
+      const data = await res.json();
+      if (!res.ok){ showStatus(data.error || "Update failed.", "error"); return; }
+      const booking = allBookings.find(b => b.bookingId === bookingId);
+      if (booking) booking.status = status;
+      renderBookings();
+      showStatus(`Booking ${bookingId} marked ${status}.`, "ok");
+      if (status === "Cancelled") loadSchedule(); // a reopened slot needs the Schedule tab refreshed too
+    } catch (err){
+      showStatus("Update failed.", "error");
+    }
+  }
+
+  // ================= SCHEDULE =================
+  async function loadSchedule(){
+    try {
+      const res = await fetch("/.netlify/functions/prayers-list", { cache: "no-store" });
+      const data = await res.json();
+      if (!data.configured){
+        showStatus("Database not configured yet — set SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in Netlify.", "error");
+        return;
+      }
+      allPrayers = data.prayers || [];
+      allCaterers = data.caterers || [];
+      renderSchedule();
+      renderCaterersTable();
+    } catch (err){
+      showStatus("Could not load the schedule.", "error");
+    }
+  }
+  document.getElementById("refreshScheduleBtn").addEventListener("click", loadSchedule);
+  document.getElementById("scheduleSearchInput").addEventListener("input", renderSchedule);
+  document.getElementById("printScheduleBtn").addEventListener("click", () => window.print());
+  document.getElementById("exportScheduleBtn").addEventListener("click", () => {
+    const rows = [["Date","Pooja","Ubayam Fee","Ubayakarar Sponsor","Ubayakarar Open","Annathanam Sponsor","Annathanam Open","Participants Enabled","Participant Fee","Notes","Status Override"]];
+    filteredSchedule().forEach(p => rows.push([p.date, p.name, p.ubayamFee, p.ubayakararSponsor, p.ubayakararOpen, p.annathanamSponsor, p.annathanamOpen, p.participantsEnabled, p.participantFee, p.notes, p.statusOverride]));
+    downloadCsv("annual-prayers-schedule.csv", rows);
+  });
+
+  function filteredSchedule(){
+    const search = document.getElementById("scheduleSearchInput").value.trim().toLowerCase();
+    return allPrayers.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).filter(p => !search || p.name.toLowerCase().includes(search));
+  }
+
+  function renderSchedule(){
+    const filtered = filteredSchedule();
+    const body = document.getElementById("scheduleBody");
+    const emptyNote = document.getElementById("scheduleEmptyNote");
+    body.innerHTML = "";
+    if (!filtered.length){ emptyNote.style.display = "block"; return; }
+    emptyNote.style.display = "none";
+
+    filtered.forEach(p => {
+      const tr = document.createElement("tr");
+      const feeText = p.ubayamFee != null ? "RM " + p.ubayamFee : "As arranged";
+      tr.innerHTML = `
+        <td>${p.date}</td>
+        <td>${p.name}</td>
+        <td>${feeText}</td>
+        <td><span class="pill ${p.ubayakararOpen ? "open" : "taken"}">${p.ubayakararOpen ? "Open" : "Taken"}</span>${p.ubayakararSponsor ? "<br>" + p.ubayakararSponsor : ""}</td>
+        <td><span class="pill ${p.annathanamOpen ? "open" : "taken"}">${p.annathanamOpen ? "Open" : "Taken"}</span>${p.annathanamSponsor ? "<br>" + p.annathanamSponsor : ""}</td>
+        <td>${p.participantsEnabled ? "Enabled" + (p.participantFee ? " (RM " + p.participantFee + ")" : "") : "—"}</td>
+        <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}</td>
+        <td class="row-actions">
+          <button data-edit="${p.id}">Edit</button>
+          <button class="delete" data-delete="${p.id}">Delete</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("button[data-edit]").forEach(btn => btn.addEventListener("click", () => openPrayerEdit(btn.dataset.edit)));
+    body.querySelectorAll("button[data-delete]").forEach(btn => btn.addEventListener("click", () => deletePrayer(btn.dataset.delete)));
+  }
+
+  const prayerEditPanel = document.getElementById("prayerEditPanel");
+  document.getElementById("addPrayerBtn").addEventListener("click", () => openPrayerEdit(null));
+  document.getElementById("cancelPrayerBtn").addEventListener("click", () => prayerEditPanel.classList.remove("show"));
+
+  function openPrayerEdit(id){
+    editingPrayerId = id;
+    const p = id ? allPrayers.find(x => x.id === id) : null;
+    document.getElementById("prayerEditPanelTitle").textContent = p ? "Edit Pooja — " + p.name : "Add Pooja";
+    document.getElementById("f_id").value = p ? p.id : "";
+    document.getElementById("f_id").disabled = !!p;
+    document.getElementById("f_ref").value = p && p.ref != null ? p.ref : "";
+    document.getElementById("f_date").value = p ? p.date : "";
+    document.getElementById("f_name").value = p ? p.name : "";
+    document.getElementById("f_ubayamFee").value = p && p.ubayamFee != null ? p.ubayamFee : "";
+    document.getElementById("f_ubayakararSponsor").value = p ? (p.ubayakararSponsor || "") : "";
+    document.getElementById("f_ubayakararOpen").checked = p ? !!p.ubayakararOpen : true;
+    document.getElementById("f_annathanamSponsor").value = p ? (p.annathanamSponsor || "") : "";
+    document.getElementById("f_annathanamOpen").checked = p ? !!p.annathanamOpen : true;
+    document.getElementById("f_participantsEnabled").checked = p ? !!p.participantsEnabled : false;
+    document.getElementById("f_participantFee").value = p && p.participantFee != null ? p.participantFee : "";
+    document.getElementById("f_statusOverride").value = p && p.statusOverride ? p.statusOverride : "";
+    document.getElementById("f_notes").value = p ? (p.notes || "") : "";
+    prayerEditPanel.classList.add("show");
+    prayerEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("savePrayerBtn").addEventListener("click", async () => {
+    const data = {
+      id: document.getElementById("f_id").value.trim(),
+      ref: document.getElementById("f_ref").value,
+      date: document.getElementById("f_date").value,
+      name: document.getElementById("f_name").value.trim(),
+      ubayamFee: document.getElementById("f_ubayamFee").value,
+      ubayakararSponsor: document.getElementById("f_ubayakararSponsor").value.trim(),
+      ubayakararOpen: document.getElementById("f_ubayakararOpen").checked,
+      annathanamSponsor: document.getElementById("f_annathanamSponsor").value.trim(),
+      annathanamOpen: document.getElementById("f_annathanamOpen").checked,
+      participantsEnabled: document.getElementById("f_participantsEnabled").checked,
+      participantFee: document.getElementById("f_participantFee").value,
+      statusOverride: document.getElementById("f_statusOverride").value,
+      notes: document.getElementById("f_notes").value.trim()
+    };
+    if (!data.id || !data.date || !data.name){ showStatus("ID, date, and name are required.", "error"); return; }
+
+    try {
+      const res = await fetch("/.netlify/functions/admin-prayers-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ entity: "prayer", action: editingPrayerId ? "update" : "create", data })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      prayerEditPanel.classList.remove("show");
+      showStatus("Pooja saved.", "ok");
+      loadSchedule();
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
+  });
+
+  async function deletePrayer(id){
+    if (!confirm("Delete this pooja from the schedule? This only works if it has no bookings recorded against it.")) return;
+    try {
+      const res = await fetch("/.netlify/functions/admin-prayers-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ entity: "prayer", action: "delete", data: { id } })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Delete failed — it may still have bookings recorded.", "error"); return; }
+      showStatus("Pooja deleted.", "ok");
+      loadSchedule();
+    } catch (err){
+      showStatus("Delete failed.", "error");
+    }
+  }
+
+  // ---------- caterers ----------
+  const catererEditPanel = document.getElementById("catererEditPanel");
+  document.getElementById("addCatererBtn").addEventListener("click", () => openCatererEdit(null));
+  document.getElementById("cancelCatererBtn").addEventListener("click", () => catererEditPanel.classList.remove("show"));
+
+  function renderCaterersTable(){
+    const body = document.getElementById("caterersBody");
+    body.innerHTML = "";
+    allCaterers.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.name}</td><td>${c.contact || ""}</td><td>${c.phone || ""}</td>
+        <td class="row-actions">
+          <button data-edit-caterer="${c.id}">Edit</button>
+          <button class="delete" data-delete-caterer="${c.id}">Delete</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("button[data-edit-caterer]").forEach(btn => btn.addEventListener("click", () => openCatererEdit(btn.dataset.editCaterer)));
+    body.querySelectorAll("button[data-delete-caterer]").forEach(btn => btn.addEventListener("click", () => deleteCaterer(btn.dataset.deleteCaterer)));
+  }
+
+  function openCatererEdit(id){
+    editingCatererId = id;
+    const c = id ? allCaterers.find(x => String(x.id) === String(id)) : null;
+    document.getElementById("catererEditPanelTitle").textContent = c ? "Edit Caterer — " + c.name : "Add Caterer";
+    document.getElementById("c_name").value = c ? c.name : "";
+    document.getElementById("c_contact").value = c ? (c.contact || "") : "";
+    document.getElementById("c_phone").value = c ? (c.phone || "") : "";
+    catererEditPanel.classList.add("show");
+    catererEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("saveCatererBtn").addEventListener("click", async () => {
+    const data = {
+      id: editingCatererId,
+      name: document.getElementById("c_name").value.trim(),
+      contact: document.getElementById("c_contact").value.trim(),
+      phone: document.getElementById("c_phone").value.trim()
+    };
+    if (!data.name){ showStatus("Caterer name is required.", "error"); return; }
+    try {
+      const res = await fetch("/.netlify/functions/admin-prayers-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ entity: "caterer", action: editingCatererId ? "update" : "create", data })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      catererEditPanel.classList.remove("show");
+      showStatus("Caterer saved.", "ok");
+      loadSchedule();
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
+  });
+
+  async function deleteCaterer(id){
+    if (!confirm("Remove this caterer from the list?")) return;
+    try {
+      const res = await fetch("/.netlify/functions/admin-prayers-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ entity: "caterer", action: "delete", data: { id } })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
+      showStatus("Caterer removed.", "ok");
+      loadSchedule();
+    } catch (err){
+      showStatus("Delete failed.", "error");
+    }
+  }
+</script>
+</body>
+</html>
