@@ -108,7 +108,7 @@
   /* ---------- edit panel (slide-down form) ---------- */
   .edit-panel{background:#fff; border-radius:var(--radius-md); padding:20px 22px; margin-bottom:18px; box-shadow:0 6px 18px rgba(38,7,11,0.1); display:none;}
   .edit-panel.show{display:block;}
-  .edit-panel .panel-hint{color:var(--ink-600); font-size:12.5px; margin:-4px 0 16px; max-width:640px;}
+  .panel-hint{color:var(--ink-600); font-size:12.5px; margin:-4px 0 16px; max-width:640px;}
   .edit-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px;}
   .edit-field label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-600); margin-bottom:4px; text-transform:uppercase; letter-spacing:.02em;}
   .edit-field input, .edit-field select, .edit-field textarea{width:100%; padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
@@ -223,27 +223,25 @@
         <option value="">All roles</option>
         <option value="ubayakarar">Ubayakarar</option>
         <option value="annathanam">Annathanam</option>
-        <option value="participant">Participant</option>
       </select>
       <input type="text" id="searchInput" placeholder="Search name, pooja, or reference…" />
       <button id="refreshBookingsBtn">Refresh</button>
       <button id="printBookingsBtn">Print</button>
-      <button id="printParticipantsBtn">Print Participants Report</button>
       <button id="exportBookingsBtn">Export CSV</button>
       <button class="primary" id="addBookingBtn">+ Add Booking</button>
-      <button class="primary" id="bulkAddBtn">+ Bulk Add Participants</button>
     </div>
+
+    <p class="panel-hint" style="margin:-6px 0 14px;">This tab is for Ubayakarar and Annathanam sponsors only. Participant lists live under the Schedule tab — open a pooja's 👥 Participants button to view, add, or print them.</p>
 
     <div class="edit-panel" id="bookingEditPanel">
       <h2 id="bookingEditPanelTitle">Add Booking</h2>
-      <p class="panel-hint" id="bookingEditPanelHint">Use this to record a sponsor or participant by hand — including for a pooja that has already taken place, which the public registration form won't allow. Good for typing in a past event's participant list, or a sponsor you forgot to log at the time.</p>
+      <p class="panel-hint" id="bookingEditPanelHint">Use this to record a sponsor by hand — including for a pooja that has already taken place, which the public registration form won't allow. For participants, use the 👥 Participants button on the Schedule tab instead.</p>
       <div class="edit-grid">
         <div class="edit-field" style="grid-column:span 2;"><label>Pooja</label>
           <select id="b_prayerId"></select>
         </div>
         <div class="edit-field"><label>Role</label>
           <select id="b_role">
-            <option value="participant">Participant</option>
             <option value="ubayakarar">Ubayakarar</option>
             <option value="annathanam">Annathanam</option>
           </select>
@@ -264,31 +262,6 @@
       <div class="edit-actions">
         <button class="save" id="saveBookingBtn">Save</button>
         <button class="cancel" id="cancelBookingBtn">Cancel</button>
-      </div>
-    </div>
-
-    <div class="edit-panel" id="bulkAddPanel">
-      <h2>Bulk Add Participants</h2>
-      <p class="panel-hint">For typing in a whole participant list at once — handy for a past pooja you need on record for the AGM. Pick the pooja, then paste or type one name per line. Add a comma and a number if more than one person came together, e.g. <code>Mr. &amp; Mrs. Ravi, 2</code>.</p>
-      <div class="edit-grid">
-        <div class="edit-field" style="grid-column:span 2;"><label>Pooja</label>
-          <select id="bulk_prayerId"></select>
-        </div>
-        <div class="edit-field"><label>Status</label>
-          <select id="bulk_status">
-            <option value="Confirmed">Confirmed</option>
-            <option value="Reserved">Reserved</option>
-            <option value="Pending Payment">Pending Payment</option>
-          </select>
-        </div>
-        <div class="edit-field" style="grid-column:1/-1;">
-          <label>Participant Names (one per line)</label>
-          <textarea id="bulk_names" rows="8" placeholder="Kumaresan A/L Muthu&#10;Mr. &amp; Mrs. Ravi, 2&#10;Devi Ganesan"></textarea>
-        </div>
-      </div>
-      <div class="edit-actions">
-        <button class="save" id="saveBulkBtn">Add Participants</button>
-        <button class="cancel" id="cancelBulkBtn">Cancel</button>
       </div>
     </div>
 
@@ -510,13 +483,8 @@
     downloadCsv("annual-prayers-bookings.csv", rows);
   });
 
-  // ---------- Print Participants Report — one click, no manual filtering ----------
-  document.getElementById("printParticipantsBtn").addEventListener("click", printParticipantsReport);
+  // ---------- Print Participants (scoped to one pooja, used by the Schedule tab's modal) ----------
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-participants"));
-
-  function printParticipantsReport(){
-    printParticipantsRows(allBookings.filter(b => b.role === "participant" && b.status !== "Cancelled"));
-  }
 
   function printParticipantsForPrayer(prayerId){
     printParticipantsRows(allBookings.filter(b => b.role === "participant" && b.status !== "Cancelled" && b.prayerId === prayerId));
@@ -668,6 +636,7 @@
     const search = document.getElementById("searchInput").value.trim().toLowerCase();
     return allBookings
       .slice()
+      .filter(b => b.role !== "participant") // participants live under the Schedule tab's Participants view, not here
       .sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.timestamp || "").localeCompare(b.timestamp || ""))
       .filter(b => !statusFilter || b.status === statusFilter)
       .filter(b => !roleFilter || b.role === roleFilter)
@@ -751,12 +720,12 @@
 
     document.getElementById("bookingEditPanelTitle").textContent = b ? "Edit Booking — " + b.name : "Add Booking";
     document.getElementById("bookingEditPanelHint").textContent = b
-      ? "The pooja and role a booking belongs to can't be changed here — delete and re-add it instead if it needs to move. Editing a Ubayakarar/Annathanam name here also updates the sponsor shown on the Schedule tab."
-      : "Use this to record a sponsor or participant by hand — including for a pooja that has already taken place, which the public registration form won't allow. Good for typing in a past event's participant list, or a sponsor you forgot to log at the time.";
+      ? "The pooja and role a booking belongs to can't be changed here — delete and re-add it instead if it needs to move. Editing the name here also updates the sponsor shown on the Schedule tab."
+      : "Use this to record a Ubayakarar or Annathanam sponsor by hand — including for a pooja that has already taken place, which the public registration form won't allow. For participants, use the 👥 Participants button on the Schedule tab instead.";
 
     document.getElementById("b_prayerId").value = b ? b.prayerId : document.getElementById("b_prayerId").value;
     document.getElementById("b_prayerId").disabled = !!b;
-    document.getElementById("b_role").value = b ? b.role : "participant";
+    document.getElementById("b_role").value = b ? b.role : "ubayakarar";
     document.getElementById("b_role").disabled = !!b;
     document.getElementById("b_status").value = b ? b.status : "Confirmed";
     document.getElementById("b_name").value = b ? (b.name || "") : "";
@@ -832,32 +801,10 @@
     }
   }
 
-  // ---------- bulk add participants (paste a whole list at once) ----------
-  const bulkAddPanel = document.getElementById("bulkAddPanel");
-
-  document.getElementById("bulkAddBtn").addEventListener("click", async () => {
-    if (!allPrayers.length) await loadSchedule();
-    populateBulkPrayerSelect();
-    document.getElementById("bulk_status").value = "Confirmed";
-    document.getElementById("bulk_names").value = "";
-    bulkAddPanel.classList.add("show");
-    bulkAddPanel.scrollIntoView({ behavior: "smooth", block: "center" });
-  });
-  document.getElementById("cancelBulkBtn").addEventListener("click", () => bulkAddPanel.classList.remove("show"));
-
-  function populateBulkPrayerSelect(){
-    const select = document.getElementById("bulk_prayerId");
-    const current = select.value;
-    select.innerHTML = allPrayers
-      .slice()
-      .sort((a, b) => (b.date || "").localeCompare(a.date || "")) // most recent/past poojas first
-      .map(p => `<option value="${p.id}">${p.date} — ${p.name}${p.participantsEnabled ? "" : "  (participant registration is off for this one, but you can still add names here)"}</option>`)
-      .join("");
-    if (current && allPrayers.some(p => p.id === current)) select.value = current;
-  }
-
   // Turns "Mr. & Mrs. Ravi, 2" or "Mr. & Mrs. Ravi x2" into {name, count}; a bare
-  // line like "Devi Ganesan" becomes count 1. Blank lines are dropped.
+  // line like "Devi Ganesan" becomes count 1. Blank lines are dropped. Used by
+  // the Schedule tab's Participants modal (bulk-adding names is a per-pooja
+  // action there now, not a standalone Bookings-tab tool).
   function parseBulkNames(text){
     return text
       .split("\n")
@@ -871,28 +818,6 @@
         return { name: line, count: 1 };
       });
   }
-
-  document.getElementById("saveBulkBtn").addEventListener("click", async () => {
-    const prayerId = document.getElementById("bulk_prayerId").value;
-    const status = document.getElementById("bulk_status").value;
-    const entries = parseBulkNames(document.getElementById("bulk_names").value);
-    if (!prayerId || !entries.length){ showStatus("Pooja and at least one name are required.", "error"); return; }
-
-    try {
-      const res = await fetch("/.netlify/functions/admin-add-bulk-participants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
-        body: JSON.stringify({ prayerId, entries, status })
-      });
-      const result = await res.json();
-      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
-      bulkAddPanel.classList.remove("show");
-      showStatus(`${result.inserted} participant${result.inserted === 1 ? "" : "s"} added.`, "ok");
-      refreshBookings();
-    } catch (err){
-      showStatus("Save failed.", "error");
-    }
-  });
 
   // ================= SCHEDULE =================
   async function loadSchedule(){
