@@ -252,7 +252,7 @@ const todayIso = today.toISOString().slice(0,10);
 function renderHomeEvents(){
   const homeEvents = document.getElementById("homeEvents");
   homeEvents.innerHTML = "";
-  EVENTS.slice().sort((a,b)=> a.iso.localeCompare(b.iso))
+  getCalendarEvents().sort((a,b)=> a.iso.localeCompare(b.iso))
     .filter(e => e.iso >= todayIso)
     .slice(0,3)
     .forEach(e=>{
@@ -339,11 +339,12 @@ deityOverlay.addEventListener("click", (e)=>{ if(e.target === deityOverlay) clos
 // ============================================================
 // EVENT CALENDAR (Google-Calendar-style month grid)
 // ============================================================
-// Every pooja in the Annual Prayers schedule (ANNUAL_PRAYERS, from
-// Supabase) also shows up here automatically — added/edited once in
-// admin-prayers.html's Schedule tab, visible on both the Prayers &
-// Registration page and the Event Calendar, with no need to also add
-// a matching row to the Events Google Sheet.
+// The calendar's sole data source is Annual Prayers (ANNUAL_PRAYERS, from
+// Supabase) — added/edited once in admin-prayers.html's Schedule tab,
+// visible on both the Prayers & Registration page and here. The old
+// Events Google Sheet is deliberately no longer read for this (see
+// loadLiveContent()), so the same festival can never show up twice from
+// two different sources.
 function prayerToCalendarEvent(p){
   // Pooja names in ANNUAL_PRAYERS aren't translated per-language (same
   // pattern the prayer cards themselves already use), so reuse the one
@@ -356,15 +357,13 @@ function prayerToCalendarEvent(p){
   };
 }
 function getCalendarEvents(){
-  const prayerEvents = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).map(prayerToCalendarEvent);
-  return EVENTS.concat(prayerEvents);
+  return (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).map(prayerToCalendarEvent);
 }
 
 // eventsByDate is rebuilt on every render (not built once at load) — this
-// matters because EVENTS gets replaced with fresh data from the Google
-// Sheet (and ANNUAL_PRAYERS with fresh data from Supabase) after the page
-// has already loaded, and this lookup needs to stay in sync with whatever
-// those currently hold.
+// matters because ANNUAL_PRAYERS gets replaced with fresh data from
+// Supabase after the page has already loaded, and this lookup needs to
+// stay in sync with whatever it currently holds.
 function buildEventsByDate(){
   const map = {};
   getCalendarEvents().forEach(e => { (map[e.iso] = map[e.iso] || []).push(e); });
@@ -953,7 +952,10 @@ function fetchPrayersFromDb(){
       if (typeof CATERERS !== "undefined" && data.caterers){ CATERERS.length = 0; data.caterers.forEach(c => CATERERS.push(c)); }
       PRAYER_PARTICIPANTS = data.participants || {};
       renderPrayers();
-      safeRender("calendarGrid", renderCalendarGrid); // Event Calendar also shows every Annual Prayers entry — refresh it here too
+      // Event Calendar and Home's "Upcoming Events" widget both read from
+      // Annual Prayers now (see getCalendarEvents()) — refresh them here too.
+      safeRender("calendarGrid", renderCalendarGrid);
+      safeRender("homeEvents", renderHomeEvents);
       if (currentPrayerModal) openPrayerModal(currentPrayerModal);
     })
     .catch(err => console.warn("Could not load the live Annual Prayers schedule — showing bundled data only:", err));
@@ -1147,8 +1149,13 @@ function fetchSheetTab(tabName){
 function loadLiveContent(){
   if (!SHEET_ID) return;
 
+  // The Events tab is intentionally NOT fetched here any more — the Event
+  // Calendar now pulls exclusively from Annual Prayers (see
+  // getCalendarEvents()) so the same festival never shows twice from two
+  // different sources. content/events.json and the EVENTS array still
+  // exist but nothing renders from them any more; left in place rather
+  // than deleted in case this ever needs to be reverted.
   Promise.all([
-    fetchSheetTab("Events"),
     fetchSheetTab("Announcements"),
     fetchSheetTab("PoojaTimings"),
     fetchSheetTab("PoojaNames"),
@@ -1159,22 +1166,7 @@ function loadLiveContent(){
     fetchSheetTab("AboutActivities"),
     fetchSheetTab("HeroBanner"),
     fetchSheetTab("Contact")
-  ]).then(([eventsRows, annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows, heroRows, contactRows]) => {
-
-    if (eventsRows.length){
-      const fresh = eventsRows
-        .map(r => ({
-          iso: (r["Date (YYYY-MM-DD)"] || "").trim(),
-          title: (r["Title"] || "").trim(),
-          title_bm: (r["Title (Malay)"] || "").trim(),
-          title_ta: (r["Title (Tamil)"] || "").trim(),
-          desc: (r["Description"] || "").trim(),
-          desc_bm: (r["Description (Malay)"] || "").trim(),
-          desc_ta: (r["Description (Tamil)"] || "").trim()
-        }))
-        .filter(e => e.iso && e.title);
-      if (fresh.length){ EVENTS.length = 0; fresh.forEach(e => EVENTS.push(e)); }
-    }
+  ]).then(([annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows, heroRows, contactRows]) => {
 
     if (annRows.length){
       const fresh = annRows.map(r => ({
