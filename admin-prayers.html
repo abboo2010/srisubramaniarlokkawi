@@ -12,15 +12,49 @@
   }
   *{box-sizing:border-box;}
   body{
-    margin:0; font-family:'Segoe UI', Arial, sans-serif; background:var(--cream-50); color:var(--ink-900);
-    padding:24px 16px 60px;
+    margin:0; font-family:'Segoe UI', Arial, sans-serif; color:var(--ink-900);
+    padding:24px 16px 60px; min-height:100vh; position:relative;
   }
+  /* ---------- modern blurred temple-photo background — LOGIN SCREEN ONLY ---------- */
+  /* Shown by default (the login screen is what's visible on first load); once
+     logged in, script.js adds .dashboard-view to <body> and this swaps out
+     for the dashboard's plain, table-friendly background instead. */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-2;
+    background-image:url("assets/admin-bg.jpg");
+    background-size:cover; background-position:center 30%; background-repeat:no-repeat;
+    filter:blur(8px) brightness(0.55) saturate(1.15);
+    transform:scale(1.1); /* hides the blurred edge fringe */
+  }
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1;
+    background:linear-gradient(160deg, rgba(82,17,24,0.82) 0%, rgba(193,83,31,0.55) 55%, rgba(82,17,24,0.78) 100%);
+  }
+  body.dashboard-view{ background:var(--cream-50); }
+  body.dashboard-view::before, body.dashboard-view::after{ content:none; }
+  @media print{
+    body::before, body::after{ content:none; display:none !important; }
+  }
+  .admin-logo{
+    display:block; width:68px; height:68px; margin:0 auto 12px; object-fit:contain;
+    filter:drop-shadow(0 4px 10px rgba(38,7,11,0.35));
+  }
+  .app-header-row{display:flex; align-items:center; gap:14px; margin-bottom:18px;}
+  .app-header-row .admin-logo{margin:0; width:54px; height:54px; flex-shrink:0;}
+  .app-title-line1{font-size:13px; font-weight:700; letter-spacing:.02em; color:var(--ember-500); text-transform:uppercase;}
+  .app-title-line2{font-family:'Segoe UI', Arial, sans-serif; font-size:20px; font-weight:700; color:var(--maroon-800); margin:1px 0 4px;}
+  .app-header-text p.sub{color:var(--ink-600); margin:0;}
   h1{font-size:19px; margin:0 0 4px;}
   h2{font-size:15px; margin:0 0 12px;}
   .sub{color:var(--ink-600); font-size:13px; margin:0 0 20px;}
   .wrap{max-width:1200px; margin:0 auto;}
 
-  #loginBox{max-width:380px; margin:80px auto; background:#fff; border-radius:var(--radius-md); padding:28px 26px; box-shadow:0 6px 18px rgba(38,7,11,0.1); text-align:center;}
+  #loginBox{
+    max-width:380px; margin:80px auto; padding:32px 26px; text-align:center;
+    background:rgba(255,255,255,0.94); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.5);
+    box-shadow:0 20px 44px rgba(20,4,6,0.35);
+  }
   #loginBox h1{margin-bottom:16px;}
   #loginBox input{width:100%; padding:11px 13px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:14px; margin-bottom:12px;}
   #loginBox button{width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--ember-500); color:#fff; font-weight:700; font-size:14px; cursor:pointer;}
@@ -61,7 +95,11 @@
 
   .empty-note{padding:30px; text-align:center; color:var(--ink-600); font-size:13px;}
   .table-wrap{overflow-x:auto; max-height:65vh; overflow-y:auto;}
-  .refresh-note{font-size:12px; color:var(--ink-600); margin-top:10px;}
+  .refresh-note{
+    font-size:12px; color:var(--ink-600); margin-top:16px; padding:10px 14px;
+    background:rgba(255,255,255,0.88); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-radius:var(--radius-sm); display:inline-block;
+  }
   .status-msg{font-size:13px; margin:10px 0; padding:10px 14px; border-radius:var(--radius-sm);}
   .status-msg.error{background:#fdecec; color:#a4232f;}
   .status-msg.ok{background:rgba(62,124,82,0.12); color:var(--green-600);}
@@ -82,17 +120,19 @@
   .caterers-list{background:#fff; border-radius:var(--radius-md); padding:6px 0; margin-top:18px;}
 
   @media print{
-    body{background:#fff; padding:0;}
+    body, body.dashboard-view{background:#fff !important; padding:0;}
     .toolbar, .tab-switch, .edit-panel, .row-actions, #loginBox, .refresh-note, .status-msg{display:none !important;}
     table{box-shadow:none;}
     th{background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
     .table-wrap{max-height:none; overflow:visible;}
+    .admin-logo{filter:none !important;}
   }
 </style>
 </head>
 <body>
 
 <div id="loginBox">
+  <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
   <h1>Annual Prayers — Admin</h1>
   <p class="sub">Sri Subramaniar Alayam, Lok Kawi</p>
   <input type="password" id="passwordInput" placeholder="Admin password" autocomplete="current-password" />
@@ -101,8 +141,14 @@
 </div>
 
 <div class="wrap" id="appBox">
-  <h1>Annual Prayers — Admin</h1>
-  <p class="sub">View and manage every registration, and edit the schedule itself — sponsors, fees, open/closed status — without needing a redeploy.</p>
+  <div class="app-header-row">
+    <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
+    <div class="app-header-text">
+      <div class="app-title-line1">Sri Subramaniar Alayam, Lok Kawi</div>
+      <div class="app-title-line2">Annual Prayers and Registration</div>
+      <p class="sub">View and manage every registration, and edit the schedule itself — sponsors, fees, open/closed status — without needing a redeploy.</p>
+    </div>
+  </div>
 
   <div id="statusMsg" class="status-msg" style="display:none;"></div>
 
@@ -254,6 +300,7 @@
       allBookings = data.bookings || [];
       loginBox.style.display = "none";
       appBox.style.display = "block";
+      document.body.classList.add("dashboard-view"); // swap the login photo background for the plain dashboard one
       renderBookings();
       loadSchedule();
     } catch (err){
