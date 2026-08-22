@@ -128,6 +128,24 @@
     .table-wrap{max-height:none; overflow:visible;}
     .admin-logo{filter:none !important;}
   }
+
+  /* ---------- Participants Report (own print view, hidden otherwise) ---------- */
+  #participantsPrintView{display:none;}
+  @media print{
+    body.printing-participants #loginBox, body.printing-participants #appBox{display:none !important;}
+    body.printing-participants #participantsPrintView{display:block !important;}
+  }
+  .print-report-header{display:flex; align-items:center; gap:14px; margin-bottom:18px; border-bottom:2px solid var(--maroon-800); padding-bottom:14px;}
+  .print-report-header img{width:52px; height:52px; object-fit:contain;}
+  .print-report-title1{font-size:12px; font-weight:700; letter-spacing:.02em; color:var(--ember-500); text-transform:uppercase;}
+  .print-report-title2{font-size:19px; font-weight:700; color:var(--maroon-800); margin-top:2px;}
+  .print-report-meta{font-size:11.5px; color:var(--ink-600); margin-top:2px;}
+  .participants-group{break-inside:avoid; margin-bottom:16px;}
+  .participants-group h3{font-size:14px; margin:0 0 6px; padding-bottom:4px; border-bottom:1px solid var(--cream-100);}
+  .participants-group ol{margin:0; padding-left:22px; font-size:13px; line-height:1.7;}
+  .participants-group .qty{color:var(--ink-600); font-weight:700;}
+  .group-total{font-size:11.5px; color:var(--ink-600); font-style:italic; margin:4px 0 0;}
+  .grand-total{margin-top:20px; padding-top:12px; border-top:2px solid var(--maroon-800); font-size:13.5px; font-weight:700;}
 </style>
 </head>
 <body>
@@ -177,6 +195,7 @@
       <input type="text" id="searchInput" placeholder="Search name, pooja, or reference…" />
       <button id="refreshBookingsBtn">Refresh</button>
       <button id="printBookingsBtn">Print</button>
+      <button id="printParticipantsBtn">Print Participants Report</button>
       <button id="exportBookingsBtn">Export CSV</button>
       <button class="primary" id="addBookingBtn">+ Add Booking</button>
       <button class="primary" id="bulkAddBtn">+ Bulk Add Participants</button>
@@ -332,6 +351,8 @@
   <p class="refresh-note">Editing a pooja's sponsor/open fields here takes effect immediately on the live site — no redeploy needed. Cancelling a Ubayakarar or Annathanam booking on the Bookings tab automatically reopens that slot here too.</p>
 </div>
 
+<div id="participantsPrintView"></div>
+
 <script>
   let adminPassword = "";
   let allBookings = [];
@@ -423,6 +444,59 @@
     filteredBookings().forEach(b => rows.push([b.date, b.prayerName, roleLabel(b.role), b.name, b.phone, b.participantCount, b.notes, b.status, b.bookingId]));
     downloadCsv("annual-prayers-bookings.csv", rows);
   });
+
+  // ---------- Print Participants Report — one click, no manual filtering ----------
+  document.getElementById("printParticipantsBtn").addEventListener("click", printParticipantsReport);
+  window.addEventListener("afterprint", () => document.body.classList.remove("printing-participants"));
+
+  function printParticipantsReport(){
+    const rows = allBookings.filter(b => b.role === "participant" && b.status !== "Cancelled");
+    if (!rows.length){ showStatus("No participant bookings to print yet.", "error"); return; }
+
+    const byPrayer = {};
+    rows.forEach(b => {
+      const key = b.prayerId || b.prayerName;
+      if (!byPrayer[key]) byPrayer[key] = { date: b.date, prayerName: b.prayerName, entries: [] };
+      byPrayer[key].entries.push(b);
+    });
+    const groups = Object.values(byPrayer).sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
+    let grandEntries = 0, grandHeads = 0;
+    const groupsHtml = groups.map(g => {
+      const headcount = g.entries.reduce((sum, e) => sum + (e.participantCount || 1), 0);
+      grandEntries += g.entries.length;
+      grandHeads += headcount;
+      const listHtml = g.entries
+        .slice()
+        .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+        .map(e => `<li>${e.name}${e.participantCount && e.participantCount > 1 ? ` <span class="qty">×${e.participantCount}</span>` : ""}</li>`)
+        .join("");
+      return `
+        <div class="participants-group">
+          <h3>${g.date} — ${g.prayerName}</h3>
+          <ol>${listHtml}</ol>
+          <p class="group-total">${g.entries.length} ${g.entries.length === 1 ? "entry" : "entries"}, ${headcount} total headcount</p>
+        </div>
+      `;
+    }).join("");
+
+    document.getElementById("participantsPrintView").innerHTML = `
+      <div class="print-report-header">
+        <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" />
+        <div>
+          <div class="print-report-title1">Sri Subramaniar Alayam, Lok Kawi</div>
+          <div class="print-report-title2">Annual Prayers — Participants Report</div>
+          <div class="print-report-meta">Printed ${new Date().toLocaleDateString()} — ${groups.length} ${groups.length === 1 ? "pooja" : "poojas"} with participants on record</div>
+        </div>
+      </div>
+      ${groupsHtml}
+      <p class="grand-total">Total across all poojas: ${grandEntries} ${grandEntries === 1 ? "entry" : "entries"}, ${grandHeads} total headcount.</p>
+    `;
+
+    document.body.classList.add("printing-participants");
+    window.print();
+    setTimeout(() => document.body.classList.remove("printing-participants"), 1000); // fallback for browsers that skip afterprint
+  }
 
   function statusPillClass(status){
     const s = (status || "").toLowerCase();
