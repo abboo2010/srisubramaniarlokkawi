@@ -91,6 +91,7 @@
   .row-actions button{padding:5px 10px; border-radius:6px; border:1px solid var(--cream-100); background:#fff; font-size:11px; cursor:pointer; font-weight:600;}
   .row-actions button.confirm{color:var(--green-600); border-color:var(--green-600);}
   .row-actions button.cancel, .row-actions button.delete{color:#a4232f; border-color:#a4232f;}
+  .row-actions button.participants{color:var(--maroon-800); border-color:var(--gold-500); background:rgba(201,154,62,0.12);}
   .row-actions button:disabled{opacity:.5; cursor:default;}
 
   .empty-note{padding:30px; text-align:center; color:var(--ink-600); font-size:13px;}
@@ -122,7 +123,7 @@
 
   @media print{
     body, body.dashboard-view{background:#fff !important; padding:0;}
-    .toolbar, .tab-switch, .edit-panel, .row-actions, #loginBox, .refresh-note, .status-msg{display:none !important;}
+    .toolbar, .tab-switch, .edit-panel, .row-actions, #loginBox, .refresh-note, .status-msg, .modal-overlay{display:none !important;}
     table{box-shadow:none;}
     th{background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
     .table-wrap{max-height:none; overflow:visible;}
@@ -146,6 +147,38 @@
   .participants-group .qty{color:var(--ink-600); font-weight:700;}
   .group-total{font-size:11.5px; color:var(--ink-600); font-style:italic; margin:4px 0 0;}
   .grand-total{margin-top:20px; padding-top:12px; border-top:2px solid var(--maroon-800); font-size:13.5px; font-weight:700;}
+
+  /* ---------- Participants modal (view/add/print for one pooja) ---------- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; z-index:200; background:rgba(38,7,11,0.55);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:#fff; border-radius:var(--radius-md); width:100%; max-width:560px;
+    max-height:88vh; overflow-y:auto; box-shadow:0 20px 50px rgba(38,7,11,0.35);
+  }
+  .modal-header{display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:20px 22px 14px; border-bottom:1px solid var(--cream-100);}
+  .modal-header h2{margin:0; font-size:17px; color:var(--maroon-800);}
+  .modal-sub{margin:2px 0 0; font-size:12.5px; color:var(--ink-600);}
+  .modal-close{background:none; border:none; font-size:22px; line-height:1; cursor:pointer; color:var(--ink-600); padding:0 2px;}
+  .modal-body{padding:16px 22px;}
+  .modal-count{font-size:12px; color:var(--ink-600); margin:0 0 10px;}
+  .modal-empty{font-size:13px; color:var(--ink-600); margin:0 0 10px;}
+  .pm-row{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--cream-100); font-size:13px;}
+  .pm-name .qty{color:var(--ink-600); font-weight:700;}
+  .pm-actions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .pm-actions button{padding:4px 9px; border-radius:6px; border:1px solid #a4232f; color:#a4232f; background:#fff; font-size:11px; font-weight:600; cursor:pointer;}
+  .modal-add-section{margin-top:16px; padding-top:16px; border-top:1px solid var(--cream-100);}
+  .modal-add-section label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:.02em;}
+  .modal-add-section textarea{width:100%; padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
+  .modal-add-row{display:flex; gap:8px; margin-top:8px; align-items:center;}
+  .modal-add-row select{padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px;}
+  .modal-add-row button, .modal-footer button{padding:9px 16px; border-radius:var(--radius-sm); border:none; font-size:13px; font-weight:700; cursor:pointer;}
+  .modal-add-row button#pm_saveBtn{background:var(--ember-500); color:#fff;}
+  .modal-footer{display:flex; justify-content:flex-end; gap:8px; padding:14px 22px; border-top:1px solid var(--cream-100);}
+  .modal-footer button{background:var(--cream-100); color:var(--ink-600);}
+  .modal-footer button#pm_printBtn{background:var(--maroon-800); color:#fff;}
 </style>
 </head>
 <body>
@@ -349,6 +382,37 @@
   </div>
 
   <p class="refresh-note">Editing a pooja's sponsor/open fields here takes effect immediately on the live site — no redeploy needed. Cancelling a Ubayakarar or Annathanam booking on the Bookings tab automatically reopens that slot here too.</p>
+
+  <div class="modal-overlay" id="participantsModalOverlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h2 id="participantsModalTitle">Participants</h2>
+          <p class="modal-sub" id="participantsModalSub"></p>
+        </div>
+        <button class="modal-close" id="closeParticipantsModalXBtn" title="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="participantsModalList"></div>
+        <div class="modal-add-section">
+          <label>Add participants — one name per line; add a comma and a number for a headcount, e.g. "Mr. &amp; Mrs. Ravi, 2"</label>
+          <textarea id="pm_names" rows="4"></textarea>
+          <div class="modal-add-row">
+            <select id="pm_status">
+              <option value="Confirmed">Confirmed</option>
+              <option value="Reserved">Reserved</option>
+              <option value="Pending Payment">Pending Payment</option>
+            </select>
+            <button id="pm_saveBtn">Save</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="pm_printBtn">Print</button>
+        <button id="pm_closeBtn">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="participantsPrintView"></div>
@@ -450,8 +514,15 @@
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-participants"));
 
   function printParticipantsReport(){
-    const rows = allBookings.filter(b => b.role === "participant" && b.status !== "Cancelled");
-    if (!rows.length){ showStatus("No participant bookings to print yet.", "error"); return; }
+    printParticipantsRows(allBookings.filter(b => b.role === "participant" && b.status !== "Cancelled"));
+  }
+
+  function printParticipantsForPrayer(prayerId){
+    printParticipantsRows(allBookings.filter(b => b.role === "participant" && b.status !== "Cancelled" && b.prayerId === prayerId));
+  }
+
+  function printParticipantsRows(rows){
+    if (!rows.length){ showStatus("No participants to print yet.", "error"); return; }
 
     const byPrayer = {};
     rows.forEach(b => {
@@ -490,13 +561,94 @@
         </div>
       </div>
       ${groupsHtml}
-      <p class="grand-total">Total across all poojas: ${grandEntries} ${grandEntries === 1 ? "entry" : "entries"}, ${grandHeads} total headcount.</p>
+      <p class="grand-total">Total: ${grandEntries} ${grandEntries === 1 ? "entry" : "entries"}, ${grandHeads} total headcount.</p>
     `;
 
     document.body.classList.add("printing-participants");
     window.print();
     setTimeout(() => document.body.classList.remove("printing-participants"), 1000); // fallback for browsers that skip afterprint
   }
+
+  // ---------- Participants modal (per-pooja view / add / print, from the Schedule tab) ----------
+  let currentParticipantsPrayerId = null;
+  const participantsModalOverlay = document.getElementById("participantsModalOverlay");
+
+  function openParticipantsModal(prayerId){
+    currentParticipantsPrayerId = prayerId;
+    const p = allPrayers.find(x => x.id === prayerId);
+    document.getElementById("participantsModalTitle").textContent = "Participants — " + (p ? p.name : prayerId);
+    document.getElementById("participantsModalSub").textContent = p ? p.date : "";
+    document.getElementById("pm_names").value = "";
+    document.getElementById("pm_status").value = "Confirmed";
+    renderParticipantsModalList();
+    participantsModalOverlay.classList.add("show");
+  }
+
+  function closeParticipantsModal(){
+    participantsModalOverlay.classList.remove("show");
+    currentParticipantsPrayerId = null;
+  }
+  document.getElementById("closeParticipantsModalXBtn").addEventListener("click", closeParticipantsModal);
+  document.getElementById("pm_closeBtn").addEventListener("click", closeParticipantsModal);
+  participantsModalOverlay.addEventListener("click", (e) => { if (e.target === participantsModalOverlay) closeParticipantsModal(); });
+
+  function renderParticipantsModalList(){
+    const rows = allBookings
+      .filter(b => b.prayerId === currentParticipantsPrayerId && b.role === "participant" && b.status !== "Cancelled")
+      .slice()
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const listEl = document.getElementById("participantsModalList");
+
+    if (!rows.length){
+      listEl.innerHTML = `<p class="modal-empty">No participants recorded yet for this pooja — add some below.</p>`;
+      return;
+    }
+    const totalHeads = rows.reduce((sum, r) => sum + (r.participantCount || 1), 0);
+    listEl.innerHTML = `
+      <p class="modal-count">${rows.length} ${rows.length === 1 ? "entry" : "entries"}, ${totalHeads} total headcount</p>
+      ${rows.map(r => `
+        <div class="pm-row">
+          <span class="pm-name">${r.name}${r.participantCount && r.participantCount > 1 ? ` <span class="qty">×${r.participantCount}</span>` : ""}</span>
+          <span class="pm-actions">
+            <span class="pill ${statusPillClass(r.status)}">${r.status}</span>
+            <button data-cancel="${r.bookingId}">Remove</button>
+          </span>
+        </div>
+      `).join("")}
+    `;
+    listEl.querySelectorAll("button[data-cancel]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        if (!confirm("Remove this participant entry?")) return;
+        await updateBooking(btn.dataset.cancel, "Cancelled");
+        renderParticipantsModalList();
+      });
+    });
+  }
+
+  document.getElementById("pm_saveBtn").addEventListener("click", async () => {
+    const entries = parseBulkNames(document.getElementById("pm_names").value);
+    if (!entries.length){ showStatus("Enter at least one name.", "error"); return; }
+    const status = document.getElementById("pm_status").value;
+    try {
+      const res = await fetch("/.netlify/functions/admin-add-bulk-participants", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ prayerId: currentParticipantsPrayerId, entries, status })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      document.getElementById("pm_names").value = "";
+      showStatus(`${result.inserted} participant${result.inserted === 1 ? "" : "s"} added.`, "ok");
+      await refreshBookings();        // pulls fresh data into allBookings
+      renderParticipantsModalList();  // re-render the modal with it
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
+  });
+
+  document.getElementById("pm_printBtn").addEventListener("click", () => {
+    if (currentParticipantsPrayerId) printParticipantsForPrayer(currentParticipantsPrayerId);
+  });
 
   function statusPillClass(status){
     const s = (status || "").toLowerCase();
@@ -743,12 +895,14 @@
         <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}</td>
         <td class="row-actions">
           <button data-edit="${p.id}">Edit</button>
+          ${p.participantsEnabled ? `<button class="participants" data-participants="${p.id}" title="View participants">👥 Participants</button>` : ""}
           <button class="delete" data-delete="${p.id}">Delete</button>
         </td>
       `;
       body.appendChild(tr);
     });
     body.querySelectorAll("button[data-edit]").forEach(btn => btn.addEventListener("click", () => openPrayerEdit(btn.dataset.edit)));
+    body.querySelectorAll("button[data-participants]").forEach(btn => btn.addEventListener("click", () => openParticipantsModal(btn.dataset.participants)));
     body.querySelectorAll("button[data-delete]").forEach(btn => btn.addEventListener("click", () => deletePrayer(btn.dataset.delete)));
   }
 
