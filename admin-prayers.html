@@ -235,8 +235,8 @@
     </div>
 
     <div class="edit-panel" id="bookingEditPanel">
-      <h2>Add Booking</h2>
-      <p class="panel-hint">Use this to record a sponsor or participant by hand — including for a pooja that has already taken place, which the public registration form won't allow. Good for typing in a past event's participant list, or a sponsor you forgot to log at the time.</p>
+      <h2 id="bookingEditPanelTitle">Add Booking</h2>
+      <p class="panel-hint" id="bookingEditPanelHint">Use this to record a sponsor or participant by hand — including for a pooja that has already taken place, which the public registration form won't allow. Good for typing in a past event's participant list, or a sponsor you forgot to log at the time.</p>
       <div class="edit-grid">
         <div class="edit-field" style="grid-column:span 2;"><label>Pooja</label>
           <select id="b_prayerId"></select>
@@ -253,6 +253,7 @@
             <option value="Confirmed">Confirmed</option>
             <option value="Reserved">Reserved</option>
             <option value="Pending Payment">Pending Payment</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
         <div class="edit-field"><label>Name</label><input id="b_name" /></div>
@@ -698,9 +699,17 @@
         <td class="row-actions">
           <button class="confirm" ${b.status === "Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Confirmed">Confirm</button>
           <button class="cancel" ${!canAct ? "disabled" : ""} data-id="${b.bookingId}" data-status="Cancelled">Cancel</button>
+          <button data-edit-booking="${b.bookingId}">Edit</button>
+          <button class="delete" data-delete-booking="${b.bookingId}">Delete</button>
         </td>
       `;
       body.appendChild(tr);
+    });
+    body.querySelectorAll("button[data-edit-booking]").forEach(btn => {
+      btn.addEventListener("click", () => openBookingForm(btn.dataset.editBooking));
+    });
+    body.querySelectorAll("button[data-delete-booking]").forEach(btn => {
+      btn.addEventListener("click", () => deleteBooking(btn.dataset.deleteBooking));
     });
     body.querySelectorAll("button[data-id]").forEach(btn => {
       btn.addEventListener("click", () => updateBooking(btn.dataset.id, btn.dataset.status));
@@ -726,22 +735,38 @@
     }
   }
 
-  // ---------- add booking (incl. for past poojas) ----------
+  // ---------- add / edit booking (incl. for past poojas) ----------
   const bookingEditPanel = document.getElementById("bookingEditPanel");
+  let editingBookingId = null;
 
-  document.getElementById("addBookingBtn").addEventListener("click", async () => {
+  document.getElementById("addBookingBtn").addEventListener("click", () => openBookingForm(null));
+  document.getElementById("cancelBookingBtn").addEventListener("click", () => bookingEditPanel.classList.remove("show"));
+
+  async function openBookingForm(bookingId){
     if (!allPrayers.length) await loadSchedule(); // make sure the pooja dropdown has something to show
     populateBookingPrayerSelect();
-    document.getElementById("b_role").value = "participant";
-    document.getElementById("b_status").value = "Confirmed";
-    document.getElementById("b_name").value = "";
-    document.getElementById("b_phone").value = "";
-    document.getElementById("b_participantCount").value = "1";
-    document.getElementById("b_notes").value = "";
+
+    editingBookingId = bookingId;
+    const b = bookingId ? allBookings.find(x => x.bookingId === bookingId) : null;
+
+    document.getElementById("bookingEditPanelTitle").textContent = b ? "Edit Booking — " + b.name : "Add Booking";
+    document.getElementById("bookingEditPanelHint").textContent = b
+      ? "The pooja and role a booking belongs to can't be changed here — delete and re-add it instead if it needs to move. Editing a Ubayakarar/Annathanam name here also updates the sponsor shown on the Schedule tab."
+      : "Use this to record a sponsor or participant by hand — including for a pooja that has already taken place, which the public registration form won't allow. Good for typing in a past event's participant list, or a sponsor you forgot to log at the time.";
+
+    document.getElementById("b_prayerId").value = b ? b.prayerId : document.getElementById("b_prayerId").value;
+    document.getElementById("b_prayerId").disabled = !!b;
+    document.getElementById("b_role").value = b ? b.role : "participant";
+    document.getElementById("b_role").disabled = !!b;
+    document.getElementById("b_status").value = b ? b.status : "Confirmed";
+    document.getElementById("b_name").value = b ? (b.name || "") : "";
+    document.getElementById("b_phone").value = b ? (b.phone || "") : "";
+    document.getElementById("b_participantCount").value = b ? (b.participantCount || 1) : "1";
+    document.getElementById("b_notes").value = b ? (b.notes || "") : "";
+
     bookingEditPanel.classList.add("show");
     bookingEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
-  });
-  document.getElementById("cancelBookingBtn").addEventListener("click", () => bookingEditPanel.classList.remove("show"));
+  }
 
   function populateBookingPrayerSelect(){
     const select = document.getElementById("b_prayerId");
@@ -764,22 +789,48 @@
     const notes = document.getElementById("b_notes").value.trim();
     if (!prayerId || !name){ showStatus("Pooja and name are required.", "error"); return; }
 
+    const isEdit = !!editingBookingId;
+    const url = isEdit ? "/.netlify/functions/admin-edit-booking" : "/.netlify/functions/admin-add-booking";
+    const payload = isEdit
+      ? { bookingId: editingBookingId, name, phone, participantCount, notes, status }
+      : { prayerId, role, status, name, phone, participantCount, notes };
+
     try {
-      const res = await fetch("/.netlify/functions/admin-add-booking", {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
-        body: JSON.stringify({ prayerId, role, status, name, phone, participantCount, notes })
+        body: JSON.stringify(payload)
       });
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       bookingEditPanel.classList.remove("show");
-      showStatus(`Booking saved — reference ${result.bookingId}.`, "ok");
+      showStatus(isEdit ? "Booking updated." : `Booking saved — reference ${result.bookingId}.`, "ok");
       refreshBookings();
       if (role === "ubayakarar" || role === "annathanam") loadSchedule(); // sponsor field on the Schedule tab just changed too
     } catch (err){
       showStatus("Save failed.", "error");
     }
   });
+
+  async function deleteBooking(bookingId){
+    const b = allBookings.find(x => x.bookingId === bookingId);
+    if (!confirm(`Permanently delete this booking${b ? " (" + b.name + ")" : ""}? This removes it entirely — a Ubayakarar/Annathanam slot will reopen. If you just want to void it but keep the record, use Cancel instead.`)) return;
+    try {
+      const res = await fetch("/.netlify/functions/admin-delete-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ bookingId })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
+      allBookings = allBookings.filter(x => x.bookingId !== bookingId);
+      renderBookings();
+      showStatus("Booking deleted.", "ok");
+      loadSchedule(); // a reopened sponsor slot needs the Schedule tab refreshed too
+    } catch (err){
+      showStatus("Delete failed.", "error");
+    }
+  }
 
   // ---------- bulk add participants (paste a whole list at once) ----------
   const bulkAddPanel = document.getElementById("bulkAddPanel");
