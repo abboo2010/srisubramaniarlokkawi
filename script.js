@@ -339,13 +339,35 @@ deityOverlay.addEventListener("click", (e)=>{ if(e.target === deityOverlay) clos
 // ============================================================
 // EVENT CALENDAR (Google-Calendar-style month grid)
 // ============================================================
+// Every pooja in the Annual Prayers schedule (ANNUAL_PRAYERS, from
+// Supabase) also shows up here automatically — added/edited once in
+// admin-prayers.html's Schedule tab, visible on both the Prayers &
+// Registration page and the Event Calendar, with no need to also add
+// a matching row to the Events Google Sheet.
+function prayerToCalendarEvent(p){
+  // Pooja names in ANNUAL_PRAYERS aren't translated per-language (same
+  // pattern the prayer cards themselves already use), so reuse the one
+  // name across en/bm/ta here too.
+  return {
+    iso: p.date,
+    title: p.name, title_bm: p.name, title_ta: p.name,
+    desc: p.notes || "", desc_bm: p.notes || "", desc_ta: p.notes || "",
+    isPrayer: true, prayerId: p.id
+  };
+}
+function getCalendarEvents(){
+  const prayerEvents = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).map(prayerToCalendarEvent);
+  return EVENTS.concat(prayerEvents);
+}
+
 // eventsByDate is rebuilt on every render (not built once at load) — this
 // matters because EVENTS gets replaced with fresh data from the Google
-// Sheet after the page has already loaded, and this lookup needs to stay
-// in sync with whatever EVENTS currently holds.
+// Sheet (and ANNUAL_PRAYERS with fresh data from Supabase) after the page
+// has already loaded, and this lookup needs to stay in sync with whatever
+// those currently hold.
 function buildEventsByDate(){
   const map = {};
-  EVENTS.forEach(e => { (map[e.iso] = map[e.iso] || []).push(e); });
+  getCalendarEvents().forEach(e => { (map[e.iso] = map[e.iso] || []).push(e); });
   return map;
 }
 
@@ -452,7 +474,7 @@ function renderMonthEventList(){
   document.getElementById("calendarListHeading").textContent = `${monthNames[calMonth]} ${calYear} ${t("calEventsSuffix")}`;
 
   const monthPrefix = `${calYear}-${String(calMonth+1).padStart(2,"0")}`;
-  const monthEvents = EVENTS.filter(e => e.iso.startsWith(monthPrefix)).sort((a,b)=> a.iso.localeCompare(b.iso));
+  const monthEvents = getCalendarEvents().filter(e => e.iso.startsWith(monthPrefix)).sort((a,b)=> a.iso.localeCompare(b.iso));
 
   if(monthEvents.length === 0){
     calendarList.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;">${t("calNoEvents")}</p>`));
@@ -473,6 +495,14 @@ function renderMonthEventList(){
 
 const eventOverlay = document.getElementById("eventOverlay");
 function openEventModal(e){
+  // Calendar entries derived from Annual Prayers carry much richer detail
+  // (Ubayakarar/Annathanam/Participant status, fees) than a plain calendar
+  // event — open the existing Prayer modal for those instead of the plain
+  // one, using the live ANNUAL_PRAYERS record so it's always up to date.
+  if (e.isPrayer){
+    const livePrayer = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).find(p => p.id === e.prayerId);
+    if (livePrayer){ openPrayerModal(livePrayer); return; }
+  }
   document.getElementById("eventModalDay").textContent = dayNum(e.iso);
   document.getElementById("eventModalMonth").textContent = monthAbbr(e.iso);
   document.getElementById("eventModalTitle").textContent = eventTitle(e);
@@ -923,6 +953,7 @@ function fetchPrayersFromDb(){
       if (typeof CATERERS !== "undefined" && data.caterers){ CATERERS.length = 0; data.caterers.forEach(c => CATERERS.push(c)); }
       PRAYER_PARTICIPANTS = data.participants || {};
       renderPrayers();
+      safeRender("calendarGrid", renderCalendarGrid); // Event Calendar also shows every Annual Prayers entry — refresh it here too
       if (currentPrayerModal) openPrayerModal(currentPrayerModal);
     })
     .catch(err => console.warn("Could not load the live Annual Prayers schedule — showing bundled data only:", err));
