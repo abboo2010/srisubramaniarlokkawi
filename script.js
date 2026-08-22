@@ -630,6 +630,7 @@ qrOverlay.addEventListener("click", (e)=>{ if(e.target === qrOverlay) closeQrMod
 // (the register_prayer() Postgres function updates them atomically),
 // so no separate "is this taken" overlay is needed here any more.
 let PRAYER_PARTICIPANTS = {}; // { [prayerId]: [{name, participantCount}] }
+let PRAYER_SPONSOR_BOOKINGS = {}; // { [prayerId]: { ubayakarar: {reference, status}, annathanam: {reference, status} } }
 
 function prayerIsOver(p){
   if (p.statusOverride === "completed") return true;
@@ -711,11 +712,14 @@ function prayerRoleRow(p, role){
   const label = role === "ubayakarar" ? t("prayersUbayakararLabel") : t("prayersAnnathanamLabel");
   const taken = prayerRoleTaken(p, role);
   const sponsor = prayerRoleSponsorDisplay(p, role);
+  const booking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {})[role];
+  const refHtml = booking ? `<span class="prayer-modal-row-ref">${t("prayersSuccessRef")}: ${booking.reference}</span>` : "";
   return `
     <div class="prayer-modal-row">
       <span class="prayer-modal-row-label">${label}</span>
       <span class="prayer-role-pill ${taken ? "taken" : "open"}">${taken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
       ${sponsor ? `<span class="prayer-modal-row-sponsor">${sponsor}</span>` : ""}
+      ${refHtml}
     </div>
   `;
 }
@@ -733,7 +737,16 @@ function openPrayerModal(p){
 
   let rowsHtml = prayerRoleRow(p, "ubayakarar") + prayerRoleRow(p, "annathanam");
   if (p.ubayamFee != null){
-    rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersFeeLabel")}</span><span class="prayer-modal-row-sponsor">RM ${p.ubayamFee.toLocaleString()}</span></div>`;
+    // The Ubayam Fee is what the Ubayakarar booking actually pays for, so
+    // its paid/not-paid status (and reference) is shown right here rather
+    // than duplicated on the Ubayakarar row above. Annathanam never gets
+    // this — it's reserve-only and the site never collects payment for it.
+    const booking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).ubayakarar;
+    const paidPillHtml = booking
+      ? `<span class="prayer-role-pill ${booking.status === "Confirmed" ? "paid" : "unpaid"}">${booking.status === "Confirmed" ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
+      : "";
+    const feeRefHtml = booking ? `<span class="prayer-modal-row-ref">${t("prayersSuccessRef")}: ${booking.reference}</span>` : "";
+    rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersFeeLabel")}</span>${paidPillHtml}<span class="prayer-modal-row-sponsor">RM ${p.ubayamFee.toLocaleString()}</span>${feeRefHtml}</div>`;
   }
   if (p.participantsEnabled){
     const feeText = p.participantFee ? `RM ${p.participantFee} ${t("prayersPerPersonLabel")}` : t("prayersOpenBadge");
@@ -951,6 +964,7 @@ function fetchPrayersFromDb(){
       if (typeof ANNUAL_PRAYERS !== "undefined"){ ANNUAL_PRAYERS.length = 0; data.prayers.forEach(p => ANNUAL_PRAYERS.push(p)); }
       if (typeof CATERERS !== "undefined" && data.caterers){ CATERERS.length = 0; data.caterers.forEach(c => CATERERS.push(c)); }
       PRAYER_PARTICIPANTS = data.participants || {};
+      PRAYER_SPONSOR_BOOKINGS = data.sponsorBookings || {};
       renderPrayers();
       // Event Calendar and Home's "Upcoming Events" widget both read from
       // Annual Prayers now (see getCalendarEvents()) — refresh them here too.

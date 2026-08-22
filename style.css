@@ -994,6 +994,8 @@ img{display:block;max-width:100%;}
 }
 .prayer-role-pill.open{background:rgba(62,124,82,0.12);color:var(--green-600);}
 .prayer-role-pill.taken{background:var(--cream-100);color:var(--ink-600);}
+.prayer-role-pill.paid{background:rgba(62,124,82,0.12);color:var(--green-600);}
+.prayer-role-pill.unpaid{background:rgba(193,83,31,0.14);color:var(--ember-500);}
 
 #caterersCard h3{margin-bottom:4px;}
 #caterersCard p{margin-bottom:10px;}
@@ -1036,6 +1038,7 @@ img{display:block;max-width:100%;}
 .prayer-modal-row:last-child{border-bottom:none;}
 .prayer-modal-row-label{font-weight:700;color:var(--ink-900);min-width:110px;}
 .prayer-modal-row-sponsor{color:var(--ink-600);font-size:12.5px;flex:1;text-align:right;}
+.prayer-modal-row-ref{flex-basis:100%;font-size:11px;color:var(--ink-600);opacity:0.75;text-align:right;}
 .prayer-modal-notes{font-size:12.5px;color:var(--ink-600);line-height:1.6;margin:12px 0 0;font-style:italic;}
 
 .prayer-modal-participants{margin-top:16px;padding-top:14px;border-top:1px solid var(--cream-100);}

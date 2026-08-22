@@ -6,8 +6,13 @@
 // screen (the bundled content/annual-prayers.json in this repo is
 // kept only as an offline fallback in case Supabase is unreachable
 // or not configured yet). Also returns the Annathanam caterer list,
-// and a public-safe list of registered participants per pooja (name
-// + head-count only — never phone number).
+// a public-safe list of registered participants per pooja (name +
+// head-count only — never phone number), and — same privacy level
+// as the sponsor name itself, which is already public — each
+// Ubayakarar/Annathanam booking's reference code and status, so the
+// public prayer detail view can show "Reference: AP-..." and (for
+// Ubayakarar, the only one of the two the site ever collects payment
+// for) a Paid/Not Paid indicator next to the Ubayam Fee.
 // ============================================================
 const { supabaseClient } = require("./_supabase");
 
@@ -19,21 +24,25 @@ exports.handler = async () => {
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ configured: false, prayers: null, caterers: null, participants: {} })
+      body: JSON.stringify({ configured: false, prayers: null, caterers: null, participants: {}, sponsorBookings: {} })
     };
   }
 
   try {
-    const [{ data: prayerRows, error: prayerErr }, { data: catererRows, error: catererErr }, { data: participantRows, error: participantErr }] =
+    const [{ data: prayerRows, error: prayerErr }, { data: catererRows, error: catererErr }, { data: participantRows, error: participantErr }, { data: sponsorRows, error: sponsorErr }] =
       await Promise.all([
         supabase.from("prayers").select("*").order("date", { ascending: true }),
         supabase.from("caterers").select("*").order("sort_order", { ascending: true }),
-        supabase.from("bookings").select("prayer_id, name, participant_count").eq("role", "participant").neq("status", "Cancelled")
+        supabase.from("bookings").select("prayer_id, name, participant_count").eq("role", "participant").neq("status", "Cancelled"),
+        supabase.from("bookings").select("prayer_id, role, booking_id, status, created_at")
+          .in("role", ["ubayakarar", "annathanam"]).neq("status", "Cancelled")
+          .order("created_at", { ascending: false })
       ]);
 
     if (prayerErr) throw prayerErr;
     if (catererErr) throw catererErr;
     if (participantErr) throw participantErr;
+    if (sponsorErr) throw sponsorErr;
 
     const prayers = (prayerRows || []).map((p) => ({
       id: p.id,
@@ -59,17 +68,28 @@ exports.handler = async () => {
       participants[r.prayer_id].push({ name: r.name, participantCount: r.participant_count });
     });
 
+    // sponsorRows is ordered newest-first, so the first row seen for a
+    // given (prayer_id, role) pair is the current one — later rows would
+    // only exist from a since-cancelled-and-rebooked slot, which we skip.
+    const sponsorBookings = {};
+    (sponsorRows || []).forEach((r) => {
+      if (!sponsorBookings[r.prayer_id]) sponsorBookings[r.prayer_id] = {};
+      if (!sponsorBookings[r.prayer_id][r.role]) {
+        sponsorBookings[r.prayer_id][r.role] = { reference: r.booking_id, status: r.status };
+      }
+    });
+
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-      body: JSON.stringify({ configured: true, prayers, caterers, participants })
+      body: JSON.stringify({ configured: true, prayers, caterers, participants, sponsorBookings })
     };
   } catch (err) {
     console.error("Fetching prayers list failed:", err);
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ configured: false, prayers: null, caterers: null, participants: {} })
+      body: JSON.stringify({ configured: false, prayers: null, caterers: null, participants: {}, sponsorBookings: {} })
     };
   }
 };
