@@ -694,7 +694,7 @@ function renderPrayerGrid(){
           <div class="prayer-card-pills">
             <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
             <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
-            ${p.participantsEnabled ? `<span class="prayer-role-pill open">${t("prayersParticipantLabel")}</span>` : ""}
+            ${p.participantsEnabled ? `<span class="prayer-role-pill ${over ? "taken" : "open"}">${t("prayersParticipantLabel")}${over ? ": " + t("prayersClosedBadge") : ""}</span>` : ""}
           </div>
         </div>
       </div>
@@ -749,7 +749,14 @@ function openPrayerModal(p){
     rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersFeeLabel")}</span>${paidPillHtml}<span class="prayer-modal-row-sponsor">RM ${p.ubayamFee.toLocaleString()}</span>${feeRefHtml}</div>`;
   }
   if (p.participantsEnabled){
-    const feeText = p.participantFee ? `RM ${p.participantFee} ${t("prayersPerPersonLabel")}` : t("prayersOpenBadge");
+    // The fee text below is purely "what it costs" (or "Open" as a no-fee
+    // placeholder) — it is NOT a registration-availability indicator. Once
+    // the event is over, replace it with the Closed badge so this row can
+    // never be misread as "still open for registration" (the actual
+    // register button is separately hidden below via `if (!over)`).
+    const feeText = over
+      ? t("prayersClosedBadge")
+      : (p.participantFee ? `RM ${p.participantFee} ${t("prayersPerPersonLabel")}` : t("prayersOpenBadge"));
     rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersParticipantLabel")}</span><span class="prayer-modal-row-sponsor">${feeText}</span></div>`;
   }
   document.getElementById("prayerModalRows").innerHTML = rowsHtml;
