@@ -309,7 +309,7 @@
       <button class="primary" id="addPrayerBtn">+ Add Pooja</button>
     </div>
 
-    <p class="panel-hint" style="margin:-6px 0 14px;">Each pooja has two independent participant-related controls: the "Public Registration" toggle in its Edit form (does the public website accept self-registrations?) and the 👥 Manage Participants button below (your own tool to add/edit/delete individual participants — always available, for any pooja, any date).</p>
+    <p class="panel-hint" style="margin:-6px 0 14px;">Not every pooja has participants apart from its Ubayakarar/Annathanam sponsor — check "Allow devotees to self-register as a Participant" in a pooja's Edit form for the ones that do, and its 👥 Manage Participants button appears here so you can add, edit, or delete names for it (this works the same for a past pooja as an upcoming one — checking the box never opens public registration for an event that's already over, it only unlocks your own admin list for it).</p>
 
     <div class="edit-panel" id="prayerEditPanel">
       <h2 id="prayerEditPanelTitle">Add Pooja</h2>
@@ -349,7 +349,7 @@
         <div class="edit-field"><label>Participant Fee (RM, blank = free)</label><input id="f_participantFee" type="number" step="0.01" /></div>
         <div class="edit-field checkbox participants-checkbox-field" style="grid-column:span 2;"><input type="checkbox" id="f_participantsEnabled" /><label for="f_participantsEnabled">Allow devotees to self-register as a Participant for this event</label></div>
       </div>
-      <p class="panel-hint">This checkbox controls ONLY the public website — whether a "Register — Participant" button appears for devotees on this event. It does not limit you as admin: you can always add, edit, or delete individual participants for this event — past, present, or future — from the 👥 Manage Participants button in the table below, whether or not this box is checked.</p>
+      <p class="panel-hint">Check this for any pooja that has participants apart from its Ubayakarar/Annathanam sponsor (per the temple's schedule doc) — it's what makes the 👥 Manage Participants button appear for this pooja in the table below, where you add/edit/delete the actual names. For a pooja that's already happened, checking this is still safe: the public website never shows a "Register — Participant" button for an event that's over, checked or not — so use it freely to unlock the admin list for backfilling a past pooja's participants.</p>
 
       <div class="edit-actions">
         <button class="save" id="savePrayerBtn">Save</button>
@@ -362,7 +362,7 @@
         <thead>
           <tr>
             <th>Date</th><th>Pooja</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
-            <th>Public Registration</th><th>Status</th><th>Actions</th>
+            <th>Participants</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="scheduleBody"></tbody>
@@ -578,19 +578,23 @@
   }
 
   // ---------- Participants modal (per-pooja view / add / print, from the Events tab) ----------
-  // DESIGN NOTE: this modal is reachable from every pooja row's 👥 Manage
-  // Participants button, unconditionally — it does NOT check
-  // p.participantsEnabled and never has since the button was made
-  // unconditional. That flag only gates the PUBLIC registration form (see
-  // register_prayer() in supabase/schema.sql, which raises
-  // PARTICIPANT_NOT_ENABLED when it's false). Admin add/edit/delete of
+  // DESIGN NOTE: not every pooja has a participants concept apart from its
+  // Ubayakarar/Annathanam sponsor (see the temple's own schedule document —
+  // it has a Yes/No column for exactly this). renderSchedule() only shows
+  // the 👥 Manage Participants button when p.participantsEnabled is true,
+  // OR the pooja already has at least one participant booking recorded
+  // (so pre-existing backfilled data never becomes unreachable just
+  // because the box is unchecked). Checking p.participantsEnabled is safe
+  // even for a pooja that's already happened: register_prayer()'s PRAYER_OVER
+  // check (schema.sql) and script.js's `if (!over)` gate around the public
+  // registration buttons both already prevent the public site from ever
+  // offering registration for a completed event, regardless of this flag —
+  // so ticking it for a past pooja only unlocks the admin list, never a
+  // public "Register — Participant" button. Admin add/edit/delete of
   // participants — via this modal, or admin_add_booking /
   // admin_add_bulk_participants / admin_edit_booking / admin_delete_booking —
-  // is a completely separate path that always works, for any pooja, past or
-  // future, whether or not public registration was ever turned on for it.
-  // This split is intentional: it's what lets the committee backfill
-  // participant lists for historical events (e.g. for an AGM report) that
-  // never collected public registrations in the first place.
+  // still has no PRAYER_OVER/date restriction of its own; the gate is purely
+  // "does this pooja have participants at all," not "is it upcoming."
   let currentParticipantsPrayerId = null;
   const participantsModalOverlay = document.getElementById("participantsModalOverlay");
 
@@ -1058,20 +1062,32 @@
     if (!filtered.length){ emptyNote.style.display = "block"; return; }
     emptyNote.style.display = "none";
 
+    // Poojas that already have at least one participant recorded — kept
+    // visible below regardless of the checkbox, so backfilled names from
+    // before this checkbox controlled visibility never become invisible/
+    // unreachable just because the box happens to be unchecked right now.
+    const prayerIdsWithParticipants = new Set(
+      allBookings.filter(b => b.role === "participant").map(b => b.prayerId)
+    );
+
     filtered.forEach(p => {
       const tr = document.createElement("tr");
       const feeText = p.ubayamFee != null ? "RM " + p.ubayamFee : "As arranged";
+      const hasParticipants = p.participantsEnabled || prayerIdsWithParticipants.has(p.id);
+      const manageBtn = hasParticipants
+        ? `<button class="participants" data-participants="${p.id}" title="Add, edit, view, or delete participants for this pooja.">👥 Manage Participants</button>`
+        : "";
       tr.innerHTML = `
         <td>${p.date}</td>
         <td>${p.name}</td>
         <td>${feeText}</td>
         <td><span class="pill ${p.ubayakararOpen ? "open" : "taken"}">${p.ubayakararOpen ? "Open" : "Taken"}</span>${p.ubayakararSponsor ? "<br>" + p.ubayakararSponsor : ""}</td>
         <td><span class="pill ${p.annathanamOpen ? "open" : "taken"}">${p.annathanamOpen ? "Open" : "Taken"}</span>${p.annathanamSponsor ? "<br>" + p.annathanamSponsor : ""}</td>
-        <td><span class="pill ${p.participantsEnabled ? "open" : "taken"}">Public: ${p.participantsEnabled ? "ON" : "OFF"}</span>${p.participantsEnabled && p.participantFee ? "<br>RM " + p.participantFee : ""}</td>
+        <td><span class="pill ${p.participantsEnabled ? "open" : "taken"}">${p.participantsEnabled ? "Yes" : "No"}</span>${p.participantsEnabled && p.participantFee ? "<br>RM " + p.participantFee : ""}</td>
         <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}</td>
         <td class="row-actions">
           <button data-edit="${p.id}">Edit</button>
-          <button class="participants" data-participants="${p.id}" title="Add, edit, view, or delete participants for this pooja — works for any event, any date, regardless of the Public Registration setting.">👥 Manage Participants</button>
+          ${manageBtn}
           <button class="delete" data-delete="${p.id}">Delete</button>
         </td>
       `;
