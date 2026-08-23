@@ -114,6 +114,14 @@
   .edit-field input, .edit-field select, .edit-field textarea{width:100%; padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
   .edit-field.checkbox{display:flex; align-items:center; gap:8px; margin-top:20px;}
   .edit-field.checkbox label{margin:0;}
+  /* The Participant Registration checkbox got lost in earlier layouts —
+     squeezed into a narrow ~200px grid column, its label wrapped onto 3
+     lines and the checkbox itself was easy to miss entirely. This field
+     spans a wider grid area (see the inline style on the element) and
+     gets an enlarged, clearly-interactive checkbox so there's no doubt
+     it's a real, clickable control. */
+  .participants-checkbox-field input[type="checkbox"]{width:18px; height:18px; flex-shrink:0; cursor:pointer;}
+  .participants-checkbox-field label{cursor:pointer; font-size:13px; text-transform:none; letter-spacing:normal; font-weight:600;}
   /* Groups the Add/Edit Pooja form into labeled sections (Event Details,
      Ubayakarar, Annathanam, Participant Registration) so the form reads as
      four distinct, independent settings rather than one long flat list. */
@@ -338,8 +346,8 @@
 
       <div class="edit-section-title">Participant Registration (Public Website)</div>
       <div class="edit-grid">
-        <div class="edit-field checkbox"><input type="checkbox" id="f_participantsEnabled" /><label for="f_participantsEnabled">Allow devotees to self-register as a Participant for this event</label></div>
         <div class="edit-field"><label>Participant Fee (RM, blank = free)</label><input id="f_participantFee" type="number" step="0.01" /></div>
+        <div class="edit-field checkbox participants-checkbox-field" style="grid-column:span 2;"><input type="checkbox" id="f_participantsEnabled" /><label for="f_participantsEnabled">Allow devotees to self-register as a Participant for this event</label></div>
       </div>
       <p class="panel-hint">This checkbox controls ONLY the public website — whether a "Register — Participant" button appears for devotees on this event. It does not limit you as admin: you can always add, edit, or delete individual participants for this event — past, present, or future — from the 👥 Manage Participants button in the table below, whether or not this box is checked.</p>
 
