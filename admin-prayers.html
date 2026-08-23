@@ -169,6 +169,11 @@
   .pm-name .qty{color:var(--ink-600); font-weight:700;}
   .pm-actions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
   .pm-actions button{padding:4px 9px; border-radius:6px; border:1px solid #a4232f; color:#a4232f; background:#fff; font-size:11px; font-weight:600; cursor:pointer;}
+  .pm-actions button.pm-edit-btn{border-color:var(--gold-500); color:var(--maroon-800);}
+  .pm-row-editing{gap:8px; align-items:center;}
+  .pm-row-editing .pm-edit-name{flex:1 1 auto; min-width:0; padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
+  .pm-row-editing .pm-edit-qty{width:56px; padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
+  .pm-row-editing .pm-edit-save{border-color:var(--green-600); color:var(--green-600);}
   .modal-add-section{margin-top:16px; padding-top:16px; border-top:1px solid var(--cream-100);}
   .modal-add-section label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:.02em;}
   .modal-add-section textarea{width:100%; padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
@@ -544,6 +549,7 @@
 
   function openParticipantsModal(prayerId){
     currentParticipantsPrayerId = prayerId;
+    editingParticipantBookingId = null;
     const p = allPrayers.find(x => x.id === prayerId);
     document.getElementById("participantsModalTitle").textContent = "Participants — " + (p ? p.name : prayerId);
     document.getElementById("participantsModalSub").textContent = p ? p.date : "";
@@ -556,10 +562,17 @@
   function closeParticipantsModal(){
     participantsModalOverlay.classList.remove("show");
     currentParticipantsPrayerId = null;
+    editingParticipantBookingId = null;
   }
   document.getElementById("closeParticipantsModalXBtn").addEventListener("click", closeParticipantsModal);
   document.getElementById("pm_closeBtn").addEventListener("click", closeParticipantsModal);
   participantsModalOverlay.addEventListener("click", (e) => { if (e.target === participantsModalOverlay) closeParticipantsModal(); });
+
+  function escapeAttr(s){
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
+
+  let editingParticipantBookingId = null;
 
   function renderParticipantsModalList(){
     const rows = allBookings
@@ -575,23 +588,97 @@
     const totalHeads = rows.reduce((sum, r) => sum + (r.participantCount || 1), 0);
     listEl.innerHTML = `
       <p class="modal-count">${rows.length} ${rows.length === 1 ? "entry" : "entries"}, ${totalHeads} total headcount</p>
-      ${rows.map(r => `
-        <div class="pm-row">
-          <span class="pm-name">${r.name}${r.participantCount && r.participantCount > 1 ? ` <span class="qty">×${r.participantCount}</span>` : ""}</span>
-          <span class="pm-actions">
-            <span class="pill ${statusPillClass(r.status)}">${r.status}</span>
-            <button data-cancel="${r.bookingId}">Remove</button>
-          </span>
-        </div>
-      `).join("")}
+      ${rows.map(r => {
+        if (r.bookingId === editingParticipantBookingId){
+          return `
+            <div class="pm-row pm-row-editing" data-row="${r.bookingId}">
+              <input class="pm-edit-name" type="text" value="${escapeAttr(r.name)}" />
+              <input class="pm-edit-qty" type="number" min="1" value="${r.participantCount || 1}" />
+              <span class="pm-actions">
+                <button class="pm-edit-save" data-save-edit="${r.bookingId}">Save</button>
+                <button data-cancel-edit="${r.bookingId}">Cancel</button>
+              </span>
+            </div>
+          `;
+        }
+        return `
+          <div class="pm-row">
+            <span class="pm-name">${r.name}${r.participantCount && r.participantCount > 1 ? ` <span class="qty">×${r.participantCount}</span>` : ""}</span>
+            <span class="pm-actions">
+              <span class="pill ${statusPillClass(r.status)}">${r.status}</span>
+              <button class="pm-edit-btn" data-edit-participant="${r.bookingId}">Edit</button>
+              <button data-delete-participant="${r.bookingId}">Delete</button>
+            </span>
+          </div>
+        `;
+      }).join("")}
     `;
-    listEl.querySelectorAll("button[data-cancel]").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        if (!confirm("Remove this participant entry?")) return;
-        await updateBooking(btn.dataset.cancel, "Cancelled");
+    listEl.querySelectorAll("button[data-edit-participant]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        editingParticipantBookingId = btn.dataset.editParticipant;
         renderParticipantsModalList();
       });
     });
+    listEl.querySelectorAll("button[data-cancel-edit]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        editingParticipantBookingId = null;
+        renderParticipantsModalList();
+      });
+    });
+    listEl.querySelectorAll("button[data-save-edit]").forEach(btn => {
+      btn.addEventListener("click", () => saveParticipantInlineEdit(btn.dataset.saveEdit));
+    });
+    listEl.querySelectorAll("button[data-delete-participant]").forEach(btn => {
+      btn.addEventListener("click", () => deleteParticipant(btn.dataset.deleteParticipant));
+    });
+  }
+
+  async function saveParticipantInlineEdit(bookingId){
+    const rowEl = document.querySelector(`.pm-row-editing[data-row="${bookingId}"]`);
+    const name = rowEl.querySelector(".pm-edit-name").value.trim();
+    const qty = rowEl.querySelector(".pm-edit-qty").value;
+    if (!name){ showStatus("Name is required.", "error"); return; }
+    const booking = allBookings.find(b => b.bookingId === bookingId);
+    try {
+      const res = await fetch("/.netlify/functions/admin-edit-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({
+          bookingId, name,
+          phone: booking ? booking.phone : "",
+          participantCount: qty,
+          notes: booking ? booking.notes : "",
+          status: booking ? booking.status : "Confirmed"
+        })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      editingParticipantBookingId = null;
+      showStatus("Participant updated.", "ok");
+      await refreshBookings();
+      renderParticipantsModalList();
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
+  }
+
+  async function deleteParticipant(bookingId){
+    const b = allBookings.find(x => x.bookingId === bookingId);
+    if (!confirm(`Delete ${b ? b.name : "this participant"} from the list? This can't be undone.`)) return;
+    try {
+      const res = await fetch("/.netlify/functions/admin-delete-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ bookingId })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
+      allBookings = allBookings.filter(x => x.bookingId !== bookingId);
+      showStatus("Participant deleted.", "ok");
+      renderParticipantsModalList();
+    } catch (err){
+      showStatus("Delete failed.", "error");
+    }
   }
 
   document.getElementById("pm_saveBtn").addEventListener("click", async () => {
@@ -871,7 +958,7 @@
         <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}</td>
         <td class="row-actions">
           <button data-edit="${p.id}">Edit</button>
-          ${p.participantsEnabled ? `<button class="participants" data-participants="${p.id}" title="View participants">👥 Participants</button>` : ""}
+          <button class="participants" data-participants="${p.id}" title="View, add, edit, or delete participants">👥 Participants</button>
           <button class="delete" data-delete="${p.id}">Delete</button>
         </td>
       `;

@@ -810,6 +810,7 @@ function showPrayerForm(p, role){
   document.getElementById("prayerFormNameLabel").textContent = t("prayersFormName");
   document.getElementById("prayerFormPhoneLabel").textContent = t("prayersFormPhone");
   document.getElementById("prayerFormParticipantCountLabel").textContent = t("prayersFormParticipantCount");
+  document.getElementById("prayerFormParticipantCountHint").textContent = t("prayersFormParticipantCountHint");
   document.getElementById("prayerFormNotesLabel").textContent = t("prayersFormNotes");
   document.getElementById("prayerFormSubmitBtnText").textContent = t("prayersFormSubmit");
   document.getElementById("prayerFormCancelBtn").textContent = t("prayersFormCancel");
@@ -872,6 +873,10 @@ async function submitPrayerForm(){
       if (!PRAYER_PARTICIPANTS[p.id]) PRAYER_PARTICIPANTS[p.id] = [];
       PRAYER_PARTICIPANTS[p.id].push({ name, participantCount });
     }
+    // data.fee (when present) is the PER-PERSON rate register_prayer() looked up —
+    // showPrayerSuccess needs the headcount too so a group registration shows the
+    // correct total amount due, not just the per-person rate.
+    data.participantCount = participantCount;
     showPrayerSuccess(role, data);
     renderPrayerGrid();
   } catch (err){
@@ -907,7 +912,12 @@ function showPrayerSuccess(role, data){
     document.getElementById("prayerSuccessQrNote").textContent = t("qrNote");
     const amountEl = document.getElementById("prayerSuccessQrAmount");
     if (data.fee){
-      amountEl.textContent = "RM " + data.fee;
+      // For a group/family participant registration, data.fee is the PER-PERSON
+      // rate — show the total the group owes, with the per-person rate spelled
+      // out too so it's clear how the total was worked out.
+      const count = role === "participant" ? Math.max(1, data.participantCount || 1) : 1;
+      const total = data.fee * count;
+      amountEl.textContent = count > 1 ? `RM ${total} (RM ${data.fee} × ${count} ${t("prayersPaxLabel")})` : "RM " + data.fee;
       amountEl.style.display = "block";
     } else {
       amountEl.style.display = "none"; // fee "as arranged" — no fixed figure to show
