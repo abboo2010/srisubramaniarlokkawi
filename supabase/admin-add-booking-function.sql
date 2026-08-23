@@ -30,7 +30,8 @@ create or replace function admin_add_booking(
   p_phone              text,
   p_participant_count  integer,
   p_notes              text,
-  p_status             text
+  p_status             text,
+  p_payment_method     text default null
 ) returns table(booking_id text, status text)
 language plpgsql
 security definer
@@ -53,12 +54,15 @@ begin
   if v_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
   end if;
+  if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then
+    raise exception 'INVALID_PAYMENT_METHOD';
+  end if;
 
   v_booking_id := 'AP-' || upper(p_prayer_id) || '-' || upper(substr(md5(random()::text || clock_timestamp()::text), 1, 4));
 
-  insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status)
+  insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status, payment_method)
   values (v_booking_id, p_prayer_id, v_prayer.name, v_prayer.date, p_role, p_name, coalesce(p_phone, ''),
-          greatest(1, coalesce(p_participant_count, 1)), coalesce(p_notes, ''), v_status);
+          greatest(1, coalesce(p_participant_count, 1)), coalesce(p_notes, ''), v_status, nullif(p_payment_method, ''));
 
   if p_role = 'ubayakarar' then
     update prayers set ubayakarar_sponsor = p_name, ubayakarar_open = false where id = p_prayer_id;

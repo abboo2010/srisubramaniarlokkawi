@@ -16,6 +16,7 @@
 const { supabaseClient } = require("./_supabase");
 
 const VALID_STATUSES = ["Pending Payment", "Reserved", "Confirmed", "Cancelled"];
+const VALID_PAYMENT_METHODS = ["Bank Transfer", "QR Transfer", "Cash"];
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -36,6 +37,7 @@ exports.handler = async (event) => {
 
   const prayerId = (body.prayerId || "").trim();
   const status = (body.status || "").trim();
+  const paymentMethod = (body.paymentMethod || "").trim();
   const entries = Array.isArray(body.entries)
     ? body.entries
         .map((e) => ({ name: String((e && e.name) || "").trim(), count: Math.max(1, parseInt(e && e.count, 10) || 1) }))
@@ -48,6 +50,9 @@ exports.handler = async (event) => {
   if (status && !VALID_STATUSES.includes(status)) {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid status." }) };
   }
+  if (paymentMethod && !VALID_PAYMENT_METHODS.includes(paymentMethod)) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Invalid payment method." }) };
+  }
 
   const supabase = supabaseClient();
   if (!supabase) {
@@ -58,7 +63,8 @@ exports.handler = async (event) => {
     const { data, error } = await supabase.rpc("admin_add_bulk_participants", {
       p_prayer_id: prayerId,
       p_entries: entries,
-      p_status: status
+      p_status: status,
+      p_payment_method: paymentMethod
     });
 
     if (error) {

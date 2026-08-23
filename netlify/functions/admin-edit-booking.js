@@ -14,6 +14,7 @@
 const { supabaseClient } = require("./_supabase");
 
 const VALID_STATUSES = ["Pending Payment", "Reserved", "Confirmed", "Cancelled"];
+const VALID_PAYMENT_METHODS = ["Bank Transfer", "QR Transfer", "Cash"];
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -37,6 +38,7 @@ exports.handler = async (event) => {
   const phone = (body.phone || "").trim();
   const notes = (body.notes || "").trim();
   const status = (body.status || "").trim();
+  const paymentMethod = (body.paymentMethod || "").trim();
   const participantCount = Math.max(1, parseInt(body.participantCount, 10) || 1);
 
   if (!bookingId || !name) {
@@ -44,6 +46,9 @@ exports.handler = async (event) => {
   }
   if (!VALID_STATUSES.includes(status)) {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid status." }) };
+  }
+  if (paymentMethod && !VALID_PAYMENT_METHODS.includes(paymentMethod)) {
+    return { statusCode: 400, body: JSON.stringify({ error: "Invalid payment method." }) };
   }
 
   const supabase = supabaseClient();
@@ -58,7 +63,8 @@ exports.handler = async (event) => {
       p_phone: phone,
       p_participant_count: participantCount,
       p_notes: notes,
-      p_status: status
+      p_status: status,
+      p_payment_method: paymentMethod
     });
 
     if (error) {

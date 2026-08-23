@@ -43,7 +43,8 @@ exports.handler = async (event) => {
       phone: b.phone,
       participantCount: b.participant_count,
       notes: b.notes,
-      status: b.status
+      status: b.status,
+      paymentMethod: b.payment_method
     }));
 
     return {

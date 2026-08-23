@@ -8,9 +8,11 @@
 -- belongs to (that's a structural change — delete it and use
 -- "+ Add Booking" to re-add it under the correct pooja/role
 -- instead). What they do let you fix: name, phone, headcount,
--- notes, and status for edit; a full, permanent removal for
--- delete — as opposed to Cancel, which keeps the record but marks
--- it void.
+-- notes, status, and payment method (Bank Transfer / QR Transfer /
+-- Cash — how the committee actually received the money, not
+-- something the devotee picks) for edit; a full, permanent removal
+-- for delete — as opposed to Cancel, which keeps the record but
+-- marks it void.
 --
 -- Both keep the Schedule tab's sponsor fields in sync for
 -- Ubayakarar/Annathanam bookings, same reasoning as
@@ -30,7 +32,8 @@ create or replace function admin_edit_booking(
   p_phone              text,
   p_participant_count  integer,
   p_notes              text,
-  p_status             text
+  p_status             text,
+  p_payment_method     text default null
 ) returns void
 language plpgsql
 security definer
@@ -40,6 +43,9 @@ declare
 begin
   if p_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
+  end if;
+  if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then
+    raise exception 'INVALID_PAYMENT_METHOD';
   end if;
 
   select * into v_booking from bookings where booking_id = p_booking_id for update;
@@ -53,6 +59,7 @@ begin
         participant_count = greatest(1, coalesce(p_participant_count, 1)),
         notes = coalesce(p_notes, ''),
         status = p_status,
+        payment_method = nullif(p_payment_method, ''),
         updated_at = now()
     where booking_id = p_booking_id;
 

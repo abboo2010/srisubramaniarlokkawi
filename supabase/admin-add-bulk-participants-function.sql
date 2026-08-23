@@ -19,9 +19,10 @@
 -- re-run — "or replace" just redefines the function.
 -- ============================================================
 create or replace function admin_add_bulk_participants(
-  p_prayer_id text,
-  p_entries   jsonb,   -- e.g. '[{"name":"Mr. Ravi","count":2},{"name":"Kumaresan A/L Muthu","count":1}]'
-  p_status    text
+  p_prayer_id       text,
+  p_entries         jsonb,   -- e.g. '[{"name":"Mr. Ravi","count":2},{"name":"Kumaresan A/L Muthu","count":1}]'
+  p_status          text,
+  p_payment_method  text default null  -- applies to every entry in this batch, e.g. "everyone paid cash at the door"
 ) returns integer
 language plpgsql
 security definer
@@ -43,6 +44,9 @@ begin
   if v_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
   end if;
+  if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then
+    raise exception 'INVALID_PAYMENT_METHOD';
+  end if;
 
   if jsonb_typeof(p_entries) is distinct from 'array' or jsonb_array_length(p_entries) = 0 then
     raise exception 'NO_ENTRIES';
@@ -55,11 +59,11 @@ begin
       v_booking_id := 'AP-' || upper(p_prayer_id) || '-' ||
         upper(substr(md5(random()::text || clock_timestamp()::text || v_inserted::text), 1, 4));
 
-      insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status)
+      insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status, payment_method)
       values (
         v_booking_id, p_prayer_id, v_prayer.name, v_prayer.date, 'participant',
         v_name, '', greatest(1, coalesce((v_entry->>'count')::integer, 1)),
-        'Backfilled — bulk-entered participant list.', v_status
+        'Backfilled — bulk-entered participant list.', v_status, nullif(p_payment_method, '')
       );
       v_inserted := v_inserted + 1;
     end if;

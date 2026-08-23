@@ -75,11 +75,29 @@ create table if not exists bookings (
   notes              text not null default '',
   status             text not null default 'Pending Payment'
                        check (status in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled')),
+  -- How a payment actually reached the temple (bank-in slip, QR transfer,
+  -- or cash) — recorded by the committee for their own records, not
+  -- selected by the devotee on the public site. Only meaningful for
+  -- Ubayakarar/Participant bookings, since Annathanam never collects a
+  -- fee; left null until the committee notes it in admin-prayers.html.
+  payment_method     text check (payment_method is null or payment_method in ('Bank Transfer', 'QR Transfer', 'Cash')),
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
 create index if not exists bookings_prayer_idx on bookings (prayer_id);
 create index if not exists bookings_status_idx on bookings (status);
+
+-- Idempotent add for an already-existing bookings table (this whole file
+-- is safe to re-run; ADD COLUMN IF NOT EXISTS is a no-op once the column
+-- above already exists from a fresh install).
+alter table bookings add column if not exists payment_method text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'bookings_payment_method_check') then
+    alter table bookings add constraint bookings_payment_method_check
+      check (payment_method is null or payment_method in ('Bank Transfer', 'QR Transfer', 'Cash'));
+  end if;
+end $$;
 
 alter table bookings enable row level security;
 
@@ -240,7 +258,8 @@ create or replace function admin_add_booking(
   p_phone              text,
   p_participant_count  integer,
   p_notes              text,
-  p_status             text
+  p_status             text,
+  p_payment_method     text default null
 ) returns table(booking_id text, status text)
 language plpgsql
 security definer
@@ -263,12 +282,15 @@ begin
   if v_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
   end if;
+  if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then
+    raise exception 'INVALID_PAYMENT_METHOD';
+  end if;
 
   v_booking_id := 'AP-' || upper(p_prayer_id) || '-' || upper(substr(md5(random()::text || clock_timestamp()::text), 1, 4));
 
-  insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status)
+  insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status, payment_method)
   values (v_booking_id, p_prayer_id, v_prayer.name, v_prayer.date, p_role, p_name, coalesce(p_phone, ''),
-          greatest(1, coalesce(p_participant_count, 1)), coalesce(p_notes, ''), v_status);
+          greatest(1, coalesce(p_participant_count, 1)), coalesce(p_notes, ''), v_status, nullif(p_payment_method, ''));
 
   if p_role = 'ubayakarar' then
     update prayers set ubayakarar_sponsor = p_name, ubayakarar_open = false where id = p_prayer_id;
@@ -288,9 +310,10 @@ $$;
 -- past event's participant list (e.g. for an AGM report).
 -- ============================================================
 create or replace function admin_add_bulk_participants(
-  p_prayer_id text,
-  p_entries   jsonb,   -- e.g. '[{"name":"Mr. Ravi","count":2},{"name":"Kumaresan A/L Muthu","count":1}]'
-  p_status    text
+  p_prayer_id       text,
+  p_entries         jsonb,   -- e.g. '[{"name":"Mr. Ravi","count":2},{"name":"Kumaresan A/L Muthu","count":1}]'
+  p_status          text,
+  p_payment_method  text default null  -- applies to every entry in this batch, e.g. "everyone paid cash at the door"
 ) returns integer
 language plpgsql
 security definer
@@ -312,6 +335,9 @@ begin
   if v_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
   end if;
+  if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then
+    raise exception 'INVALID_PAYMENT_METHOD';
+  end if;
 
   if jsonb_typeof(p_entries) is distinct from 'array' or jsonb_array_length(p_entries) = 0 then
     raise exception 'NO_ENTRIES';
@@ -324,11 +350,11 @@ begin
       v_booking_id := 'AP-' || upper(p_prayer_id) || '-' ||
         upper(substr(md5(random()::text || clock_timestamp()::text || v_inserted::text), 1, 4));
 
-      insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status)
+      insert into bookings (booking_id, prayer_id, prayer_name, date, role, name, phone, participant_count, notes, status, payment_method)
       values (
         v_booking_id, p_prayer_id, v_prayer.name, v_prayer.date, 'participant',
         v_name, '', greatest(1, coalesce((v_entry->>'count')::integer, 1)),
-        'Backfilled — bulk-entered participant list.', v_status
+        'Backfilled — bulk-entered participant list.', v_status, nullif(p_payment_method, '')
       );
       v_inserted := v_inserted + 1;
     end if;
@@ -357,7 +383,8 @@ create or replace function admin_edit_booking(
   p_phone              text,
   p_participant_count  integer,
   p_notes              text,
-  p_status             text
+  p_status             text,
+  p_payment_method     text default null
 ) returns void
 language plpgsql
 security definer
@@ -367,6 +394,9 @@ declare
 begin
   if p_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
+  end if;
+  if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then
+    raise exception 'INVALID_PAYMENT_METHOD';
   end if;
 
   select * into v_booking from bookings where booking_id = p_booking_id for update;
@@ -380,6 +410,7 @@ begin
         participant_count = greatest(1, coalesce(p_participant_count, 1)),
         notes = coalesce(p_notes, ''),
         status = p_status,
+        payment_method = nullif(p_payment_method, ''),
         updated_at = now()
     where booking_id = p_booking_id;
 

@@ -53,11 +53,30 @@ create table if not exists bookings (
   notes              text not null default '',
   status             text not null default 'Pending Payment'
                        check (status in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled')),
+  -- How a payment actually reached the temple (devotees forward a bank-in
+  -- slip, a QR transfer screenshot, or pay cash in person) — recorded by
+  -- the committee for their own records, not selected by the devotee on
+  -- the public site. Only meaningful for Ubayakarar/Participant bookings,
+  -- since Annathanam never collects a fee; left null until the committee
+  -- notes it in admin-prayers.html.
+  payment_method     text check (payment_method is null or payment_method in ('Bank Transfer', 'QR Transfer', 'Cash')),
   created_at         timestamptz not null default now(),
   updated_at         timestamptz not null default now()
 );
 create index if not exists bookings_prayer_idx on bookings (prayer_id);
 create index if not exists bookings_status_idx on bookings (status);
+
+-- Idempotent add for an already-existing bookings table (this whole file
+-- is safe to re-run; ADD COLUMN IF NOT EXISTS is a no-op once the column
+-- above already exists from a fresh install).
+alter table bookings add column if not exists payment_method text;
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'bookings_payment_method_check') then
+    alter table bookings add constraint bookings_payment_method_check
+      check (payment_method is null or payment_method in ('Bank Transfer', 'QR Transfer', 'Cash'));
+  end if;
+end $$;
 
 alter table bookings enable row level security;
 
