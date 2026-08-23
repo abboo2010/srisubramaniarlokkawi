@@ -617,6 +617,16 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   }
 
+  // Participants modal only: "Confirmed" reads as "Paid" here, since for a
+  // participant that status means exactly one thing — their payment came
+  // in. The underlying value stored and sent to admin_edit_booking() stays
+  // "Confirmed" (it's the same status column Ubayakarar/Annathanam use, and
+  // the DB's check constraint only allows that exact string) — this only
+  // changes what's shown on screen.
+  function participantStatusText(status){
+    return status === "Confirmed" ? "Paid" : status;
+  }
+
   let editingParticipantBookingId = null;
 
   function renderParticipantsModalList(){
@@ -642,7 +652,7 @@
           // intentionally removed from that tab. Use Delete for a real removal
           // instead; this dropdown is purely for tracking payment.
           const statusOptions = ["Pending Payment", "Reserved", "Confirmed"]
-            .map(s => `<option value="${s}" ${r.status === s ? "selected" : ""}>${s}</option>`).join("");
+            .map(s => `<option value="${s}" ${r.status === s ? "selected" : ""}>${participantStatusText(s)}</option>`).join("");
           return `
             <div class="pm-row pm-row-editing" data-row="${r.bookingId}">
               <input class="pm-edit-name" type="text" value="${escapeAttr(r.name)}" />
@@ -660,13 +670,13 @@
         // other status change (including reverting a mistaken "paid") goes
         // through Edit's status dropdown above.
         const markPaidBtn = r.status === "Pending Payment"
-          ? `<button class="pm-mark-paid" data-mark-paid="${r.bookingId}" title="Set status to Confirmed">Mark Paid</button>`
+          ? `<button class="pm-mark-paid" data-mark-paid="${r.bookingId}" title="Set status to Paid">Mark Paid</button>`
           : "";
         return `
           <div class="pm-row">
             <span class="pm-name">${r.name}${r.participantCount && r.participantCount > 1 ? ` <span class="qty">×${r.participantCount}</span>` : ""}</span>
             <span class="pm-actions">
-              <span class="pill ${statusPillClass(r.status)}">${r.status}</span>
+              <span class="pill ${statusPillClass(r.status)}">${participantStatusText(r.status)}</span>
               ${markPaidBtn}
               <button class="pm-edit-btn" data-edit-participant="${r.bookingId}">Edit</button>
               <button data-delete-participant="${r.bookingId}">Delete</button>
