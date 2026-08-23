@@ -218,7 +218,7 @@
 
   <div class="tab-switch">
     <button class="active" data-tab="bookings">Bookings</button>
-    <button data-tab="schedule">Schedule</button>
+    <button data-tab="schedule">Events</button>
   </div>
 
   <!-- ================= BOOKINGS TAB ================= -->
@@ -243,11 +243,11 @@
       <button class="primary" id="addBookingBtn">+ Add Booking</button>
     </div>
 
-    <p class="panel-hint" style="margin:-6px 0 14px;">This tab is for Ubayakarar and Annathanam sponsors only. Participant lists live under the Schedule tab — open a pooja's 👥 Participants button to view, add, or print them.</p>
+    <p class="panel-hint" style="margin:-6px 0 14px;">This tab is for Ubayakarar and Annathanam sponsors only. Participant lists live under the Events tab — open a pooja's 👥 Manage Participants button to view, add, or print them.</p>
 
     <div class="edit-panel" id="bookingEditPanel">
       <h2 id="bookingEditPanelTitle">Add Booking</h2>
-      <p class="panel-hint" id="bookingEditPanelHint">Use this to record a sponsor by hand — including for a pooja that has already taken place, which the public registration form won't allow. For participants, use the 👥 Participants button on the Schedule tab instead.</p>
+      <p class="panel-hint" id="bookingEditPanelHint">Use this to record a sponsor by hand — including for a pooja that has already taken place, which the public registration form won't allow. For participants, use the 👥 Manage Participants button on the Events tab instead.</p>
       <div class="edit-grid">
         <div class="edit-field" style="grid-column:span 2;"><label>Pooja</label>
           <select id="b_prayerId"></select>
@@ -291,7 +291,7 @@
     </div>
   </div>
 
-  <!-- ================= SCHEDULE TAB ================= -->
+  <!-- ================= SCHEDULE TAB (labeled "Events" on screen) ================= -->
   <div class="tab-panel" id="tab-schedule">
     <div class="toolbar">
       <input type="text" id="scheduleSearchInput" placeholder="Search pooja name…" />
@@ -514,7 +514,7 @@
     downloadCsv("annual-prayers-bookings.csv", rows);
   });
 
-  // ---------- Print Participants (scoped to one pooja, used by the Schedule tab's modal) ----------
+  // ---------- Print Participants (scoped to one pooja, used by the Events tab's modal) ----------
   window.addEventListener("afterprint", () => document.body.classList.remove("printing-participants"));
 
   function printParticipantsForPrayer(prayerId){
@@ -569,7 +569,7 @@
     setTimeout(() => document.body.classList.remove("printing-participants"), 1000); // fallback for browsers that skip afterprint
   }
 
-  // ---------- Participants modal (per-pooja view / add / print, from the Schedule tab) ----------
+  // ---------- Participants modal (per-pooja view / add / print, from the Events tab) ----------
   // DESIGN NOTE: this modal is reachable from every pooja row's 👥 Manage
   // Participants button, unconditionally — it does NOT check
   // p.participantsEnabled and never has since the button was made
@@ -624,7 +624,7 @@
   // the DB's check constraint only allows that exact string) — this only
   // changes what's shown on screen.
   function participantStatusText(status){
-    return status === "Confirmed" ? "Paid" : status;
+    return status === "Confirmed" ? "Paid/Confirmed" : status;
   }
 
   let editingParticipantBookingId = null;
@@ -828,7 +828,7 @@
     const search = document.getElementById("searchInput").value.trim().toLowerCase();
     return allBookings
       .slice()
-      .filter(b => b.role !== "participant") // participants live under the Schedule tab's Participants view, not here
+      .filter(b => b.role !== "participant") // participants live under the Events tab's Participants view, not here
       .sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.timestamp || "").localeCompare(b.timestamp || ""))
       .filter(b => !statusFilter || b.status === statusFilter)
       .filter(b => !roleFilter || b.role === roleFilter)
@@ -890,7 +890,7 @@
       if (booking) booking.status = status;
       renderBookings();
       showStatus(`Booking ${bookingId} marked ${status}.`, "ok");
-      if (status === "Cancelled") loadSchedule(); // a reopened slot needs the Schedule tab refreshed too
+      if (status === "Cancelled") loadSchedule(); // a reopened slot needs the Events tab refreshed too
     } catch (err){
       showStatus("Update failed.", "error");
     }
@@ -912,8 +912,8 @@
 
     document.getElementById("bookingEditPanelTitle").textContent = b ? "Edit Booking — " + b.name : "Add Booking";
     document.getElementById("bookingEditPanelHint").textContent = b
-      ? "The pooja and role a booking belongs to can't be changed here — delete and re-add it instead if it needs to move. Editing the name here also updates the sponsor shown on the Schedule tab."
-      : "Use this to record a Ubayakarar or Annathanam sponsor by hand — including for a pooja that has already taken place, which the public registration form won't allow. For participants, use the 👥 Participants button on the Schedule tab instead.";
+      ? "The pooja and role a booking belongs to can't be changed here — delete and re-add it instead if it needs to move. Editing the name here also updates the sponsor shown on the Events tab."
+      : "Use this to record a Ubayakarar or Annathanam sponsor by hand — including for a pooja that has already taken place, which the public registration form won't allow. For participants, use the 👥 Manage Participants button on the Events tab instead.";
 
     document.getElementById("b_prayerId").value = b ? b.prayerId : document.getElementById("b_prayerId").value;
     document.getElementById("b_prayerId").disabled = !!b;
@@ -967,7 +967,7 @@
       bookingEditPanel.classList.remove("show");
       showStatus(isEdit ? "Booking updated." : `Booking saved — reference ${result.bookingId}.`, "ok");
       refreshBookings();
-      if (role === "ubayakarar" || role === "annathanam") loadSchedule(); // sponsor field on the Schedule tab just changed too
+      if (role === "ubayakarar" || role === "annathanam") loadSchedule(); // sponsor field on the Events tab just changed too
     } catch (err){
       showStatus("Save failed.", "error");
     }
@@ -987,7 +987,7 @@
       allBookings = allBookings.filter(x => x.bookingId !== bookingId);
       renderBookings();
       showStatus("Booking deleted.", "ok");
-      loadSchedule(); // a reopened sponsor slot needs the Schedule tab refreshed too
+      loadSchedule(); // a reopened sponsor slot needs the Events tab refreshed too
     } catch (err){
       showStatus("Delete failed.", "error");
     }
@@ -995,7 +995,7 @@
 
   // Turns "Mr. & Mrs. Ravi, 2" or "Mr. & Mrs. Ravi x2" into {name, count}; a bare
   // line like "Devi Ganesan" becomes count 1. Blank lines are dropped. Used by
-  // the Schedule tab's Participants modal (bulk-adding names is a per-pooja
+  // the Events tab's Participants modal (bulk-adding names is a per-pooja
   // action there now, not a standalone Bookings-tab tool).
   function parseBulkNames(text){
     return text
@@ -1034,7 +1034,7 @@
   document.getElementById("exportScheduleBtn").addEventListener("click", () => {
     const rows = [["Date","Pooja","Ubayam Fee","Ubayakarar Sponsor","Ubayakarar Open","Annathanam Sponsor","Annathanam Open","Public Registration Enabled","Participant Fee","Notes","Status Override"]];
     filteredSchedule().forEach(p => rows.push([p.date, p.name, p.ubayamFee, p.ubayakararSponsor, p.ubayakararOpen, p.annathanamSponsor, p.annathanamOpen, p.participantsEnabled, p.participantFee, p.notes, p.statusOverride]));
-    downloadCsv("annual-prayers-schedule.csv", rows);
+    downloadCsv("annual-prayers-events.csv", rows);
   });
 
   function filteredSchedule(){
