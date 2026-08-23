@@ -1,0 +1,36 @@
+{
+  "items": [
+    {
+      "title_en": "Aadi Month Special Poojas",
+      "title_bm": "Pooja Khas Bulan Aadi",
+      "title_ta": "ஆடி மாத சிறப்பு பூஜைகள்",
+      "desc_en": "Every Friday in Aadi month. All devotees are welcome to attend the special abhishekam.",
+      "desc_bm": "Setiap hari Jumaat pada bulan Aadi. Semua penganut dialu-alukan hadir.",
+      "desc_ta": "ஆடி மாதத்தின் ஒவ்வொரு வெள்ளிக்கிழமையும். அனைத்து பக்தர்களும் வருக."
+    },
+    {
+      "title_en": "Annadhanam Sponsorship",
+      "title_bm": "Penajaan Annadhanam",
+      "title_ta": "அன்னதான நிதியுதவி",
+      "desc_en": "Sponsor a community meal for your family's special occasions — birthdays, anniversaries, or in memory of loved ones.",
+      "desc_bm": "Taja hidangan komuniti untuk majlis istimewa keluarga anda — hari lahir, ulang tahun, atau mengenang orang tersayang.",
+      "desc_ta": "உங்கள் குடும்பத்தின் சிறப்பு நிகழ்வுகளுக்காக ஒரு சமூக உணவை நிதியுதவி செய்யுங்கள் — பிறந்தநாள், திருமண நாள் அல்லது நேசர்களின் நினைவாக."
+    },
+    {
+      "title_en": "Support Our Temple",
+      "title_bm": "Sokong Kuil Kami",
+      "title_ta": "எங்கள் கோயிலுக்கு ஆதரவு அளியுங்கள்",
+      "desc_en": "Your contribution helps with temple maintenance, utilities, and community welfare programs.",
+      "desc_bm": "Sumbangan anda membantu penyelenggaraan kuil, utiliti, dan program kebajikan komuniti.",
+      "desc_ta": "உங்கள் பங்களிப்பு கோயில் பராமரிப்பு, பயன்பாடுகள் மற்றும் சமூக நல திட்டங்களுக்கு உதவுகிறது."
+    },
+    {
+      "title_en": "Car Park Notice",
+      "title_bm": "Notis Tempat Letak Kereta",
+      "title_ta": "கார் பார்க்கிங் அறிவிப்பு",
+      "desc_en": "Overflow parking is available at the community hall on festival days.",
+      "desc_bm": "Tempat letak kereta tambahan disediakan di dewan komuniti pada hari perayaan.",
+      "desc_ta": "திருவிழா நாட்களில் கூடுதல் வாகன நிறுத்துமிடம் சமூக மண்டபத்தில் கிடைக்கும்."
+    }
+  ]
+}

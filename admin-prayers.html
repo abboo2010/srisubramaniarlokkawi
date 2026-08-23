@@ -174,9 +174,12 @@
   .pm-actions{display:flex; align-items:center; gap:8px; flex-shrink:0;}
   .pm-actions button{padding:4px 9px; border-radius:6px; border:1px solid #a4232f; color:#a4232f; background:#fff; font-size:11px; font-weight:600; cursor:pointer;}
   .pm-actions button.pm-edit-btn{border-color:var(--gold-500); color:var(--maroon-800);}
+  .pm-actions button.pm-mark-paid{border-color:var(--green-600); color:var(--green-600);}
+  .pm-actions button.pm-mark-paid:disabled{opacity:.4; cursor:default;}
   .pm-row-editing{gap:8px; align-items:center;}
   .pm-row-editing .pm-edit-name{flex:1 1 auto; min-width:0; padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
   .pm-row-editing .pm-edit-qty{width:56px; padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
+  .pm-row-editing .pm-edit-status{padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:12.5px; font-family:inherit;}
   .pm-row-editing .pm-edit-save{border-color:var(--green-600); color:var(--green-600);}
   .modal-add-section{margin-top:16px; padding-top:16px; border-top:1px solid var(--cream-100);}
   .modal-add-section label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-600); margin-bottom:6px; text-transform:uppercase; letter-spacing:.02em;}
@@ -588,7 +591,13 @@
     editingParticipantBookingId = null;
     const p = allPrayers.find(x => x.id === prayerId);
     document.getElementById("participantsModalTitle").textContent = "Participants — " + (p ? p.name : prayerId);
-    document.getElementById("participantsModalSub").textContent = p ? p.date : "";
+    // Shows the fee right in the modal so it's clear what "paid" means for
+    // THIS pooja before you start marking people paid/unpaid below — a free
+    // pooja's participants are "Reserved" and never need a paid status.
+    const feeText = p && p.participantsEnabled
+      ? (p.participantFee ? `RM ${p.participantFee} per person` : "Free — no payment needed")
+      : "";
+    document.getElementById("participantsModalSub").textContent = p ? [p.date, feeText].filter(Boolean).join(" · ") : "";
     document.getElementById("pm_names").value = "";
     document.getElementById("pm_status").value = "Confirmed";
     renderParticipantsModalList();
@@ -626,10 +635,19 @@
       <p class="modal-count">${rows.length} ${rows.length === 1 ? "entry" : "entries"}, ${totalHeads} total headcount</p>
       ${rows.map(r => {
         if (r.bookingId === editingParticipantBookingId){
+          // Status here covers Pending Payment / Reserved / Confirmed only —
+          // Cancelled is deliberately left out. A Cancelled participant would
+          // vanish from this list (the filter above excludes it) with no
+          // Bookings-tab fallback to find it again, since participants were
+          // intentionally removed from that tab. Use Delete for a real removal
+          // instead; this dropdown is purely for tracking payment.
+          const statusOptions = ["Pending Payment", "Reserved", "Confirmed"]
+            .map(s => `<option value="${s}" ${r.status === s ? "selected" : ""}>${s}</option>`).join("");
           return `
             <div class="pm-row pm-row-editing" data-row="${r.bookingId}">
               <input class="pm-edit-name" type="text" value="${escapeAttr(r.name)}" />
               <input class="pm-edit-qty" type="number" min="1" value="${r.participantCount || 1}" />
+              <select class="pm-edit-status">${statusOptions}</select>
               <span class="pm-actions">
                 <button class="pm-edit-save" data-save-edit="${r.bookingId}">Save</button>
                 <button data-cancel-edit="${r.bookingId}">Cancel</button>
@@ -637,11 +655,19 @@
             </div>
           `;
         }
+        // Mark Paid is a one-click shortcut for the common case (payment just
+        // came in) — it only appears while status is Pending Payment. Every
+        // other status change (including reverting a mistaken "paid") goes
+        // through Edit's status dropdown above.
+        const markPaidBtn = r.status === "Pending Payment"
+          ? `<button class="pm-mark-paid" data-mark-paid="${r.bookingId}" title="Set status to Confirmed">Mark Paid</button>`
+          : "";
         return `
           <div class="pm-row">
             <span class="pm-name">${r.name}${r.participantCount && r.participantCount > 1 ? ` <span class="qty">×${r.participantCount}</span>` : ""}</span>
             <span class="pm-actions">
               <span class="pill ${statusPillClass(r.status)}">${r.status}</span>
+              ${markPaidBtn}
               <button class="pm-edit-btn" data-edit-participant="${r.bookingId}">Edit</button>
               <button data-delete-participant="${r.bookingId}">Delete</button>
             </span>
@@ -667,12 +693,45 @@
     listEl.querySelectorAll("button[data-delete-participant]").forEach(btn => {
       btn.addEventListener("click", () => deleteParticipant(btn.dataset.deleteParticipant));
     });
+    listEl.querySelectorAll("button[data-mark-paid]").forEach(btn => {
+      btn.addEventListener("click", () => markParticipantPaid(btn.dataset.markPaid));
+    });
+  }
+
+  // One-click "this person's payment came in" — same admin_edit_booking()
+  // path as the full Edit form, just pre-filled with status: "Confirmed"
+  // and everything else left exactly as it was.
+  async function markParticipantPaid(bookingId){
+    const booking = allBookings.find(b => b.bookingId === bookingId);
+    if (!booking) return;
+    try {
+      const res = await fetch("/.netlify/functions/admin-edit-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({
+          bookingId,
+          name: booking.name,
+          phone: booking.phone,
+          participantCount: booking.participantCount,
+          notes: booking.notes,
+          status: "Confirmed"
+        })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      booking.status = "Confirmed";
+      showStatus(`${booking.name} marked as paid.`, "ok");
+      renderParticipantsModalList();
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
   }
 
   async function saveParticipantInlineEdit(bookingId){
     const rowEl = document.querySelector(`.pm-row-editing[data-row="${bookingId}"]`);
     const name = rowEl.querySelector(".pm-edit-name").value.trim();
     const qty = rowEl.querySelector(".pm-edit-qty").value;
+    const status = rowEl.querySelector(".pm-edit-status").value;
     if (!name){ showStatus("Name is required.", "error"); return; }
     const booking = allBookings.find(b => b.bookingId === bookingId);
     try {
@@ -684,7 +743,7 @@
           phone: booking ? booking.phone : "",
           participantCount: qty,
           notes: booking ? booking.notes : "",
-          status: booking ? booking.status : "Confirmed"
+          status
         })
       });
       const result = await res.json();

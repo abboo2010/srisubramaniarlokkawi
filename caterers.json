@@ -1,0 +1,9 @@
+{
+  "items": [
+    { "name": "Chennai Curry House", "contact": "Cikgu Shan", "phone": "014-6542545" },
+    { "name": "Claypot Curry House", "contact": "Mr. Sam", "phone": "016-5233858" },
+    { "name": "Mr. Sunny Louis", "contact": "", "phone": "016-8374935" },
+    { "name": "Mdm. Puvanesswari", "contact": "", "phone": "016-2880369" },
+    { "name": "Mdm. Thanam", "contact": "", "phone": "012-8269703" }
+  ]
+}
