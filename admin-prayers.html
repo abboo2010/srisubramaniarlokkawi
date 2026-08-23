@@ -157,6 +157,7 @@
   .participants-group h3{font-size:14px; margin:0 0 6px; padding-bottom:4px; border-bottom:1px solid var(--cream-100);}
   .participants-group ol{margin:0; padding-left:22px; font-size:13px; line-height:1.7;}
   .participants-group .qty{color:var(--ink-600); font-weight:700;}
+  .participants-group .status{color:var(--ink-600); font-size:11.5px;}
   .group-total{font-size:11.5px; color:var(--ink-600); font-style:italic; margin:4px 0 0;}
   .grand-total{margin-top:20px; padding-top:12px; border-top:2px solid var(--maroon-800); font-size:13.5px; font-weight:700;}
 
@@ -540,21 +541,35 @@
     });
     const groups = Object.values(byPrayer).sort((a, b) => (a.date || "").localeCompare(b.date || ""));
 
-    let grandEntries = 0, grandHeads = 0;
+    // Tallies how many entries in a set of bookings carry each payment
+    // status, using the same Paid/Confirmed wording shown in the
+    // Participants modal — returns e.g. "6 Paid/Confirmed, 3 Pending
+    // Payment, 1 Reserved" (only statuses that actually occur are listed).
+    function statusBreakdown(entries){
+      const counts = {};
+      entries.forEach(e => {
+        const label = participantStatusText(e.status || "Pending Payment");
+        counts[label] = (counts[label] || 0) + 1;
+      });
+      return Object.entries(counts).map(([label, n]) => `${n} ${label}`).join(", ");
+    }
+
+    let grandEntries = 0, grandHeads = 0, allEntries = [];
     const groupsHtml = groups.map(g => {
       const headcount = g.entries.reduce((sum, e) => sum + (e.participantCount || 1), 0);
       grandEntries += g.entries.length;
       grandHeads += headcount;
+      allEntries = allEntries.concat(g.entries);
       const listHtml = g.entries
         .slice()
         .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
-        .map(e => `<li>${e.name}${e.participantCount && e.participantCount > 1 ? ` <span class="qty">×${e.participantCount}</span>` : ""}</li>`)
+        .map(e => `<li>${e.name}${e.participantCount && e.participantCount > 1 ? ` <span class="qty">×${e.participantCount}</span>` : ""} <span class="status">— ${participantStatusText(e.status || "Pending Payment")}</span></li>`)
         .join("");
       return `
         <div class="participants-group">
           <h3>${g.date} — ${g.prayerName}</h3>
           <ol>${listHtml}</ol>
-          <p class="group-total">${g.entries.length} ${g.entries.length === 1 ? "entry" : "entries"}, ${headcount} total headcount</p>
+          <p class="group-total">${g.entries.length} ${g.entries.length === 1 ? "entry" : "entries"}, ${headcount} total headcount — ${statusBreakdown(g.entries)}</p>
         </div>
       `;
     }).join("");
@@ -569,7 +584,7 @@
         </div>
       </div>
       ${groupsHtml}
-      <p class="grand-total">Total: ${grandEntries} ${grandEntries === 1 ? "entry" : "entries"}, ${grandHeads} total headcount.</p>
+      <p class="grand-total">Total: ${grandEntries} ${grandEntries === 1 ? "entry" : "entries"}, ${grandHeads} total headcount — ${statusBreakdown(allEntries)}.</p>
     `;
 
     document.body.classList.add("printing-participants");
