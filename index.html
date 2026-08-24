@@ -86,6 +86,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 C13 6 15 8 15 11 C15 13.5 13.5 15 12 15 C10.5 15 9 13.5 9 11 C9 8 11 6 12 3 Z" stroke-linejoin="round"/><path d="M6 19 C6 17 8.5 15.5 12 15.5 C15.5 15.5 18 17 18 19" stroke-linecap="round"/><path d="M4 19 H20" stroke-linecap="round"/></svg>
         <span data-i18n="navPrayers">Prayers &amp; Registration</span>
       </button>
+      <button class="rail-btn" data-screen="fridayAnnathanam">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 11 C5 16 8 20 12 20 C16 20 19 16 19 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11 H20" stroke-linecap="round"/><path d="M9 11 V6.5 C9 5 10.5 4 12 4" stroke-linecap="round"/><circle cx="12" cy="3.3" r="0.9" fill="currentColor" stroke="none"/></svg>
+        <span data-i18n="navFridayAnnathanam">Friday Annathanam</span>
+      </button>
       <button class="rail-btn" data-screen="news">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3.5 9 L9 6 V17 L3.5 15 Z" stroke-linejoin="round"/><path d="M9 7.5 L18 5 V17.5 L9 15.5 M16 9.5 C17 10.3 17 12.2 16 13" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span data-i18n="navNews">News &amp; Announcements</span>
@@ -295,16 +299,22 @@
         <div class="tab-row" id="prayersFilterTabs"></div>
         <div class="prayer-grid" id="prayerGrid"></div>
 
-        <div class="card" id="fridayAnnathanamCard">
-          <h3 id="fridayAnnathanamHeadingText">Weekly Friday Pooja Annathanam</h3>
-          <p id="fridayAnnathanamSubText">RM 250 sponsors the temple's Annathanam meal for one Friday.</p>
-          <div class="scroll-box" id="fridayAnnathanamList"></div>
-        </div>
-
         <div class="card" id="caterersCard">
           <h3 id="prayersCaterersHeadingText">Annathanam Caterers</h3>
           <p id="prayersCaterersSubText">Prefer to arrange the meal yourself? Contact any of our regular caterers directly.</p>
           <div id="caterersList"></div>
+        </div>
+      </section>
+
+      <!-- ===== FRIDAY ANNATHANAM ===== -->
+      <section class="screen" id="screen-fridayAnnathanam">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="fridayAnnathanamHeadingText">Weekly Friday Pooja Annathanam</h2>
+          <p id="fridayAnnathanamSubText">RM 250 sponsors the temple's Annathanam meal for one Friday.</p>
+        </div>
+        <div class="card" id="fridayAnnathanamCard">
+          <div class="scroll-box" id="fridayAnnathanamList"></div>
         </div>
       </section>
 

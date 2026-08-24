@@ -47,7 +47,8 @@ const ICONS = {
   calendar: `<rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 10 H20.5 M8 3 V6.5 M16 3 V6.5" stroke-linecap="round"/>`,
   timings: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5 V12 L15.2 14" stroke-linecap="round" stroke-linejoin="round"/>`,
   sevas: `<path d="M12 21 C7 17 3.5 13.8 3.5 9.9 C3.5 7.2 5.6 5 8.2 5 C9.8 5 11.1 5.8 12 7 C12.9 5.8 14.2 5 15.8 5 C18.4 5 20.5 7.2 20.5 9.9 C20.5 13.8 17 17 12 21 Z" stroke-linejoin="round"/>`,
-  prayers: `<path d="M12 3 C13 6 15 8 15 11 C15 13.5 13.5 15 12 15 C10.5 15 9 13.5 9 11 C9 8 11 6 12 3 Z" stroke-linejoin="round"/><path d="M6 19 C6 17 8.5 15.5 12 15.5 C15.5 15.5 18 17 18 19" stroke-linecap="round"/><path d="M4 19 H20" stroke-linecap="round"/>`
+  prayers: `<path d="M12 3 C13 6 15 8 15 11 C15 13.5 13.5 15 12 15 C10.5 15 9 13.5 9 11 C9 8 11 6 12 3 Z" stroke-linejoin="round"/><path d="M6 19 C6 17 8.5 15.5 12 15.5 C15.5 15.5 18 17 18 19" stroke-linecap="round"/><path d="M4 19 H20" stroke-linecap="round"/>`,
+  fridayAnnathanam: `<path d="M5 11 C5 16 8 20 12 20 C16 20 19 16 19 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11 H20" stroke-linecap="round"/><path d="M9 11 V6.5 C9 5 10.5 4 12 4" stroke-linecap="round"/><circle cx="12" cy="3.3" r="0.9" fill="currentColor" stroke="none"/>`
 };
 
 const PANEL_COLORS = ["#711821", "#8f202b", "#c1531f", "#3e7c52", "#2b1b12", "#8e4a9e", "#3e7c8c", "#b5651d"];
@@ -65,7 +66,8 @@ const railBtns = document.querySelectorAll(".rail-btn");
 const crumb = document.getElementById("crumb");
 const CRUMB_KEY = {
   home:"navHome", about:"navAbout", deities:"navDeities", calendar:"navCalendar",
-  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", prayers:"navPrayers", news:"navNews",
+  timings:"navTimings", gallery:"navGallery", sevas:"navSevas", prayers:"navPrayers",
+  fridayAnnathanam:"navFridayAnnathanam", news:"navNews",
   membership:"navMembership", contact:"navContact"
 };
 let currentScreen = "home";
@@ -224,7 +226,7 @@ function renderStaticText(){
 function renderHomeTiles(){
   const tileGrid = document.getElementById("homeTiles");
   tileGrid.innerHTML = "";
-  const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers };
+  const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers, fridayAnnathanam: ICONS.fridayAnnathanam };
   TILE_META.forEach(tItem=>{
     const btn = el(`
       <button class="tile" data-goto="${tItem.key}">
@@ -1015,7 +1017,6 @@ function renderPrayers(){
   renderPrayerFilterTabs();
   renderPrayerGrid();
   renderCaterers();
-  renderFridayAnnathanam();
 }
 
 function fetchPrayersFromDb(){
@@ -1294,6 +1295,7 @@ function renderAll(){
   safeRender("gallery", renderGallery);
   safeRender("sevas", renderSevas);
   safeRender("prayers", renderPrayers);
+  safeRender("fridayAnnathanam", renderFridayAnnathanam);
   safeRender("news", renderNews);
   safeRender("contact", renderContact);
   safeRender("clock", tickClock);

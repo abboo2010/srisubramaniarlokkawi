@@ -59,6 +59,7 @@ const UI = {
     idleReturning: "Returning to Home…",
     timingTabDaily: "Daily", timingTabFriday: "Friday (Special)", timingTabFullMoon: "Full Moon (Pournami)",
     navPrayers: "Prayers & Registration",
+    navFridayAnnathanam: "Friday Annathanam",
     prayersHeading: "Annual Prayers & Registration", prayersSub: "Sponsor a pooja as Ubayakarar or Annathanam sponsor, or register as a participant.",
     prayersFilterAll: "All", prayersFilterUpcoming: "Upcoming", prayersFilterOver: "Completed",
     prayersStatusUpcoming: "Upcoming", prayersStatusOver: "Completed",
@@ -134,6 +135,7 @@ const UI = {
     idleReturning: "Kembali ke Halaman Utama…",
     timingTabDaily: "Harian", timingTabFriday: "Jumaat (Khas)", timingTabFullMoon: "Pournami (Bulan Purnama)",
     navPrayers: "Pooja Tahunan & Pendaftaran",
+    navFridayAnnathanam: "Annathanam Jumaat",
     prayersHeading: "Pooja Tahunan & Pendaftaran", prayersSub: "Taja pooja sebagai Ubayakarar atau penaja Annathanam, atau daftar sebagai peserta.",
     prayersFilterAll: "Semua", prayersFilterUpcoming: "Akan Datang", prayersFilterOver: "Selesai",
     prayersStatusUpcoming: "Akan Datang", prayersStatusOver: "Selesai",
@@ -209,6 +211,7 @@ const UI = {
     idleReturning: "முகப்புக்குத் திரும்புகிறது…",
     timingTabDaily: "தினமும்", timingTabFriday: "வெள்ளி (சிறப்பு)", timingTabFullMoon: "பௌர்ணமி (முழு நிலவு)",
     navPrayers: "ஆண்டு பூஜைகள் & பதிவு",
+    navFridayAnnathanam: "வெள்ளி அன்னதானம்",
     prayersHeading: "ஆண்டு பூஜைகள் & பதிவு", prayersSub: "உபயகாரராகவோ அன்னதான நிதியுதவியாளராகவோ பூஜையை நிதியுதவி செய்யுங்கள், அல்லது பங்கேற்பாளராக பதிவு செய்யுங்கள்.",
     prayersFilterAll: "அனைத்தும்", prayersFilterUpcoming: "வரவிருக்கும்", prayersFilterOver: "முடிந்தது",
     prayersStatusUpcoming: "வரவிருக்கும்", prayersStatusOver: "முடிந்தது",
@@ -257,5 +260,8 @@ const TILE_META = [
     desc:  { en: "Support Temple & Sevas", bm: "Sokong Kuil & Seva", ta: "கோயிலுக்கும் சேவைகளுக்கும் ஆதரவு" } },
   { key: "prayers",
     title: { en: "Prayers & Registration", bm: "Pooja Tahunan & Pendaftaran", ta: "ஆண்டு பூஜைகள் & பதிவு" },
-    desc:  { en: "Sponsor or Join a Pooja", bm: "Taja atau Sertai Pooja", ta: "பூஜையை நிதியுதவி செய்ய அல்லது பங்கேற்க" } }
+    desc:  { en: "Sponsor or Join a Pooja", bm: "Taja atau Sertai Pooja", ta: "பூஜையை நிதியுதவி செய்ய அல்லது பங்கேற்க" } },
+  { key: "fridayAnnathanam",
+    title: { en: "Friday Annathanam", bm: "Annathanam Jumaat", ta: "வெள்ளி அன்னதானம்" },
+    desc:  { en: "Sponsor a Weekly Friday Meal", bm: "Taja Hidangan Jumaat Mingguan", ta: "வாராந்திர வெள்ளி உணவை நிதியுதவி செய்ய" } }
 ];
