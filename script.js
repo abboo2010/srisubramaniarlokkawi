@@ -753,8 +753,15 @@ function openPrayerModal(p){
     // than duplicated on the Ubayakarar row above. Annathanam never gets
     // this — it's reserve-only and the site never collects payment for it.
     const booking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).ubayakarar;
+    // "Paid/Confirmed" is the admin dashboard's status once a payment is
+    // actually received; plain "Confirmed" is kept for a slot the
+    // committee has confirmed without that meaning money changed hands.
+    // Either one shows this devotee-facing badge as Paid — "Confirmed"
+    // alone here almost always means paid in practice, and there's no
+    // separate public-facing state for "confirmed but somehow not paid."
+    const isPaid = booking && (booking.status === "Confirmed" || booking.status === "Paid/Confirmed");
     const paidPillHtml = booking
-      ? `<span class="prayer-role-pill ${booking.status === "Confirmed" ? "paid" : "unpaid"}">${booking.status === "Confirmed" ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
+      ? `<span class="prayer-role-pill ${isPaid ? "paid" : "unpaid"}">${isPaid ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
       : "";
     const feeRefHtml = booking ? `<span class="prayer-modal-row-ref">${t("prayersSuccessRef")}: ${booking.reference}</span>` : "";
     rowsHtml += `<div class="prayer-modal-row"><span class="prayer-modal-row-label">${t("prayersFeeLabel")}</span>${paidPillHtml}<span class="prayer-modal-row-sponsor">RM ${p.ubayamFee.toLocaleString()}</span>${feeRefHtml}</div>`;

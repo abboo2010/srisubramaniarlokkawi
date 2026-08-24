@@ -11,7 +11,7 @@
 // ============================================================
 const { supabaseClient } = require("./_supabase");
 
-const VALID_STATUSES = ["Confirmed", "Cancelled", "Pending Payment", "Reserved"];
+const VALID_STATUSES = ["Confirmed", "Paid/Confirmed", "Cancelled", "Pending Payment", "Reserved"];
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {

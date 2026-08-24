@@ -41,7 +41,7 @@ as $$
 declare
   v_booking bookings%rowtype;
 begin
-  if p_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
+  if p_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Paid/Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
   end if;
   if nullif(p_payment_method, '') is not null and p_payment_method not in ('Bank Transfer', 'QR Transfer', 'Cash') then

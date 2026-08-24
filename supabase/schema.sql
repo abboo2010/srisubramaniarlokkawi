@@ -51,8 +51,14 @@ create table if not exists bookings (
   phone              text not null,
   participant_count  integer not null default 1,
   notes              text not null default '',
+  -- 'Confirmed' means the booking/slot itself is confirmed, with no
+  -- statement about money (this is the only status Annathanam ever
+  -- needs, since it never collects a fee). 'Paid/Confirmed' is the
+  -- distinct status for "payment has actually been received" — what
+  -- Ubayakarar and Participant bookings move to once a bank-in slip,
+  -- QR transfer, or cash payment comes in.
   status             text not null default 'Pending Payment'
-                       check (status in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled')),
+                       check (status in ('Pending Payment', 'Reserved', 'Confirmed', 'Paid/Confirmed', 'Cancelled')),
   -- How a payment actually reached the temple (devotees forward a bank-in
   -- slip, a QR transfer screenshot, or pay cash in person) — recorded by
   -- the committee for their own records, not selected by the devotee on
@@ -77,6 +83,27 @@ begin
       check (payment_method is null or payment_method in ('Bank Transfer', 'QR Transfer', 'Cash'));
   end if;
 end $$;
+
+-- Idempotent widen of the status check for an already-existing table —
+-- drop-and-recreate is the standard way to change a CHECK constraint's
+-- definition in Postgres; bookings_status_check is the name Postgres
+-- itself assigns to the inline check above (table_column_check), so this
+-- is a no-op the second time you run it, not a repeated drop of nothing.
+alter table bookings drop constraint if exists bookings_status_check;
+alter table bookings add constraint bookings_status_check
+  check (status in ('Pending Payment', 'Reserved', 'Confirmed', 'Paid/Confirmed', 'Cancelled'));
+
+-- One-time backfill: under the old single "Confirmed" status, a
+-- Ubayakarar or Participant booking marked Confirmed always meant
+-- "payment received" (that's what the "Mark Paid" button set it to).
+-- Now that Paid/Confirmed exists as its own status, move those existing
+-- bookings onto it so their true meaning is preserved. Annathanam is
+-- deliberately left alone — it never collects a fee, so a Confirmed
+-- Annathanam booking never meant "paid" and shouldn't become
+-- Paid/Confirmed. Safe to re-run: nothing still matches after the
+-- first pass.
+update bookings set status = 'Paid/Confirmed'
+  where status = 'Confirmed' and role in ('ubayakarar', 'participant');
 
 alter table bookings enable row level security;
 
@@ -212,7 +239,7 @@ as $$
 declare
   v_booking bookings%rowtype;
 begin
-  if p_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Cancelled') then
+  if p_status not in ('Pending Payment', 'Reserved', 'Confirmed', 'Paid/Confirmed', 'Cancelled') then
     raise exception 'INVALID_STATUS';
   end if;
 

@@ -15,7 +15,7 @@
 const { supabaseClient } = require("./_supabase");
 
 const VALID_ROLES = ["ubayakarar", "annathanam", "participant"];
-const VALID_STATUSES = ["Pending Payment", "Reserved", "Confirmed", "Cancelled"];
+const VALID_STATUSES = ["Pending Payment", "Reserved", "Confirmed", "Paid/Confirmed", "Cancelled"];
 const VALID_PAYMENT_METHODS = ["Bank Transfer", "QR Transfer", "Cash"];
 
 exports.handler = async (event) => {

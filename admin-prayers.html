@@ -83,6 +83,7 @@
   .pill.pending{background:#fdf1dc; color:#a5680f;}
   .pill.reserved{background:#e9f2fd; color:#2f6db3;}
   .pill.confirmed{background:rgba(62,124,82,0.14); color:var(--green-600);}
+  .pill.paidconfirmed{background:rgba(201,154,62,0.22); color:#7a5a19; font-weight:800;}
   .pill.cancelled{background:var(--cream-100); color:var(--ink-600);}
   .pill.open{background:rgba(62,124,82,0.14); color:var(--green-600);}
   .pill.taken{background:var(--cream-100); color:var(--ink-600);}
@@ -186,6 +187,8 @@
   .pm-actions button.pm-mark-paid{border-color:var(--green-600); color:var(--green-600);}
   .pm-actions button.pm-mark-paid:disabled{opacity:.4; cursor:default;}
   .pm-payment-method{font-size:11.5px; color:var(--ink-600);}
+  .pm-row-cancelled{opacity:.55;}
+  .pm-row-cancelled .pm-name{text-decoration:line-through;}
   .pm-row-editing{gap:8px; align-items:center;}
   .pm-row-editing .pm-edit-name{flex:1 1 auto; min-width:0; padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
   .pm-row-editing .pm-edit-qty{width:56px; padding:6px 8px; border-radius:6px; border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
@@ -240,6 +243,7 @@
         <option value="Pending Payment">Pending Payment</option>
         <option value="Reserved">Reserved</option>
         <option value="Confirmed">Confirmed</option>
+        <option value="Paid/Confirmed">Paid/Confirmed</option>
         <option value="Cancelled">Cancelled</option>
       </select>
       <select id="roleFilter">
@@ -271,9 +275,10 @@
         </div>
         <div class="edit-field"><label>Status</label>
           <select id="b_status">
-            <option value="Confirmed">Confirmed</option>
-            <option value="Reserved">Reserved</option>
             <option value="Pending Payment">Pending Payment</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Paid/Confirmed">Paid/Confirmed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
@@ -423,9 +428,11 @@
           <textarea id="pm_names" rows="4"></textarea>
           <div class="modal-add-row">
             <select id="pm_status">
-              <option value="Confirmed">Paid/Confirmed</option>
-              <option value="Reserved">Reserved</option>
               <option value="Pending Payment">Pending Payment</option>
+              <option value="Reserved">Reserved</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Paid/Confirmed">Paid/Confirmed</option>
+              <option value="Cancelled">Cancelled</option>
             </select>
             <select id="pm_paymentMethod" title="How this batch paid, if you know it — applies to everyone added below">
               <option value="">Payment method not recorded</option>
@@ -642,7 +649,7 @@
       : "";
     document.getElementById("participantsModalSub").textContent = p ? [p.date, feeText].filter(Boolean).join(" · ") : "";
     document.getElementById("pm_names").value = "";
-    document.getElementById("pm_status").value = "Confirmed";
+    document.getElementById("pm_status").value = "Paid/Confirmed";
     document.getElementById("pm_paymentMethod").value = "";
     renderParticipantsModalList();
     participantsModalOverlay.classList.add("show");
@@ -661,21 +668,19 @@
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
   }
 
-  // Participants modal only: "Confirmed" reads as "Paid" here, since for a
-  // participant that status means exactly one thing — their payment came
-  // in. The underlying value stored and sent to admin_edit_booking() stays
-  // "Confirmed" (it's the same status column Ubayakarar/Annathanam use, and
-  // the DB's check constraint only allows that exact string) — this only
-  // changes what's shown on screen.
+  // Paid/Confirmed is now a real, distinct status value (see
+  // supabase/schema.sql) rather than a display-only relabeling of
+  // Confirmed, so this is just a pass-through — kept as a named function
+  // so every call site below stays self-documenting about what it's for.
   function participantStatusText(status){
-    return status === "Confirmed" ? "Paid/Confirmed" : status;
+    return status;
   }
 
   let editingParticipantBookingId = null;
 
   function renderParticipantsModalList(){
     const rows = allBookings
-      .filter(b => b.prayerId === currentParticipantsPrayerId && b.role === "participant" && b.status !== "Cancelled")
+      .filter(b => b.prayerId === currentParticipantsPrayerId && b.role === "participant")
       .slice()
       .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     const listEl = document.getElementById("participantsModalList");
@@ -684,18 +689,21 @@
       listEl.innerHTML = `<p class="modal-empty">No participants recorded yet for this pooja — add some below.</p>`;
       return;
     }
-    const totalHeads = rows.reduce((sum, r) => sum + (r.participantCount || 1), 0);
+    // Headcount totals only count still-active entries — a Cancelled
+    // participant is shown in the list below (so you can always find and
+    // un-cancel one, same as the Bookings tab) but shouldn't inflate the
+    // "how many people are actually coming" count.
+    const activeRows = rows.filter(r => r.status !== "Cancelled");
+    const totalHeads = activeRows.reduce((sum, r) => sum + (r.participantCount || 1), 0);
     listEl.innerHTML = `
-      <p class="modal-count">${rows.length} ${rows.length === 1 ? "entry" : "entries"}, ${totalHeads} total headcount</p>
+      <p class="modal-count">${activeRows.length} ${activeRows.length === 1 ? "entry" : "entries"}, ${totalHeads} total headcount</p>
       ${rows.map(r => {
         if (r.bookingId === editingParticipantBookingId){
-          // Status here covers Pending Payment / Reserved / Confirmed only —
-          // Cancelled is deliberately left out. A Cancelled participant would
-          // vanish from this list (the filter above excludes it) with no
-          // Bookings-tab fallback to find it again, since participants were
-          // intentionally removed from that tab. Use Delete for a real removal
-          // instead; this dropdown is purely for tracking payment.
-          const statusOptions = ["Pending Payment", "Reserved", "Confirmed"]
+          // Same full status list as the Bookings tab's Edit form, so a
+          // Cancelled participant can always be found here and un-cancelled
+          // (or a mistaken status otherwise corrected) — nothing is a
+          // dead end.
+          const statusOptions = ["Pending Payment", "Reserved", "Confirmed", "Paid/Confirmed", "Cancelled"]
             .map(s => `<option value="${s}" ${r.status === s ? "selected" : ""}>${participantStatusText(s)}</option>`).join("");
           const paymentOptions = ["", "Bank Transfer", "QR Transfer", "Cash"]
             .map(m => `<option value="${m}" ${(r.paymentMethod || "") === m ? "selected" : ""}>${m || "Not recorded"}</option>`).join("");
@@ -717,10 +725,11 @@
         // other status change (including reverting a mistaken "paid") goes
         // through Edit's status dropdown above.
         const markPaidBtn = r.status === "Pending Payment"
-          ? `<button class="pm-mark-paid" data-mark-paid="${r.bookingId}" title="Set status to Paid">Mark Paid</button>`
+          ? `<button class="pm-mark-paid" data-mark-paid="${r.bookingId}" title="Set status to Paid/Confirmed">Mark Paid</button>`
           : "";
+        const rowClass = r.status === "Cancelled" ? "pm-row pm-row-cancelled" : "pm-row";
         return `
-          <div class="pm-row">
+          <div class="${rowClass}">
             <span class="pm-name">${r.name}${r.participantCount && r.participantCount > 1 ? ` <span class="qty">×${r.participantCount}</span>` : ""}</span>
             <span class="pm-actions">
               <span class="pill ${statusPillClass(r.status)}">${participantStatusText(r.status)}</span>
@@ -757,8 +766,8 @@
   }
 
   // One-click "this person's payment came in" — same admin_edit_booking()
-  // path as the full Edit form, just pre-filled with status: "Confirmed"
-  // and everything else left exactly as it was.
+  // path as the full Edit form, just pre-filled with status:
+  // "Paid/Confirmed" and everything else left exactly as it was.
   async function markParticipantPaid(bookingId){
     const booking = allBookings.find(b => b.bookingId === bookingId);
     if (!booking) return;
@@ -772,13 +781,13 @@
           phone: booking.phone,
           participantCount: booking.participantCount,
           notes: booking.notes,
-          status: "Confirmed",
+          status: "Paid/Confirmed",
           paymentMethod: booking.paymentMethod || ""
         })
       });
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
-      booking.status = "Confirmed";
+      booking.status = "Paid/Confirmed";
       showStatus(`${booking.name} marked as paid.`, "ok");
       renderParticipantsModalList();
     } catch (err){
@@ -866,6 +875,7 @@
   function statusPillClass(status){
     const s = (status || "").toLowerCase();
     if (s === "confirmed") return "confirmed";
+    if (s === "paid/confirmed") return "paidconfirmed";
     if (s === "cancelled") return "cancelled";
     if (s === "reserved") return "reserved";
     return "pending";
@@ -911,7 +921,7 @@
         <td>${b.paymentMethod || "—"}</td>
         <td>${b.bookingId || ""}</td>
         <td class="row-actions">
-          <button class="confirm" ${b.status === "Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Confirmed">Confirm</button>
+          <button class="confirm" ${b.status === "Paid/Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Paid/Confirmed" title="Mark this booking's payment as received">Mark Paid</button>
           <button class="cancel" ${!canAct ? "disabled" : ""} data-id="${b.bookingId}" data-status="Cancelled">Cancel</button>
           <button data-edit-booking="${b.bookingId}">Edit</button>
           <button class="delete" data-delete-booking="${b.bookingId}">Delete</button>
