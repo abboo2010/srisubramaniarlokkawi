@@ -136,7 +136,7 @@
 
   @media print{
     body, body.dashboard-view{background:#fff !important; padding:0;}
-    .toolbar, .tab-switch, .edit-panel, .row-actions, .select-col, #loginBox, .refresh-note, .status-msg, .modal-overlay{display:none !important;}
+    .toolbar, .tab-switch, .edit-panel, .row-actions, .select-col, #loginBox, .refresh-note, .status-msg, .modal-overlay, .sub, .panel-hint{display:none !important;}
     table{box-shadow:none;}
     th{background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
     .table-wrap{max-height:none; overflow:visible;}
@@ -223,7 +223,7 @@
     <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
     <div class="app-header-text">
       <div class="app-title-line1">Sri Subramaniar Alayam, Lok Kawi</div>
-      <div class="app-title-line2">Annual Prayers and Registration</div>
+      <div class="app-title-line2" id="appTitleLine2">Annual Prayers and Registration</div>
       <p class="sub">View and manage every registration, and edit the schedule itself — sponsors, fees, open/closed status.</p>
     </div>
   </div>
@@ -1597,7 +1597,21 @@
   document.getElementById("refreshFaBtn").addEventListener("click", loadFridayAnnathanam);
   document.getElementById("fa_statusFilter").addEventListener("change", renderFaTable);
   document.getElementById("fa_searchInput").addEventListener("input", renderFaTable);
-  document.getElementById("printFaBtn").addEventListener("click", () => window.print());
+  // The Friday Annathanam report should print under its own heading rather
+  // than the shared "Annual Prayers and Registration" title — swap it right
+  // before printing and put it back on "afterprint" so the on-screen header
+  // (and the Bookings/Events reports) are never affected.
+  document.getElementById("printFaBtn").addEventListener("click", () => {
+    const titleEl = document.getElementById("appTitleLine2");
+    const originalTitle = titleEl.textContent;
+    titleEl.textContent = "Friday Annathanam Booking and Confirmations";
+    const restoreTitle = () => {
+      titleEl.textContent = originalTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+    };
+    window.addEventListener("afterprint", restoreTitle);
+    window.print();
+  });
   document.getElementById("exportFaBtn").addEventListener("click", () => {
     const rows = [["Date","Status","Sponsor Name","Sponsor Phone","Fee","Paid Date","Skip Reason","Notes"]];
     filteredFa().forEach(w => rows.push([w.date, faStatusLabel(w), w.sponsorName, w.sponsorPhone, w.fee, w.paidDate, w.skipReason, w.notes]));
