@@ -1084,9 +1084,13 @@ function renderFridayAnnathanam(){
     const status = fridayAnnathanamStatus(w);
     const pillClass = status === "open" ? "open" : "taken";
     const badgeKey = status === "open" ? "fridayAnnathanamOpenBadge" : status === "sponsored" ? "fridayAnnathanamSponsoredBadge" : "fridayAnnathanamSkippedBadge";
+    // Same compact day-number/month-abbreviation date badge used on the
+    // Prayers & Registration pooja cards (.prayer-card-date), instead of
+    // a plain text date — keeps the date style consistent across both
+    // screens.
     const row = el(`
       <div class="prayer-modal-row">
-        <span class="prayer-modal-row-label">${formatPrayerDate(w.date)}</span>
+        <div class="prayer-card-date"><b>${dayNum(w.date)}</b><small>${monthAbbr(w.date)}</small></div>
         <span class="prayer-role-pill ${pillClass}">${t(badgeKey)}</span>
         ${w.sponsorName ? `<span class="prayer-modal-row-sponsor">${w.sponsorName}</span>` : ""}
       </div>
