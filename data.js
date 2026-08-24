@@ -78,7 +78,13 @@ const UI = {
     prayersSuccessAnnathanam: "Your Annathanam sponsorship is reserved. Please contact your preferred caterer directly to arrange the meal — see the caterer list below.",
     prayersSuccessParticipantPaid: "Please complete payment via bank transfer or DuitNow QR, then send your proof of payment via WhatsApp, quoting your reference above.",
     prayersSuccessParticipantFree: "You're registered. We look forward to seeing you there!",
-    prayersErrorGeneric: "Something went wrong. Please try again in a moment.", prayersCloseBtn: "Close"
+    prayersErrorGeneric: "Something went wrong. Please try again in a moment.", prayersCloseBtn: "Close",
+    fridayAnnathanamHeading: "Weekly Friday Pooja Annathanam",
+    fridayAnnathanamSub: "RM 250 sponsors the temple's Annathanam meal for one Friday. Choose any open Friday below to sponsor it — payment is by bank transfer or DuitNow QR.",
+    fridayAnnathanamOpenBadge: "Open", fridayAnnathanamSponsoredBadge: "Sponsored", fridayAnnathanamSkippedBadge: "No Annathanam",
+    fridayAnnathanamSponsorBtn: "Sponsor This Friday", fridayAnnathanamModalTitle: "Sponsor Friday Annathanam",
+    fridayAnnathanamSuccessMessage: "Your Friday Annathanam sponsorship is reserved. Please complete payment via bank transfer or DuitNow QR, then send your proof of payment via WhatsApp, quoting your reference above.",
+    fridayAnnathanamNoUpcoming: "No Fridays are listed yet — please check back soon."
   },
   bm: {
     navHome: "Utama", navAbout: "Tentang Kuil", navDeities: "Dewa-Dewi",
@@ -147,7 +153,13 @@ const UI = {
     prayersSuccessAnnathanam: "Penajaan Annathanam anda telah ditempah. Sila hubungi katerer pilihan anda terus untuk menguruskan hidangan — lihat senarai katerer di bawah.",
     prayersSuccessParticipantPaid: "Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow, kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
     prayersSuccessParticipantFree: "Anda telah berdaftar. Kami menantikan kehadiran anda!",
-    prayersErrorGeneric: "Sesuatu tidak kena. Sila cuba lagi sebentar.", prayersCloseBtn: "Tutup"
+    prayersErrorGeneric: "Sesuatu tidak kena. Sila cuba lagi sebentar.", prayersCloseBtn: "Tutup",
+    fridayAnnathanamHeading: "Annathanam Pooja Jumaat Mingguan",
+    fridayAnnathanamSub: "RM 250 menaja hidangan Annathanam kuil untuk satu hari Jumaat. Pilih mana-mana hari Jumaat yang terbuka di bawah untuk menajanya — pembayaran melalui pindahan bank atau QR DuitNow.",
+    fridayAnnathanamOpenBadge: "Terbuka", fridayAnnathanamSponsoredBadge: "Ditaja", fridayAnnathanamSkippedBadge: "Tiada Annathanam",
+    fridayAnnathanamSponsorBtn: "Taja Jumaat Ini", fridayAnnathanamModalTitle: "Taja Annathanam Jumaat",
+    fridayAnnathanamSuccessMessage: "Penajaan Annathanam Jumaat anda telah ditempah. Sila lengkapkan pembayaran melalui pindahan bank atau QR DuitNow, kemudian hantar bukti pembayaran melalui WhatsApp dengan menyertakan rujukan di atas.",
+    fridayAnnathanamNoUpcoming: "Tiada hari Jumaat disenaraikan lagi — sila semak semula tidak lama lagi."
   },
   ta: {
     navHome: "முகப்பு", navAbout: "கோயில் பற்றி", navDeities: "தெய்வங்கள்",
@@ -216,7 +228,13 @@ const UI = {
     prayersSuccessAnnathanam: "உங்கள் அன்னதான நிதியுதவி பதிவு செய்யப்பட்டுள்ளது. உணவை ஏற்பாடு செய்ய உங்கள் விருப்பமான கேட்டரரை நேரடியாக தொடர்பு கொள்ளவும் — கீழே உள்ள கேட்டரர் பட்டியலைப் பார்க்கவும்.",
     prayersSuccessParticipantPaid: "வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
     prayersSuccessParticipantFree: "நீங்கள் பதிவு செய்யப்பட்டுள்ளீர்கள். உங்களை சந்திக்க காத்திருக்கிறோம்!",
-    prayersErrorGeneric: "ஏதோ தவறு நடந்தது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.", prayersCloseBtn: "மூடு"
+    prayersErrorGeneric: "ஏதோ தவறு நடந்தது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.", prayersCloseBtn: "மூடு",
+    fridayAnnathanamHeading: "வாராந்திர வெள்ளி பூஜை அன்னதானம்",
+    fridayAnnathanamSub: "RM 250 கோயிலின் ஒரு வெள்ளிக்கிழமை அன்னதான உணவை நிதியுதவி செய்கிறது. கீழே திறந்துள்ள எந்த வெள்ளிக்கிழமையையும் தேர்ந்தெடுத்து நிதியுதவி செய்யுங்கள் — வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் பணம் செலுத்தலாம்.",
+    fridayAnnathanamOpenBadge: "திறந்துள்ளது", fridayAnnathanamSponsoredBadge: "நிதியுதவி செய்யப்பட்டது", fridayAnnathanamSkippedBadge: "அன்னதானம் இல்லை",
+    fridayAnnathanamSponsorBtn: "இந்த வெள்ளியை நிதியுதவி செய்ய", fridayAnnathanamModalTitle: "வெள்ளி அன்னதானத்தை நிதியுதவி செய்ய",
+    fridayAnnathanamSuccessMessage: "உங்கள் வெள்ளி அன்னதான நிதியுதவி பதிவு செய்யப்பட்டுள்ளது. வங்கி பரிமாற்றம் அல்லது DuitNow QR மூலம் பணம் செலுத்தி, மேலே உள்ள குறிப்பு எண்ணுடன் WhatsApp மூலம் பணம் செலுத்திய சான்றை அனுப்பவும்.",
+    fridayAnnathanamNoUpcoming: "இன்னும் வெள்ளிக்கிழமைகள் பட்டியலிடப்படவில்லை — விரைவில் மீண்டும் சரிபார்க்கவும்."
   }
 };
 

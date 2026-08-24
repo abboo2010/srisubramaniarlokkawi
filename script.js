@@ -1015,6 +1015,7 @@ function renderPrayers(){
   renderPrayerFilterTabs();
   renderPrayerGrid();
   renderCaterers();
+  renderFridayAnnathanam();
 }
 
 function fetchPrayersFromDb(){
@@ -1034,6 +1035,174 @@ function fetchPrayersFromDb(){
       if (currentPrayerModal) openPrayerModal(currentPrayerModal);
     })
     .catch(err => console.warn("Could not load the live Annual Prayers schedule — showing bundled data only:", err));
+}
+
+// ============================================================
+// FRIDAY ANNATHANAM SPONSORSHIP (public)
+// A dedicated weekly schedule — RM 250 sponsors the temple's
+// Annathanam meal for one Friday — deliberately kept separate from
+// Annual Prayers/Bookings above (see
+// supabase/friday-annathanam-function.sql for why). Loaded from
+// friday-annathanam-list.js, which never includes sponsor phone
+// numbers (see that file's header comment), and self-registered via
+// register-friday-annathanam.js, which race-safely locks and claims
+// the row server-side — the same pattern register_prayer() already
+// uses above. There is no bundled/offline fallback for this data
+// (unlike ANNUAL_PRAYERS) — it only ever comes from the live database.
+// ============================================================
+let FRIDAY_ANNATHANAM_WEEKS = []; // [{date, fee, sponsorName, skipReason}]
+let currentFridayAnnathanam = null; // the {date, fee, ...} row currently being sponsored in the modal
+
+function fridayAnnathanamStatus(w){
+  if (w.skipReason) return "skipped";
+  if (w.sponsorName) return "sponsored";
+  return "open";
+}
+
+function renderFridayAnnathanam(){
+  const wrap = document.getElementById("fridayAnnathanamList");
+  if (!wrap) return;
+  document.getElementById("fridayAnnathanamHeadingText").textContent = t("fridayAnnathanamHeading");
+  document.getElementById("fridayAnnathanamSubText").textContent = t("fridayAnnathanamSub");
+  wrap.innerHTML = "";
+
+  // Only today-forward Fridays are shown — a past Friday isn't orderable
+  // any more (register-friday-annathanam.js's DATE_OVER check would
+  // reject it anyway), so there's no reason to clutter the public list
+  // with it. The admin tab is where the full history stays visible.
+  const upcoming = FRIDAY_ANNATHANAM_WEEKS
+    .filter(w => w.date >= todayIso)
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  if (!upcoming.length){
+    wrap.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;">${t("fridayAnnathanamNoUpcoming")}</p>`));
+    return;
+  }
+
+  upcoming.forEach(w => {
+    const status = fridayAnnathanamStatus(w);
+    const pillClass = status === "open" ? "open" : "taken";
+    const badgeKey = status === "open" ? "fridayAnnathanamOpenBadge" : status === "sponsored" ? "fridayAnnathanamSponsoredBadge" : "fridayAnnathanamSkippedBadge";
+    const row = el(`
+      <div class="prayer-modal-row">
+        <span class="prayer-modal-row-label">${formatPrayerDate(w.date)}</span>
+        <span class="prayer-role-pill ${pillClass}">${t(badgeKey)}</span>
+        ${w.sponsorName ? `<span class="prayer-modal-row-sponsor">${w.sponsorName}</span>` : ""}
+      </div>
+    `);
+    if (status === "open"){
+      const btn = el(`<button class="prayer-btn-ghost" style="flex-basis:100%;margin-top:6px;padding:8px 14px;font-size:12px;">${t("fridayAnnathanamSponsorBtn")}</button>`);
+      btn.addEventListener("click", ()=>openFridayAnnathanamForm(w));
+      row.appendChild(btn);
+    }
+    wrap.appendChild(row);
+  });
+}
+
+const fridayAnnathanamOverlay = document.getElementById("fridayAnnathanamOverlay");
+
+function openFridayAnnathanamForm(w){
+  currentFridayAnnathanam = w;
+  document.getElementById("fridayAnnathanamFormView").style.display = "block";
+  document.getElementById("fridayAnnathanamSuccessView").style.display = "none";
+  document.getElementById("fridayAnnathanamFormTitle").textContent = t("fridayAnnathanamModalTitle") + " — " + formatPrayerDate(w.date);
+  document.getElementById("fridayAnnathanamFormNameLabel").textContent = t("prayersFormName");
+  document.getElementById("fridayAnnathanamFormPhoneLabel").textContent = t("prayersFormPhone");
+  document.getElementById("fridayAnnathanamFormSubmitBtnText").textContent = t("prayersFormSubmit");
+  document.getElementById("fridayAnnathanamFormCancelBtn").textContent = t("prayersFormCancel");
+  document.getElementById("fridayAnnathanamFormName").value = "";
+  document.getElementById("fridayAnnathanamFormPhone").value = "";
+  document.getElementById("fridayAnnathanamFormError").style.display = "none";
+  fridayAnnathanamOverlay.classList.add("show");
+}
+
+function closeFridayAnnathanamModal(){
+  fridayAnnathanamOverlay.classList.remove("show");
+  currentFridayAnnathanam = null;
+}
+document.getElementById("fridayAnnathanamModalClose").addEventListener("click", closeFridayAnnathanamModal);
+document.getElementById("fridayAnnathanamFormCancelBtn").addEventListener("click", closeFridayAnnathanamModal);
+document.getElementById("fridayAnnathanamSuccessCloseBtn").addEventListener("click", closeFridayAnnathanamModal);
+fridayAnnathanamOverlay.addEventListener("click", (e)=>{ if (e.target === fridayAnnathanamOverlay) closeFridayAnnathanamModal(); });
+document.getElementById("fridayAnnathanamFormSubmitBtn").addEventListener("click", submitFridayAnnathanamForm);
+
+async function submitFridayAnnathanamForm(){
+  const w = currentFridayAnnathanam;
+  if (!w) return;
+
+  const name = document.getElementById("fridayAnnathanamFormName").value.trim();
+  const phone = document.getElementById("fridayAnnathanamFormPhone").value.trim();
+  const errorEl = document.getElementById("fridayAnnathanamFormError");
+
+  if (!name || !phone){
+    errorEl.textContent = t("prayersErrorGeneric");
+    errorEl.style.display = "block";
+    return;
+  }
+
+  const submitBtn = document.getElementById("fridayAnnathanamFormSubmitBtn");
+  submitBtn.disabled = true;
+  const originalLabel = document.getElementById("fridayAnnathanamFormSubmitBtnText").textContent;
+  document.getElementById("fridayAnnathanamFormSubmitBtnText").textContent = t("prayersFormSubmitting");
+  errorEl.style.display = "none";
+
+  try {
+    const res = await fetch("/.netlify/functions/register-friday-annathanam", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: w.date, name, phone })
+    });
+    const data = await res.json();
+    if (!res.ok){
+      errorEl.textContent = data.error || t("prayersErrorGeneric");
+      errorEl.style.display = "block";
+      return;
+    }
+    // Reflect the new sponsorship locally right away, same pattern as
+    // submitPrayerForm() above — w is the live object inside
+    // FRIDAY_ANNATHANAM_WEEKS, so this mutation is picked up immediately
+    // by renderFridayAnnathanam() without waiting on a full page reload.
+    w.sponsorName = name;
+    showFridayAnnathanamSuccess(data);
+    renderFridayAnnathanam();
+  } catch (err){
+    console.warn("Friday Annathanam registration failed:", err);
+    errorEl.textContent = t("prayersErrorGeneric");
+    errorEl.style.display = "block";
+  } finally {
+    submitBtn.disabled = false;
+    document.getElementById("fridayAnnathanamFormSubmitBtnText").textContent = originalLabel;
+  }
+}
+
+function showFridayAnnathanamSuccess(data){
+  document.getElementById("fridayAnnathanamFormView").style.display = "none";
+  document.getElementById("fridayAnnathanamSuccessView").style.display = "block";
+  document.getElementById("fridayAnnathanamSuccessTitleText").textContent = t("prayersSuccessTitle");
+  document.getElementById("fridayAnnathanamSuccessRef").textContent = t("prayersSuccessRef") + ": " + data.reference;
+  document.getElementById("fridayAnnathanamSuccessMessage").textContent = t("fridayAnnathanamSuccessMessage");
+  // Friday Annathanam always collects RM 250 directly (unlike the annual
+  // poojas' reserve-only Annathanam role), so this QR block is always
+  // shown here — no conditional the way showPrayerSuccess() needs one.
+  document.getElementById("fridayAnnathanamSuccessQrEyebrow").textContent = t("qrScanToPay");
+  document.getElementById("fridayAnnathanamSuccessQrNote").textContent = t("qrNote");
+  document.getElementById("fridayAnnathanamSuccessQrAmount").textContent = "RM " + (data.fee != null ? data.fee : 250);
+  document.getElementById("fridayAnnathanamSuccessQrAccount").innerHTML = `
+    <div><span>${t("qrAccountName")}</span><span>${DONATION_ACCOUNT.accountName}</span></div>
+    <div><span>${t("qrBank")}</span><span>${DONATION_ACCOUNT.bank}</span></div>
+    <div><span>${t("qrAccountNo")}</span><span>${DONATION_ACCOUNT.accountNumber}</span></div>
+  `;
+}
+
+function fetchFridayAnnathanamFromDb(){
+  fetch("/.netlify/functions/friday-annathanam-list", { cache: "no-store" })
+    .then(res => res.ok ? res.json() : { configured: false })
+    .then(data => {
+      if (!data.configured || !data.weeks) return; // not set up yet — section stays empty until the SQL migration runs
+      FRIDAY_ANNATHANAM_WEEKS = data.weeks;
+      renderFridayAnnathanam();
+    })
+    .catch(err => console.warn("Could not load the live Friday Annathanam schedule:", err));
 }
 
 // ============================================================
@@ -1436,6 +1605,7 @@ function loadLiveContent(){
 
 loadLiveContent();
 fetchPrayersFromDb();
+fetchFridayAnnathanamFromDb();
 
 // ============================================================
 // MEMBERSHIP STATUS CHECK

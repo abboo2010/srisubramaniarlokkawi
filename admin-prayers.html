@@ -233,6 +233,7 @@
   <div class="tab-switch">
     <button class="active" data-tab="bookings">Bookings</button>
     <button data-tab="schedule">Events</button>
+    <button data-tab="fridayAnnathanam">Friday Annathanam</button>
   </div>
 
   <!-- ================= BOOKINGS TAB ================= -->
@@ -408,6 +409,56 @@
     </div>
   </div>
 
+  <!-- ================= FRIDAY ANNATHANAM TAB ================= -->
+  <div class="tab-panel" id="tab-fridayAnnathanam">
+    <div class="toolbar">
+      <select id="fa_statusFilter">
+        <option value="">All Fridays</option>
+        <option value="open">Open</option>
+        <option value="unpaid">Sponsored — Not Paid</option>
+        <option value="paid">Sponsored — Paid</option>
+        <option value="skipped">Skipped</option>
+      </select>
+      <input type="text" id="fa_searchInput" placeholder="Search sponsor name…" />
+      <button id="refreshFaBtn">Refresh</button>
+      <button id="printFaBtn">Print</button>
+      <button id="exportFaBtn">Export CSV</button>
+      <button class="primary" id="addFaBtn">+ Add Friday</button>
+    </div>
+
+    <p class="panel-hint" style="margin:-6px 0 14px;">One row per Friday of the year — the RM 250 Weekly Friday Pooja Annathanam. Devotees can self-register as sponsor for any open Friday on the public site; use Edit here to record the date payment came in, mark a Friday skipped (e.g. for a festival with no Annathanam that week), or add a Friday that isn't listed yet. This is entirely separate from the Bookings and Events tabs above — its own table, its own schedule.</p>
+
+    <div class="edit-panel" id="faEditPanel">
+      <h2 id="faEditPanelTitle">Add Friday</h2>
+      <div class="edit-grid">
+        <div class="edit-field"><label>Date</label><input id="fa_date" type="date" /></div>
+        <div class="edit-field"><label>Fee (RM)</label><input id="fa_fee" type="number" min="0" value="250" /></div>
+        <div class="edit-field"><label>Sponsor Name</label><input id="fa_sponsorName" /></div>
+        <div class="edit-field"><label>Sponsor Phone</label><input id="fa_sponsorPhone" /></div>
+        <div class="edit-field"><label>Paid Date</label><input id="fa_paidDate" type="date" /></div>
+        <div class="edit-field"><label>Skip Reason (leave blank if not skipped)</label><input id="fa_skipReason" placeholder="e.g. Thaipusam" /></div>
+        <div class="edit-field" style="grid-column:span 2;"><label>Notes</label><input id="fa_notes" /></div>
+      </div>
+      <div class="edit-actions">
+        <button class="save" id="saveFaBtn">Save</button>
+        <button class="cancel" id="cancelFaBtn">Cancel</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Status</th><th>Sponsor Name</th><th>Sponsor Phone</th>
+            <th>Fee</th><th>Paid Date</th><th>Notes</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="faBody"></tbody>
+      </table>
+      <div class="empty-note" id="faEmptyNote" style="display:none;">No Fridays match the current filters.</div>
+    </div>
+  </div>
+
   <p class="refresh-note">Editing a pooja's sponsor/open fields here takes effect immediately on the live site — no redeploy needed. Cancelling a Ubayakarar or Annathanam booking on the Bookings tab automatically reopens that slot here too.</p>
 
   <div class="modal-overlay" id="participantsModalOverlay">
@@ -457,8 +508,10 @@
   let allBookings = [];
   let allPrayers = [];
   let allCaterers = [];
+  let allFridayAnnathanam = [];
   let editingPrayerId = null;
   let editingCatererId = null;
+  let editingFaDate = null; // set while editing an existing Friday; null while adding a new one
 
   const loginBox = document.getElementById("loginBox");
   const appBox = document.getElementById("appBox");
@@ -483,6 +536,7 @@
       document.body.classList.add("dashboard-view"); // swap the login photo background for the plain dashboard one
       renderBookings();
       loadSchedule();
+      loadFridayAnnathanam();
     } catch (err){
       loginError.textContent = "Could not reach the server. Please try again.";
       loginError.style.display = "block";
@@ -1514,6 +1568,176 @@
       if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
       showStatus("Caterer removed.", "ok");
       loadSchedule();
+    } catch (err){
+      showStatus("Delete failed.", "error");
+    }
+  }
+
+  // ================= FRIDAY ANNATHANAM =================
+  // A dedicated weekly-recurring schedule, deliberately separate from the
+  // Bookings/Events tabs above — see supabase/friday-annathanam-function.sql
+  // for why. Loaded via admin-friday-annathanam-crud.js's "list" action,
+  // which (unlike the public friday-annathanam-list.js) includes sponsor
+  // phone numbers — never printed or exported anywhere devotees can see.
+  async function loadFridayAnnathanam(){
+    try {
+      const res = await fetch("/.netlify/functions/admin-friday-annathanam-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ action: "list" })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      allFridayAnnathanam = data.weeks || [];
+      renderFaTable();
+    } catch (err){
+      showStatus("Could not load Friday Annathanam.", "error");
+    }
+  }
+  document.getElementById("refreshFaBtn").addEventListener("click", loadFridayAnnathanam);
+  document.getElementById("fa_statusFilter").addEventListener("change", renderFaTable);
+  document.getElementById("fa_searchInput").addEventListener("input", renderFaTable);
+  document.getElementById("printFaBtn").addEventListener("click", () => window.print());
+  document.getElementById("exportFaBtn").addEventListener("click", () => {
+    const rows = [["Date","Status","Sponsor Name","Sponsor Phone","Fee","Paid Date","Skip Reason","Notes"]];
+    filteredFa().forEach(w => rows.push([w.date, faStatusLabel(w), w.sponsorName, w.sponsorPhone, w.fee, w.paidDate, w.skipReason, w.notes]));
+    downloadCsv("friday-annathanam.csv", rows);
+  });
+
+  function faStatus(w){
+    if (w.skipReason) return "skipped";
+    if (w.sponsorName) return w.paidDate ? "paid" : "unpaid";
+    return "open";
+  }
+  function faStatusLabel(w){
+    const s = faStatus(w);
+    return s === "skipped" ? "Skipped" : s === "paid" ? "Sponsored — Paid" : s === "unpaid" ? "Sponsored — Not Paid" : "Open";
+  }
+  function faPillClass(w){
+    const s = faStatus(w);
+    return s === "skipped" ? "cancelled" : s === "paid" ? "paidconfirmed" : s === "unpaid" ? "pending" : "open";
+  }
+
+  function filteredFa(){
+    const filter = document.getElementById("fa_statusFilter").value;
+    const search = document.getElementById("fa_searchInput").value.trim().toLowerCase();
+    return allFridayAnnathanam.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).filter(w => {
+      if (filter && faStatus(w) !== filter) return false;
+      if (search && !(w.sponsorName || "").toLowerCase().includes(search)) return false;
+      return true;
+    });
+  }
+
+  function renderFaTable(){
+    const filtered = filteredFa();
+    const body = document.getElementById("faBody");
+    const emptyNote = document.getElementById("faEmptyNote");
+    body.innerHTML = "";
+    if (!filtered.length){ emptyNote.style.display = "block"; return; }
+    emptyNote.style.display = "none";
+    filtered.forEach(w => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${w.date}</td>
+        <td><span class="pill ${faPillClass(w)}">${faStatusLabel(w)}</span></td>
+        <td>${w.sponsorName || ""}</td>
+        <td>${w.sponsorPhone || ""}</td>
+        <td>RM ${w.fee}</td>
+        <td>${w.paidDate || ""}</td>
+        <td>${w.notes || ""}</td>
+        <td class="row-actions">
+          <button data-edit-fa="${w.date}">Edit</button>
+          <button class="delete" data-delete-fa="${w.date}">Delete</button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll("button[data-edit-fa]").forEach(btn => btn.addEventListener("click", () => openFaEdit(btn.dataset.editFa)));
+    body.querySelectorAll("button[data-delete-fa]").forEach(btn => btn.addEventListener("click", () => deleteFa(btn.dataset.deleteFa)));
+  }
+
+  const faEditPanel = document.getElementById("faEditPanel");
+  document.getElementById("addFaBtn").addEventListener("click", () => openFaAdd());
+  document.getElementById("cancelFaBtn").addEventListener("click", () => faEditPanel.classList.remove("show"));
+
+  function openFaAdd(){
+    editingFaDate = null;
+    document.getElementById("faEditPanelTitle").textContent = "Add Friday";
+    document.getElementById("fa_date").value = "";
+    document.getElementById("fa_date").disabled = false;
+    document.getElementById("fa_fee").value = 250;
+    document.getElementById("fa_sponsorName").value = "";
+    document.getElementById("fa_sponsorPhone").value = "";
+    document.getElementById("fa_paidDate").value = "";
+    document.getElementById("fa_skipReason").value = "";
+    document.getElementById("fa_notes").value = "";
+    faEditPanel.classList.add("show");
+    faEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  // Date stays disabled during a real Edit — it's this row's identity
+  // (primary key), and admin_set_friday_annathanam() upserts BY date, so
+  // changing it here would create a brand-new row rather than update this
+  // one, leaving the original behind. To fix a wrong date, delete this row
+  // and Add the correct one instead.
+  function openFaEdit(date){
+    editingFaDate = date;
+    const w = allFridayAnnathanam.find(x => x.date === date);
+    if (!w) return;
+    document.getElementById("faEditPanelTitle").textContent = "Edit Friday — " + w.date;
+    document.getElementById("fa_date").value = w.date;
+    document.getElementById("fa_date").disabled = true;
+    document.getElementById("fa_fee").value = w.fee != null ? w.fee : 250;
+    document.getElementById("fa_sponsorName").value = w.sponsorName || "";
+    document.getElementById("fa_sponsorPhone").value = w.sponsorPhone || "";
+    document.getElementById("fa_paidDate").value = w.paidDate || "";
+    document.getElementById("fa_skipReason").value = w.skipReason || "";
+    document.getElementById("fa_notes").value = w.notes || "";
+    faEditPanel.classList.add("show");
+    faEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("saveFaBtn").addEventListener("click", async () => {
+    const dateField = document.getElementById("fa_date");
+    const date = editingFaDate || dateField.value;
+    if (!date){ showStatus("Date is required.", "error"); return; }
+    const data = {
+      date,
+      fee: document.getElementById("fa_fee").value,
+      sponsorName: document.getElementById("fa_sponsorName").value.trim(),
+      sponsorPhone: document.getElementById("fa_sponsorPhone").value.trim(),
+      paidDate: document.getElementById("fa_paidDate").value || null,
+      skipReason: document.getElementById("fa_skipReason").value.trim(),
+      notes: document.getElementById("fa_notes").value.trim()
+    };
+    try {
+      const res = await fetch("/.netlify/functions/admin-friday-annathanam-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ action: "set", data })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
+      faEditPanel.classList.remove("show");
+      showStatus("Friday Annathanam saved.", "ok");
+      loadFridayAnnathanam();
+    } catch (err){
+      showStatus("Save failed.", "error");
+    }
+  });
+
+  async function deleteFa(date){
+    if (!confirm("Remove " + date + " from the Friday Annathanam schedule entirely? (Use Edit and clear the sponsor instead if you just want to reopen this Friday.)")) return;
+    try {
+      const res = await fetch("/.netlify/functions/admin-friday-annathanam-crud", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ action: "delete", data: { date } })
+      });
+      const result = await res.json();
+      if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
+      showStatus("Friday removed.", "ok");
+      loadFridayAnnathanam();
     } catch (err){
       showStatus("Delete failed.", "error");
     }

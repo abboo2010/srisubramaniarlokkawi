@@ -490,10 +490,180 @@ $$;
 
 
 -- ============================================================
+-- Weekly Friday Pooja Annathanam — a dedicated table, separate from
+-- prayers/bookings on purpose (see supabase/friday-annathanam-function.sql
+-- for the full explanation). One row per Friday of the year;
+-- sponsor_name null = open, paid_date null = not paid yet, skip_reason
+-- set = no Annathanam that week at all (e.g. Thaipusam).
+-- ============================================================
+
+create table if not exists friday_annathanam (
+  date          date primary key,
+  fee           numeric not null default 250,
+  sponsor_name  text,
+  sponsor_phone text,
+  paid_date     date,
+  skip_reason   text,
+  notes         text not null default '',
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+alter table friday_annathanam enable row level security;
+
+drop trigger if exists friday_annathanam_set_updated_at on friday_annathanam;
+create trigger friday_annathanam_set_updated_at before update on friday_annathanam
+  for each row execute function set_updated_at();
+
+-- public: self-register as this Friday's Annathanam sponsor — same
+-- race-safe locking as register_prayer().
+create or replace function register_friday_annathanam(
+  p_date  date,
+  p_name  text,
+  p_phone text
+) returns table(fa_date date, fee numeric)
+language plpgsql
+security definer
+as $$
+declare
+  v_row     friday_annathanam%rowtype;
+  v_updated integer;
+begin
+  select * into v_row from friday_annathanam where date = p_date for update;
+  if not found then
+    raise exception 'DATE_NOT_FOUND';
+  end if;
+  if v_row.date < current_date then
+    raise exception 'DATE_OVER';
+  end if;
+  if v_row.skip_reason is not null then
+    raise exception 'DATE_SKIPPED';
+  end if;
+  if v_row.sponsor_name is not null then
+    raise exception 'DATE_TAKEN';
+  end if;
+
+  update friday_annathanam
+    set sponsor_name = p_name, sponsor_phone = coalesce(p_phone, '')
+    where date = p_date and sponsor_name is null;
+  get diagnostics v_updated = row_count;
+  if v_updated = 0 then
+    raise exception 'DATE_TAKEN';
+  end if;
+
+  return query select v_row.date, v_row.fee;
+end;
+$$;
+
+-- admin: full CRUD for one Friday — upsert by design, so it also
+-- covers adding a Friday that doesn't exist yet (e.g. next year's
+-- weeks). p_fee of null keeps an existing row's current fee.
+create or replace function admin_set_friday_annathanam(
+  p_date          date,
+  p_fee           numeric,
+  p_sponsor_name  text,
+  p_sponsor_phone text,
+  p_paid_date     date,
+  p_skip_reason   text,
+  p_notes         text
+) returns void
+language plpgsql
+security definer
+as $$
+begin
+  insert into friday_annathanam (date, fee, sponsor_name, sponsor_phone, paid_date, skip_reason, notes)
+  values (
+    p_date, coalesce(p_fee, 250), nullif(p_sponsor_name, ''), nullif(p_sponsor_phone, ''),
+    p_paid_date, nullif(p_skip_reason, ''), coalesce(p_notes, '')
+  )
+  on conflict (date) do update set
+    fee           = coalesce(p_fee, friday_annathanam.fee),
+    sponsor_name  = nullif(p_sponsor_name, ''),
+    sponsor_phone = nullif(p_sponsor_phone, ''),
+    paid_date     = p_paid_date,
+    skip_reason   = nullif(p_skip_reason, ''),
+    notes         = coalesce(p_notes, '');
+end;
+$$;
+
+-- admin: remove a Friday row entirely (a mistaken date, not the
+-- normal "clear the sponsor" use, which is admin_set_friday_annathanam()
+-- with a blank sponsor name).
+create or replace function admin_delete_friday_annathanam(p_date date)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  delete from friday_annathanam where date = p_date;
+end;
+$$;
+
+-- seed: the 2026 schedule, imported from the committee's spreadsheet.
+-- "on conflict do nothing" makes this safe to re-run.
+insert into friday_annathanam (date, fee, sponsor_name, sponsor_phone, paid_date, skip_reason, notes) values
+  ('2026-01-02', 250, 'Mr. Subramaniam & Family', null, '2026-01-17', null, ''),
+  ('2026-01-09', 250, 'Mr. & Mrs. Keshen Malanvli', null, '2026-01-04', null, ''),
+  ('2026-01-16', 250, 'Mr. & Mrs. Manimaran Maheswary', null, '2026-01-06', null, ''),
+  ('2026-01-23', 250, null, null, null, 'Thaipusam', ''),
+  ('2026-01-30', 250, null, null, null, 'Thaipusam', ''),
+  ('2026-02-06', 250, 'Mr. Uvasangkaran Muthusamy Family', null, '2026-01-05', null, ''),
+  ('2026-02-13', 250, 'Dr. Nirumala & Family', null, '2026-01-08', null, ''),
+  ('2026-02-20', 250, 'Mr. & Mrs. PremVani Family', null, '2026-02-08', null, ''),
+  ('2026-02-27', 250, 'Mr. Prabakaran & Family', null, '2026-01-10', null, ''),
+  ('2026-03-06', 250, 'Mr. & Mrs. Ravi Malathi Family', null, null, null, ''),
+  ('2026-03-13', 250, 'Mr. Rajakumar & Family', null, '2026-01-08', null, ''),
+  ('2026-03-20', 250, 'Dr. Mohanaprasanth & Family', null, '2026-03-16', null, ''),
+  ('2026-03-27', 250, 'Dr. Raj & Family', null, '2025-12-28', null, ''),
+  ('2026-04-03', 250, 'Dr. Ray & Family', null, '2026-04-24', null, ''),
+  ('2026-04-10', 250, 'Dr. Sathiyasilan & Dr. Gejalachumy Family', null, '2026-02-14', null, ''),
+  ('2026-04-17', 250, 'Madam Rekha & Family', null, '2025-12-28', null, ''),
+  ('2026-04-24', 250, 'Prof. Dr. Pathmanathan, Cikgu Maha & Neelakkshi', null, '2026-02-04', null, ''),
+  ('2026-05-01', 250, 'Mr. Nantha Kumar & Family', null, null, null, ''),
+  ('2026-05-08', 250, 'Mdm. Genivieve & Family', null, null, null, ''),
+  ('2026-05-15', 250, 'Mr. Nanthan Terra Tech Borneo', null, '2026-05-13', null, 'ravi'),
+  ('2026-05-22', 250, 'Mr. Ravivarman Abboo & Mdm. Elsa Honey', null, '2026-05-21', null, ''),
+  ('2026-05-29', 250, 'Mr. Prabakaran & Family', null, '2026-01-10', null, ''),
+  ('2026-06-05', 250, 'Dr. Ray & Family', null, '2026-04-24', null, ''),
+  ('2026-06-12', 250, 'Mr. Nanthan Terra Tech Borneo', null, null, null, ''),
+  ('2026-06-19', 250, 'Prof. Dr. Pathmanathan, Cikgu Maha & Neelakkshi', null, '2026-02-04', null, ''),
+  ('2026-06-26', 250, 'Mr. & Mrs. Manimaran Maheswary', null, '2026-01-06', null, ''),
+  ('2026-07-03', 250, 'Dr. Vennila & Family', null, '2026-01-06', null, ''),
+  ('2026-07-10', 250, 'Ms. Veronica & Family', null, '2026-07-02', null, ''),
+  ('2026-07-17', 250, 'Madam Vaani & Family', null, null, null, ''),
+  ('2026-07-24', 250, 'Prof. Dr. Pathmanathan, Cikgu Maha & Neelakkshi', null, '2026-02-04', null, ''),
+  ('2026-07-31', 250, 'Dr. Bavani & Family', null, null, null, ''),
+  ('2026-08-07', 250, 'Ms. See & Family', null, null, null, ''),
+  ('2026-08-14', 250, 'Dr. Ray & Family', null, null, null, ''),
+  ('2026-08-21', 250, 'Mr. Nanthan Terra Tech Borneo', null, null, null, ''),
+  ('2026-08-28', 250, 'Ms. Keerthikaa Suthahar', null, '2026-01-21', null, ''),
+  ('2026-09-04', 250, 'Mr. & Mrs. Manimaran Maheswary', null, '2026-01-06', null, ''),
+  ('2026-09-11', 250, 'Mr. Ravivarman Abboo & Mdm. Elsa Honey', null, null, null, ''),
+  ('2026-09-18', 250, 'Prof. Dr. Pathmanathan, Cikgu Maha & Neelakkshi', null, '2026-02-04', null, ''),
+  ('2026-09-25', 250, 'Mr. Ravivarman Abboo & Mdm. Elsa Honey', null, null, null, ''),
+  ('2026-10-02', 250, 'Dr. Ray & Family', null, null, null, ''),
+  ('2026-10-09', 250, 'Medisinar Klinik & Surgery Damai', null, null, null, ''),
+  ('2026-10-16', 250, 'Mr. & Mrs. Rimash Family', null, '2026-08-10', null, ''),
+  ('2026-10-23', 250, 'Mr. & Mrs. Liknaswaran Shubhaashini Family', null, '2026-02-04', null, ''),
+  ('2026-10-30', 250, 'Medisinar Klinik & Surgery Damai', null, null, null, ''),
+  ('2026-11-06', 250, 'Mr. & Mrs. Ravi Malathi Family', null, null, null, ''),
+  ('2026-11-13', 250, 'Madam Vaani & Family', null, null, null, ''),
+  ('2026-11-20', 250, 'Ms. Previna Rajendran & Family', null, null, null, ''),
+  ('2026-11-27', 250, 'Mr. Nanthan Terra Tech Borneo', null, null, null, ''),
+  ('2026-12-04', 250, 'Mr. & Mrs. Ruban Hema Family', null, null, null, ''),
+  ('2026-12-11', 250, 'Mr. & Mrs. Krishnan Family', null, '2026-01-21', null, ''),
+  ('2026-12-18', 250, 'Mr. Mrs. Manimaran Maheswary', null, '2026-01-06', null, ''),
+  ('2026-12-25', 250, 'Mr. Subramaniam & Family', null, null, null, '')
+on conflict (date) do nothing;
+
+
+-- ============================================================
 -- SELF-CHECK — run automatically as part of this script. Look at
 -- this query's result at the bottom of the Supabase results panel:
--- you should see exactly these 5 rows. If any is missing, scroll up
--- for the red error that stopped it from being created.
+-- you should see exactly these 8 rows plus a Friday Annathanam row
+-- count of 52 (or more, if you've added future years). If any
+-- function is missing, scroll up for the red error that stopped it
+-- from being created.
 -- ============================================================
 select proname as installed_admin_function
 from pg_proc
@@ -502,6 +672,11 @@ where proname in (
   'admin_add_bulk_participants',
   'admin_delete_booking',
   'admin_edit_booking',
-  'admin_set_booking_status'
+  'admin_set_booking_status',
+  'admin_set_friday_annathanam',
+  'admin_delete_friday_annathanam',
+  'register_friday_annathanam'
 )
 order by proname;
+
+select count(*) as friday_annathanam_rows from friday_annathanam;

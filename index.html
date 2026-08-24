@@ -295,6 +295,12 @@
         <div class="tab-row" id="prayersFilterTabs"></div>
         <div class="prayer-grid" id="prayerGrid"></div>
 
+        <div class="card" id="fridayAnnathanamCard">
+          <h3 id="fridayAnnathanamHeadingText">Weekly Friday Pooja Annathanam</h3>
+          <p id="fridayAnnathanamSubText">RM 250 sponsors the temple's Annathanam meal for one Friday.</p>
+          <div class="scroll-box" id="fridayAnnathanamList"></div>
+        </div>
+
         <div class="card" id="caterersCard">
           <h3 id="prayersCaterersHeadingText">Annathanam Caterers</h3>
           <p id="prayersCaterersSubText">Prefer to arrange the meal yourself? Contact any of our regular caterers directly.</p>
@@ -489,6 +495,42 @@
         <p class="qr-note" id="prayerSuccessQrNote">Scan with any DuitNow-enabled banking or e-wallet app.</p>
       </div>
       <button class="prayer-btn-solid" id="prayerSuccessCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FRIDAY ANNATHANAM SPONSORSHIP MODAL (form → success) ============ -->
+<div class="prayer-overlay" id="fridayAnnathanamOverlay">
+  <div class="prayer-modal">
+    <button class="prayer-modal-close" id="fridayAnnathanamModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+
+    <div id="fridayAnnathanamFormView">
+      <h3 id="fridayAnnathanamFormTitle"></h3>
+      <label class="prayer-form-label" id="fridayAnnathanamFormNameLabel" for="fridayAnnathanamFormName">Full Name</label>
+      <input type="text" id="fridayAnnathanamFormName" class="prayer-form-input" autocomplete="name" />
+      <label class="prayer-form-label" id="fridayAnnathanamFormPhoneLabel" for="fridayAnnathanamFormPhone">Phone / WhatsApp Number</label>
+      <input type="tel" id="fridayAnnathanamFormPhone" class="prayer-form-input" autocomplete="tel" />
+      <p class="prayer-form-error" id="fridayAnnathanamFormError" style="display:none;"></p>
+      <div class="prayer-form-actions">
+        <button class="prayer-btn-ghost" id="fridayAnnathanamFormCancelBtn">Cancel</button>
+        <button class="prayer-btn-solid" id="fridayAnnathanamFormSubmitBtn"><span id="fridayAnnathanamFormSubmitBtnText">Submit Registration</span></button>
+      </div>
+    </div>
+
+    <div id="fridayAnnathanamSuccessView" style="display:none;">
+      <h3 id="fridayAnnathanamSuccessTitleText">Registration received!</h3>
+      <div class="prayer-success-ref" id="fridayAnnathanamSuccessRef"></div>
+      <p id="fridayAnnathanamSuccessMessage"></p>
+      <div id="fridayAnnathanamSuccessQr">
+        <div class="qr-eyebrow" id="fridayAnnathanamSuccessQrEyebrow">Scan to Pay</div>
+        <div class="qr-code-box"><img src="assets/qr-duitnow.jpg" alt="DuitNow QR code" /></div>
+        <div class="qr-amount" id="fridayAnnathanamSuccessQrAmount"></div>
+        <div class="qr-account" id="fridayAnnathanamSuccessQrAccount"></div>
+        <p class="qr-note" id="fridayAnnathanamSuccessQrNote">Scan with any DuitNow-enabled banking or e-wallet app.</p>
+      </div>
+      <button class="prayer-btn-solid" id="fridayAnnathanamSuccessCloseBtn">Close</button>
     </div>
   </div>
 </div>
