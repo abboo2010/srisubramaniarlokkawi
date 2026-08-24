@@ -273,16 +273,10 @@
             <option value="annathanam">Annathanam</option>
           </select>
         </div>
-        <div class="edit-field"><label>Status</label>
-          <select id="b_status">
-            <option value="Pending Payment">Pending Payment</option>
-            <option value="Reserved">Reserved</option>
-            <option value="Confirmed">Confirmed</option>
-            <option value="Paid/Confirmed">Paid/Confirmed</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
+        <div class="edit-field"><label id="b_statusLabel">Status</label>
+          <select id="b_status"></select>
         </div>
-        <div class="edit-field"><label>Payment Method (Ubayakarar fee only — leave blank for Annathanam)</label>
+        <div class="edit-field" id="b_paymentMethodField"><label>Payment Method</label>
           <select id="b_paymentMethod">
             <option value="">Not recorded</option>
             <option value="Bank Transfer">Bank Transfer</option>
@@ -542,7 +536,7 @@
   document.getElementById("printBookingsBtn").addEventListener("click", () => window.print());
   document.getElementById("exportBookingsBtn").addEventListener("click", () => {
     const rows = [["Date","Pooja","Role","Name","Phone","Qty","Notes","Status","Payment Method","Reference"]];
-    filteredBookings().forEach(b => rows.push([b.date, b.prayerName, roleLabel(b.role), b.name, b.phone, b.participantCount, b.notes, b.status, b.paymentMethod || "", b.bookingId]));
+    filteredBookings().forEach(b => rows.push([b.date, b.prayerName, roleLabel(b.role), b.name, b.phone, b.participantCount, b.notes, bookingStatusText(b), b.role === "annathanam" ? "N/A" : (b.paymentMethod || ""), b.bookingId]));
     downloadCsv("annual-prayers-bookings.csv", rows);
   });
 
@@ -880,6 +874,13 @@
     if (s === "reserved") return "reserved";
     return "pending";
   }
+  // Annathanam's "Reserved" status IS its "Not Confirmed" — display-only
+  // relabel, the stored value stays "Reserved" (see
+  // updateBookingRoleFields above for why: it's not a new database
+  // status, just the existing one Annathanam already starts at).
+  function bookingStatusText(b){
+    return (b.role === "annathanam" && b.status === "Reserved") ? "Not Confirmed" : (b.status || "");
+  }
   function roleLabel(role){
     return { ubayakarar: "Ubayakarar", annathanam: "Annathanam", participant: "Participant" }[role] || role;
   }
@@ -909,6 +910,11 @@
     filtered.forEach(b => {
       const tr = document.createElement("tr");
       const canAct = b.status !== "Cancelled";
+      // Annathanam never gets Paid/Confirmed — the temple never collects
+      // that fee, so its quick action just confirms the slot instead.
+      const quickActionHtml = b.role === "annathanam"
+        ? `<button class="confirm" ${b.status === "Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Confirmed" title="Confirm this Annathanam booking">Confirm</button>`
+        : `<button class="confirm" ${b.status === "Paid/Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Paid/Confirmed" title="Mark this booking's payment as received">Mark Paid</button>`;
       tr.innerHTML = `
         <td>${b.date || ""}</td>
         <td>${b.prayerName || ""}</td>
@@ -917,11 +923,11 @@
         <td>${b.phone || ""}</td>
         <td>${b.participantCount || ""}</td>
         <td>${b.notes || ""}</td>
-        <td><span class="pill ${statusPillClass(b.status)}">${b.status || ""}</span></td>
-        <td>${b.paymentMethod || "—"}</td>
+        <td><span class="pill ${statusPillClass(b.status)}">${bookingStatusText(b)}</span></td>
+        <td>${b.role === "annathanam" ? "N/A" : (b.paymentMethod || "—")}</td>
         <td>${b.bookingId || ""}</td>
         <td class="row-actions">
-          <button class="confirm" ${b.status === "Paid/Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Paid/Confirmed" title="Mark this booking's payment as received">Mark Paid</button>
+          ${quickActionHtml}
           <button class="cancel" ${!canAct ? "disabled" : ""} data-id="${b.bookingId}" data-status="Cancelled">Cancel</button>
           <button data-edit-booking="${b.bookingId}">Edit</button>
           <button class="delete" data-delete-booking="${b.bookingId}">Delete</button>
@@ -963,6 +969,58 @@
   const bookingEditPanel = document.getElementById("bookingEditPanel");
   let editingBookingId = null;
 
+  // Annathanam never collects a fee through the temple — the Ubayakarar
+  // sponsor deals with and pays the caterer directly — so its bookings
+  // only ever need a plain Confirmed / Not Confirmed / Cancelled, never
+  // a payment-tracking status. "Not Confirmed" reuses the existing
+  // "Reserved" value (that's already what a fresh Annathanam booking
+  // starts as) rather than inventing a new database status. Ubayakarar
+  // keeps the full lifecycle since the temple DOES collect and track
+  // that fee.
+  const ANNATHANAM_STATUS_OPTIONS = [
+    { value: "Reserved", label: "Not Confirmed" },
+    { value: "Confirmed", label: "Confirmed" },
+    { value: "Cancelled", label: "Cancelled" }
+  ];
+  const FULL_STATUS_OPTIONS = [
+    { value: "Pending Payment", label: "Pending Payment" },
+    { value: "Reserved", label: "Reserved" },
+    { value: "Confirmed", label: "Confirmed" },
+    { value: "Paid/Confirmed", label: "Paid/Confirmed" },
+    { value: "Cancelled", label: "Cancelled" }
+  ];
+
+  // Rebuilds the Status dropdown for the selected role and shows/hides
+  // Payment Method accordingly. `isEdit` keeps a status that predates
+  // this rule (e.g. an old Annathanam booking someone once marked
+  // "Pending Payment") selectable instead of silently hiding it —
+  // that only matters in Edit mode, since Role is locked there and this
+  // path is the one place a "legacy" mismatch can actually be viewed.
+  // `clearPayment` actually blanks the Payment Method value — only
+  // passed true when the admin interactively switches Role to
+  // Annathanam in the Add form, never when just opening an existing
+  // booking, so viewing an old record never silently destroys its data.
+  function updateBookingRoleFields(role, currentStatus, isEdit, clearPayment){
+    const statusSelect = document.getElementById("b_status");
+    const options = role === "annathanam" ? ANNATHANAM_STATUS_OPTIONS : FULL_STATUS_OPTIONS;
+    const keepLegacy = isEdit && currentStatus && !options.some(o => o.value === currentStatus);
+    const finalOptions = keepLegacy ? [...options, { value: currentStatus, label: currentStatus + " (existing)" }] : options;
+    statusSelect.innerHTML = finalOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join("");
+    statusSelect.value = finalOptions.some(o => o.value === currentStatus)
+      ? currentStatus
+      : (role === "annathanam" ? "Reserved" : "Pending Payment");
+
+    document.getElementById("b_paymentMethodField").style.display = role === "annathanam" ? "none" : "";
+    if (role === "annathanam" && clearPayment) document.getElementById("b_paymentMethod").value = "";
+
+    document.getElementById("b_statusLabel").textContent = role === "annathanam"
+      ? "Status (Annathanam: Confirmed or Not Confirmed only — no payment tracked here)"
+      : "Status";
+  }
+  document.getElementById("b_role").addEventListener("change", (e) => {
+    updateBookingRoleFields(e.target.value, document.getElementById("b_status").value, false, true);
+  });
+
   document.getElementById("addBookingBtn").addEventListener("click", () => openBookingForm(null));
   document.getElementById("cancelBookingBtn").addEventListener("click", () => bookingEditPanel.classList.remove("show"));
 
@@ -972,6 +1030,7 @@
 
     editingBookingId = bookingId;
     const b = bookingId ? allBookings.find(x => x.bookingId === bookingId) : null;
+    const role = b ? b.role : "ubayakarar";
 
     document.getElementById("bookingEditPanelTitle").textContent = b ? "Edit Booking — " + b.name : "Add Booking";
     document.getElementById("bookingEditPanelHint").textContent = b
@@ -980,9 +1039,9 @@
 
     document.getElementById("b_prayerId").value = b ? b.prayerId : document.getElementById("b_prayerId").value;
     document.getElementById("b_prayerId").disabled = !!b;
-    document.getElementById("b_role").value = b ? b.role : "ubayakarar";
+    document.getElementById("b_role").value = role;
     document.getElementById("b_role").disabled = !!b;
-    document.getElementById("b_status").value = b ? b.status : "Confirmed";
+    updateBookingRoleFields(role, b ? b.status : "Confirmed", !!b, false);
     document.getElementById("b_paymentMethod").value = b ? (b.paymentMethod || "") : "";
     document.getElementById("b_name").value = b ? (b.name || "") : "";
     document.getElementById("b_phone").value = b ? (b.phone || "") : "";
@@ -1008,7 +1067,10 @@
     const prayerId = document.getElementById("b_prayerId").value;
     const role = document.getElementById("b_role").value;
     const status = document.getElementById("b_status").value;
-    const paymentMethod = document.getElementById("b_paymentMethod").value;
+    // Annathanam is never paid through the temple — belt-and-suspenders
+    // alongside the hidden field, in case a legacy value was sitting
+    // there unseen.
+    const paymentMethod = role === "annathanam" ? "" : document.getElementById("b_paymentMethod").value;
     const name = document.getElementById("b_name").value.trim();
     const phone = document.getElementById("b_phone").value.trim();
     const participantCount = document.getElementById("b_participantCount").value;
