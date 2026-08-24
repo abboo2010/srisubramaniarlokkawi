@@ -681,6 +681,11 @@ function renderPrayerGrid(){
     const over = prayerIsOver(p);
     const ubayakararTaken = prayerRoleTaken(p, "ubayakarar");
     const annathanamTaken = prayerRoleTaken(p, "annathanam");
+    // Same sponsor lookup the pooja detail popup already uses (prayerRoleRow
+    // below) — showing it here too means a devotee can see who's already
+    // sponsoring a pooja without needing to open it first.
+    const ubayakararSponsor = prayerRoleSponsorDisplay(p, "ubayakarar");
+    const annathanamSponsor = prayerRoleSponsorDisplay(p, "annathanam");
     const feeText = p.ubayamFee != null ? `RM ${p.ubayamFee.toLocaleString()}` : t("prayersAsArranged");
     const card = el(`
       <div class="prayer-card">
@@ -692,8 +697,14 @@ function renderPrayerGrid(){
           </div>
           <div class="prayer-card-fee">${feeText}</div>
           <div class="prayer-card-pills">
-            <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
-            <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+            <div class="prayer-role-block">
+              <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+              ${ubayakararSponsor ? `<span class="prayer-role-sponsor">${ubayakararSponsor}</span>` : ""}
+            </div>
+            <div class="prayer-role-block">
+              <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+              ${annathanamSponsor ? `<span class="prayer-role-sponsor">${annathanamSponsor}</span>` : ""}
+            </div>
             ${p.participantsEnabled ? `<span class="prayer-role-pill ${over ? "taken" : "open"}">${t("prayersParticipantLabel")}${over ? ": " + t("prayersClosedBadge") : ""}</span>` : ""}
           </div>
         </div>
