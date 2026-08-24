@@ -60,7 +60,13 @@ exports.handler = async () => {
       statusOverride: p.status_override
     }));
 
-    const caterers = (catererRows || []).map((c) => ({ name: c.name, contact: c.contact, phone: c.phone }));
+    // id is included so admin-prayers.html's Edit/Delete caterer buttons have
+    // something to target — without it every caterer collides on the same
+    // "undefined" id once loaded, so Edit always opens the first caterer in
+    // the list (never the one actually clicked) and Delete can't find a real
+    // row to remove. Harmless to expose publicly — it's just an internal
+    // sequence number, same as a prayer's own "p1"/"p46" id already is.
+    const caterers = (catererRows || []).map((c) => ({ id: c.id, name: c.name, contact: c.contact, phone: c.phone }));
 
     const participants = {};
     (participantRows || []).forEach((r) => {

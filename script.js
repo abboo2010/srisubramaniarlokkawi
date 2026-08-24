@@ -916,6 +916,14 @@ async function submitPrayerForm(){
       if (!PRAYER_PARTICIPANTS[p.id]) PRAYER_PARTICIPANTS[p.id] = [];
       PRAYER_PARTICIPANTS[p.id].push({ name, participantCount });
     }
+    // Also reflect it in PRAYER_SPONSOR_BOOKINGS — same reasoning as above —
+    // so the card's/popup's Paid/Not Paid (or Confirmed/Not Confirmed) pill
+    // and reference number appear immediately too, not just the Taken pill,
+    // without waiting on the next full page load.
+    if (role === "ubayakarar" || role === "annathanam"){
+      if (!PRAYER_SPONSOR_BOOKINGS[p.id]) PRAYER_SPONSOR_BOOKINGS[p.id] = {};
+      PRAYER_SPONSOR_BOOKINGS[p.id][role] = { reference: data.reference, status: data.status };
+    }
     // data.fee (when present) is the PER-PERSON rate register_prayer() looked up —
     // showPrayerSuccess needs the headcount too so a group registration shows the
     // correct total amount due, not just the per-person rate.
