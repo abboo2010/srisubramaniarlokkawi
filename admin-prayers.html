@@ -136,7 +136,7 @@
 
   @media print{
     body, body.dashboard-view{background:#fff !important; padding:0;}
-    .toolbar, .tab-switch, .edit-panel, .row-actions, #loginBox, .refresh-note, .status-msg, .modal-overlay{display:none !important;}
+    .toolbar, .tab-switch, .edit-panel, .row-actions, .select-col, #loginBox, .refresh-note, .status-msg, .modal-overlay{display:none !important;}
     table{box-shadow:none;}
     th{background:#eee !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
     .table-wrap{max-height:none; overflow:visible;}
@@ -255,6 +255,7 @@
       <button id="refreshBookingsBtn">Refresh</button>
       <button id="printBookingsBtn">Print</button>
       <button id="exportBookingsBtn">Export CSV</button>
+      <button id="duplicateBookingsBtn" disabled title="Tick the checkbox on one or more rows below, then click this to duplicate them.">Duplicate Selected</button>
       <button class="primary" id="addBookingBtn">+ Add Booking</button>
     </div>
 
@@ -299,6 +300,7 @@
       <table>
         <thead>
           <tr>
+            <th class="select-col"><input type="checkbox" id="bookingsSelectAll" title="Select all shown"></th>
             <th>Date</th><th>Pooja</th><th>Role</th><th>Name</th><th>Phone</th>
             <th>Qty</th><th>Notes</th><th>Status</th><th>Payment Method</th><th>Reference</th><th>Actions</th>
           </tr>
@@ -316,6 +318,7 @@
       <button id="refreshScheduleBtn">Refresh</button>
       <button id="printScheduleBtn">Print</button>
       <button id="exportScheduleBtn">Export CSV</button>
+      <button id="duplicateScheduleBtn" disabled title="Tick the checkbox on one or more rows below, then click this to duplicate them.">Duplicate Selected</button>
       <button class="primary" id="addPrayerBtn">+ Add Pooja</button>
     </div>
 
@@ -371,6 +374,7 @@
       <table>
         <thead>
           <tr>
+            <th class="select-col"><input type="checkbox" id="scheduleSelectAll" title="Select all shown"></th>
             <th>Date</th><th>Pooja</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
             <th>Participants</th><th>Status</th><th>Actions</th>
           </tr>
@@ -916,6 +920,7 @@
         ? `<button class="confirm" ${b.status === "Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Confirmed" title="Confirm this Annathanam booking">Confirm</button>`
         : `<button class="confirm" ${b.status === "Paid/Confirmed" ? "disabled" : ""} data-id="${b.bookingId}" data-status="Paid/Confirmed" title="Mark this booking's payment as received">Mark Paid</button>`;
       tr.innerHTML = `
+        <td class="select-col"><input type="checkbox" class="booking-select" data-id="${b.bookingId}"></td>
         <td>${b.date || ""}</td>
         <td>${b.prayerName || ""}</td>
         <td>${roleLabel(b.role)}</td>
@@ -944,7 +949,23 @@
     body.querySelectorAll("button[data-id]").forEach(btn => {
       btn.addEventListener("click", () => updateBooking(btn.dataset.id, btn.dataset.status));
     });
+    document.getElementById("bookingsSelectAll").checked = false;
+    updateBookingDuplicateButtonState();
+    body.querySelectorAll(".booking-select").forEach(cb => {
+      cb.addEventListener("change", updateBookingDuplicateButtonState);
+    });
   }
+
+  function updateBookingDuplicateButtonState(){
+    const n = document.querySelectorAll(".booking-select:checked").length;
+    const btn = document.getElementById("duplicateBookingsBtn");
+    btn.disabled = n === 0;
+    btn.textContent = n ? `Duplicate Selected (${n})` : "Duplicate Selected";
+  }
+  document.getElementById("bookingsSelectAll").addEventListener("change", (e) => {
+    document.querySelectorAll(".booking-select").forEach(cb => { cb.checked = e.target.checked; });
+    updateBookingDuplicateButtonState();
+  });
 
   async function updateBooking(bookingId, status){
     try {
@@ -968,6 +989,10 @@
   // ---------- add / edit booking (incl. for past poojas) ----------
   const bookingEditPanel = document.getElementById("bookingEditPanel");
   let editingBookingId = null;
+  // Holds the remaining source bookings still to duplicate, once the first
+  // one's pre-filled form has been reviewed and saved — see
+  // openBookingDuplicateForm() and the duplicateBookingsBtn handler below.
+  let bookingDuplicateQueue = [];
 
   // Annathanam never collects a fee through the temple — the Ubayakarar
   // sponsor deals with and pays the caterer directly — so its bookings
@@ -1022,7 +1047,10 @@
   });
 
   document.getElementById("addBookingBtn").addEventListener("click", () => openBookingForm(null));
-  document.getElementById("cancelBookingBtn").addEventListener("click", () => bookingEditPanel.classList.remove("show"));
+  document.getElementById("cancelBookingBtn").addEventListener("click", () => {
+    bookingDuplicateQueue = []; // cancelling mid-duplicate-queue stops the rest too, not just this one
+    bookingEditPanel.classList.remove("show");
+  });
 
   async function openBookingForm(bookingId){
     if (!allPrayers.length) await loadSchedule(); // make sure the pooja dropdown has something to show
@@ -1051,6 +1079,49 @@
     bookingEditPanel.classList.add("show");
     bookingEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
   }
+
+  // Pre-fills the Add Booking form from an existing booking, as a starting
+  // point for a NEW booking rather than editing the original — Pooja and
+  // Role stay editable (unlike a real Edit) since "which pooja" is usually
+  // exactly what needs to change. Status never carries over a stale
+  // Cancelled/Paid value; it resets to that role's normal starting status
+  // so a fresh duplicate never looks already paid or already void.
+  async function openBookingDuplicateForm(b){
+    if (!allPrayers.length) await loadSchedule();
+    populateBookingPrayerSelect();
+
+    editingBookingId = null;
+    const queuedNote = bookingDuplicateQueue.length ? ` (${bookingDuplicateQueue.length} more queued)` : "";
+    document.getElementById("bookingEditPanelTitle").textContent = "Duplicate Booking — " + (b.name || b.bookingId) + queuedNote;
+    document.getElementById("bookingEditPanelHint").textContent = "Reusing this booking's details as a starting point for a new one — change the pooja, name, or anything else that's different, then Save. The original booking is untouched.";
+
+    document.getElementById("b_prayerId").value = b.prayerId;
+    document.getElementById("b_prayerId").disabled = false;
+    document.getElementById("b_role").value = b.role;
+    document.getElementById("b_role").disabled = false;
+    // Status is never carried over — Paid/Confirmed, Cancelled, or anything
+    // else — a duplicate is a brand-new booking that hasn't actually been
+    // paid or confirmed yet, so it always starts fresh (Pending Payment, or
+    // Reserved/Not Confirmed for Annathanam).
+    updateBookingRoleFields(b.role, null, false, false);
+    document.getElementById("b_paymentMethod").value = b.role === "annathanam" ? "" : (b.paymentMethod || "");
+    document.getElementById("b_name").value = b.name || "";
+    document.getElementById("b_phone").value = b.phone || "";
+    document.getElementById("b_participantCount").value = b.participantCount || 1;
+    document.getElementById("b_notes").value = b.notes || "";
+
+    bookingEditPanel.classList.add("show");
+    bookingEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("duplicateBookingsBtn").addEventListener("click", () => {
+    const items = Array.from(document.querySelectorAll(".booking-select:checked"))
+      .map(cb => allBookings.find(b => b.bookingId === cb.dataset.id))
+      .filter(Boolean);
+    if (!items.length) return;
+    bookingDuplicateQueue = items.slice(1);
+    openBookingDuplicateForm(items[0]);
+  });
 
   function populateBookingPrayerSelect(){
     const select = document.getElementById("b_prayerId");
@@ -1091,10 +1162,14 @@
       });
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
-      bookingEditPanel.classList.remove("show");
       showStatus(isEdit ? "Booking updated." : `Booking saved — reference ${result.bookingId}.`, "ok");
       refreshBookings();
       if (role === "ubayakarar" || role === "annathanam") loadSchedule(); // sponsor field on the Events tab just changed too
+      if (bookingDuplicateQueue.length){
+        openBookingDuplicateForm(bookingDuplicateQueue.shift()); // next queued duplicate, pre-filled and ready to review
+      } else {
+        bookingEditPanel.classList.remove("show");
+      }
     } catch (err){
       showStatus("Save failed.", "error");
     }
@@ -1193,6 +1268,7 @@
         ? `<button class="participants" data-participants="${p.id}" title="Add, edit, view, or delete participants for this pooja.">👥 Manage Participants</button>`
         : "";
       tr.innerHTML = `
+        <td class="select-col"><input type="checkbox" class="schedule-select" data-id="${p.id}"></td>
         <td>${p.date}</td>
         <td>${p.name}</td>
         <td>${feeText}</td>
@@ -1211,11 +1287,85 @@
     body.querySelectorAll("button[data-edit]").forEach(btn => btn.addEventListener("click", () => openPrayerEdit(btn.dataset.edit)));
     body.querySelectorAll("button[data-participants]").forEach(btn => btn.addEventListener("click", () => openParticipantsModal(btn.dataset.participants)));
     body.querySelectorAll("button[data-delete]").forEach(btn => btn.addEventListener("click", () => deletePrayer(btn.dataset.delete)));
+    document.getElementById("scheduleSelectAll").checked = false;
+    updateScheduleDuplicateButtonState();
+    body.querySelectorAll(".schedule-select").forEach(cb => {
+      cb.addEventListener("change", updateScheduleDuplicateButtonState);
+    });
   }
+
+  function updateScheduleDuplicateButtonState(){
+    const n = document.querySelectorAll(".schedule-select:checked").length;
+    const btn = document.getElementById("duplicateScheduleBtn");
+    btn.disabled = n === 0;
+    btn.textContent = n ? `Duplicate Selected (${n})` : "Duplicate Selected";
+  }
+  document.getElementById("scheduleSelectAll").addEventListener("change", (e) => {
+    document.querySelectorAll(".schedule-select").forEach(cb => { cb.checked = e.target.checked; });
+    updateScheduleDuplicateButtonState();
+  });
 
   const prayerEditPanel = document.getElementById("prayerEditPanel");
   document.getElementById("addPrayerBtn").addEventListener("click", () => openPrayerEdit(null));
-  document.getElementById("cancelPrayerBtn").addEventListener("click", () => prayerEditPanel.classList.remove("show"));
+  document.getElementById("cancelPrayerBtn").addEventListener("click", () => {
+    scheduleDuplicateQueue = []; // cancelling mid-duplicate-queue stops the rest too, not just this one
+    prayerEditPanel.classList.remove("show");
+  });
+
+  // Holds the remaining source poojas still to duplicate, once the first
+  // one's pre-filled form has been reviewed and saved — see
+  // openPrayerDuplicateForm() and the duplicateScheduleBtn handler below.
+  let scheduleDuplicateQueue = [];
+
+  // Suggests a fresh, not-yet-used ID for a duplicated pooja — the ID field
+  // is required and must be unique (it's used in booking references), so
+  // duplicating still needs a new one; this just saves having to think one
+  // up from scratch. Always double-check it before saving.
+  function suggestDuplicateId(baseId){
+    const existing = new Set(allPrayers.map(p => p.id));
+    let candidate = baseId + "-copy";
+    let n = 2;
+    while (existing.has(candidate)){ candidate = baseId + "-copy" + n; n++; }
+    return candidate;
+  }
+
+  // Pre-fills the Add Pooja form from an existing pooja, as a starting
+  // point for a NEW pooja rather than editing the original — every field
+  // (including Ubayakarar/Annathanam sponsor and open/closed state) is
+  // copied over exactly as-is, since this is meant to save retyping the
+  // recurring details; double-check the ID, Date, and Ref # in particular
+  // before saving; clear the sponsor/open fields yourself if this new
+  // occurrence shouldn't start out already reserved.
+  function openPrayerDuplicateForm(p){
+    editingPrayerId = null;
+    const queuedNote = scheduleDuplicateQueue.length ? ` (${scheduleDuplicateQueue.length} more queued)` : "";
+    document.getElementById("prayerEditPanelTitle").textContent = "Duplicate Pooja — " + p.name + queuedNote;
+    document.getElementById("f_id").value = suggestDuplicateId(p.id);
+    document.getElementById("f_id").disabled = false;
+    document.getElementById("f_ref").value = ""; // Ref # is this pooja's own official schedule number — never duplicate it
+    document.getElementById("f_date").value = p.date;
+    document.getElementById("f_name").value = p.name;
+    document.getElementById("f_ubayamFee").value = p.ubayamFee != null ? p.ubayamFee : "";
+    document.getElementById("f_ubayakararSponsor").value = p.ubayakararSponsor || "";
+    document.getElementById("f_ubayakararOpen").checked = !!p.ubayakararOpen;
+    document.getElementById("f_annathanamSponsor").value = p.annathanamSponsor || "";
+    document.getElementById("f_annathanamOpen").checked = !!p.annathanamOpen;
+    document.getElementById("f_participantsEnabled").checked = !!p.participantsEnabled;
+    document.getElementById("f_participantFee").value = p.participantFee != null ? p.participantFee : "";
+    document.getElementById("f_statusOverride").value = p.statusOverride || "";
+    document.getElementById("f_notes").value = p.notes || "";
+    prayerEditPanel.classList.add("show");
+    prayerEditPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  document.getElementById("duplicateScheduleBtn").addEventListener("click", () => {
+    const items = Array.from(document.querySelectorAll(".schedule-select:checked"))
+      .map(cb => allPrayers.find(p => p.id === cb.dataset.id))
+      .filter(Boolean);
+    if (!items.length) return;
+    scheduleDuplicateQueue = items.slice(1);
+    openPrayerDuplicateForm(items[0]);
+  });
 
   function openPrayerEdit(id){
     editingPrayerId = id;
@@ -1265,9 +1415,13 @@
       });
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
-      prayerEditPanel.classList.remove("show");
       showStatus("Pooja saved.", "ok");
       loadSchedule();
+      if (scheduleDuplicateQueue.length){
+        openPrayerDuplicateForm(scheduleDuplicateQueue.shift()); // next queued duplicate, pre-filled and ready to review
+      } else {
+        prayerEditPanel.classList.remove("show");
+      }
     } catch (err){
       showStatus("Save failed.", "error");
     }
