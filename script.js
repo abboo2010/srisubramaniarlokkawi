@@ -686,6 +686,22 @@ function renderPrayerGrid(){
     // sponsoring a pooja without needing to open it first.
     const ubayakararSponsor = prayerRoleSponsorDisplay(p, "ubayakarar");
     const annathanamSponsor = prayerRoleSponsorDisplay(p, "annathanam");
+    // Payment/confirmation status pills — same booking lookup and Paid
+    // logic the popup already uses for the Ubayam Fee row (see
+    // openPrayerModal below), just surfaced here too so a devotee doesn't
+    // have to open the card to see it. Annathanam never collects payment
+    // (the sponsor pays the caterer directly), so it gets a
+    // Confirmed/Not Confirmed status instead of a paid/unpaid one.
+    const ubayakararBooking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).ubayakarar;
+    const ubayakararPaid = ubayakararBooking && (ubayakararBooking.status === "Confirmed" || ubayakararBooking.status === "Paid/Confirmed");
+    const ubayakararPaidPillHtml = ubayakararBooking
+      ? `<span class="prayer-role-pill ${ubayakararPaid ? "paid" : "unpaid"}">${ubayakararPaid ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
+      : "";
+    const annathanamBooking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).annathanam;
+    const annathanamConfirmed = annathanamBooking && annathanamBooking.status === "Confirmed";
+    const annathanamStatusPillHtml = annathanamBooking
+      ? `<span class="prayer-role-pill ${annathanamConfirmed ? "paid" : "unpaid"}">${annathanamConfirmed ? t("prayersConfirmedBadge") : t("prayersNotConfirmedBadge")}</span>`
+      : "";
     const feeText = p.ubayamFee != null ? `RM ${p.ubayamFee.toLocaleString()}` : t("prayersAsArranged");
     const card = el(`
       <div class="prayer-card">
@@ -700,10 +716,12 @@ function renderPrayerGrid(){
             <div class="prayer-role-block">
               <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
               ${ubayakararSponsor ? `<span class="prayer-role-sponsor">${ubayakararSponsor}</span>` : ""}
+              ${ubayakararPaidPillHtml}
             </div>
             <div class="prayer-role-block">
               <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
               ${annathanamSponsor ? `<span class="prayer-role-sponsor">${annathanamSponsor}</span>` : ""}
+              ${annathanamStatusPillHtml}
             </div>
             ${p.participantsEnabled ? `<span class="prayer-role-pill ${over ? "taken" : "open"}">${t("prayersParticipantLabel")}${over ? ": " + t("prayersClosedBadge") : ""}</span>` : ""}
           </div>
