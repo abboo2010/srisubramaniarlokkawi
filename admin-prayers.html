@@ -1639,7 +1639,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${w.date}</td>
-        <td><span class="pill ${faPillClass(w)}">${faStatusLabel(w)}</span></td>
+        <td><span class="pill ${faPillClass(w)}">${faStatusLabel(w)}</span>${w.skipReason ? "<br>" + w.skipReason : ""}</td>
         <td>${w.sponsorName || ""}</td>
         <td>${w.sponsorPhone || ""}</td>
         <td>RM ${w.fee}</td>
