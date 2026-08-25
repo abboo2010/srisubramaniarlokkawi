@@ -245,8 +245,24 @@
 
   <!-- ================= GALLERY PHOTOS (list) ================= -->
   <div class="tab-panel" id="tab-gallery">
-    <p class="panel-hint">Photos shown on the Gallery screen, grouped into the Folder you pick below. Upload a photo, add a caption in each language — a smaller thumbnail is generated automatically alongside the full-size photo to keep the site fast.</p>
-    <div class="toolbar"><button id="gallery-refresh">Refresh</button><button class="primary" id="gallery-add">+ Add Photo</button></div>
+    <p class="panel-hint">Photos shown on the Gallery screen, grouped into the Folder you pick below. Upload a photo, add a caption in each language — a smaller thumbnail is generated automatically alongside the full-size photo to keep the site fast. Use Bulk Upload to add many photos into one Folder at once.</p>
+    <div class="toolbar"><button id="gallery-refresh">Refresh</button><button id="gallery-bulk-toggle">Bulk Upload</button><button class="primary" id="gallery-add">+ Add Photo</button></div>
+    <div class="bulk-box" id="gallery-bulk-box">
+      <h3 style="margin-top:0;">Bulk Upload Photos</h3>
+      <p class="panel-hint">Choose the Folder, then pick one or more photos at once (hold Ctrl/Cmd, or Shift for a range, in the file picker). Each is resized and uploaded the same way as adding one photo, with no caption — add captions afterwards from the table below if you want them.</p>
+      <div class="edit-grid">
+        <div class="edit-field wide">
+          <label>Folder</label>
+          <select id="gallery-bulk-folder"></select>
+        </div>
+        <div class="edit-field wide">
+          <label>Photos (choose multiple)</label>
+          <input type="file" accept="image/*" multiple id="gallery-bulk-files" />
+        </div>
+      </div>
+      <div id="gallery-bulk-progress" class="upload-note" style="margin:10px 0; min-height:14px;"></div>
+      <div class="edit-actions"><button class="save" id="gallery-bulk-submit">Upload All</button><button class="cancel" id="gallery-bulk-cancel">Cancel</button></div>
+    </div>
     <div id="gallery-panel" class="edit-panel"></div>
     <div class="table-wrap"><table id="gallery-table"><thead></thead><tbody></tbody></table></div>
   </div>
@@ -710,6 +726,75 @@ const galleryTab = makeListTab({
     { key:"labelEn", label:"Caption (English)", type:"text" }, { key:"labelBm", label:"Caption (Malay)", type:"text" }, { key:"labelTa", label:"Caption (Tamil)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
+});
+
+// ---------- Gallery Photos: Bulk Upload ----------
+// Same idea as Members' Bulk Import box, but for photos: pick one
+// Folder, choose several files at once, and each gets resized +
+// uploaded + saved exactly like adding a single photo (full-size +
+// thumbnail), one after another. Uploads run sequentially rather
+// than all at once — kinder to the browser (each photo is resized
+// on the main thread via <canvas>) and to the upload function's
+// ~4MB-per-request cap, and it keeps the progress line meaningful.
+function populateGalleryBulkFolderSelect(){
+  const sel = document.getElementById("gallery-bulk-folder");
+  const folders = galleryFoldersTab.rows;
+  sel.innerHTML = folders.length
+    ? folders.map(f => `<option value="${escAttr(f.id)}">${escHtml(categoryName(f.categoryId))} / ${escHtml(f.nameEn)}</option>`).join("")
+    : `<option value="">Create a Category and Folder first</option>`;
+  sel.disabled = !folders.length;
+}
+document.getElementById("gallery-bulk-toggle").addEventListener("click", () => {
+  const box = document.getElementById("gallery-bulk-box");
+  box.classList.toggle("show");
+  if (box.classList.contains("show")) populateGalleryBulkFolderSelect();
+});
+document.getElementById("gallery-bulk-cancel").addEventListener("click", () => {
+  document.getElementById("gallery-bulk-box").classList.remove("show");
+  document.getElementById("gallery-bulk-files").value = "";
+  document.getElementById("gallery-bulk-progress").textContent = "";
+});
+document.getElementById("gallery-bulk-submit").addEventListener("click", async () => {
+  const folderId = document.getElementById("gallery-bulk-folder").value;
+  const files = Array.from(document.getElementById("gallery-bulk-files").files || []);
+  const progressEl = document.getElementById("gallery-bulk-progress");
+  if (!folderId){ showStatus("Choose a Folder first.", "error"); return; }
+  if (!files.length){ showStatus("Choose at least one photo.", "error"); return; }
+
+  const submitBtn = document.getElementById("gallery-bulk-submit");
+  submitBtn.disabled = true;
+  // New photos are ordered after whatever's already in this folder,
+  // in the order the files were picked.
+  const existingMax = galleryTab.rows
+    .filter(r => String(r.folderId) === String(folderId))
+    .reduce((max, r) => Math.max(max, Number(r.sortOrder) || 0), 0);
+
+  let uploaded = 0, failed = 0;
+  for (let i = 0; i < files.length; i++){
+    const file = files[i];
+    progressEl.textContent = `Uploading ${i + 1} of ${files.length} — ${file.name}…`;
+    try {
+      const imageUrl = await uploadImage(file, "gallery", 1600, 0.82);
+      const thumbnailUrl = await uploadImage(file, "gallery", 480, 0.72);
+      await apiSave("galleryItem", "create", {
+        folderId, imageUrl, thumbnailUrl,
+        labelEn: "", labelBm: "", labelTa: "",
+        sortOrder: existingMax + i + 1
+      });
+      uploaded++;
+    } catch (err){
+      failed++;
+      console.error("Bulk photo upload failed for", file.name, err);
+    }
+  }
+  progressEl.textContent = "";
+  submitBtn.disabled = false;
+  showStatus(`Uploaded ${uploaded} photo(s)${failed ? `, ${failed} failed — try those again individually` : ""}.`, failed && !uploaded ? "error" : "ok");
+  document.getElementById("gallery-bulk-files").value = "";
+  if (uploaded){
+    document.getElementById("gallery-bulk-box").classList.remove("show");
+    await galleryTab.load();
+  }
 });
 
 // ============================================================
