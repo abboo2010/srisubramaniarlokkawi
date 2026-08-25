@@ -700,70 +700,56 @@ const SEVAS = [
   }
 ];
 
+// Gallery is Category > Folder > Photo (matches the shape cms-content.js
+// returns from Supabase — see that file for the live version of this).
 const GALLERY = [
   {
-    "category_en": "Festivals",
-    "category_bm": "Perayaan",
-    "category_ta": "திருவிழாக்கள்",
-    "label_en": "Thaipusam Procession",
-    "label_bm": "Perarakan Thaipusam",
-    "label_ta": "தைப்பூசம் ஊர்வலம்"
+    "name_en": "Festivals", "name_bm": "Perayaan", "name_ta": "திருவிழாக்கள்",
+    "folders": [
+      {
+        "name_en": "General", "name_bm": "Umum", "name_ta": "பொது",
+        "photos": [
+          { "image": "", "thumbnail": "", "label_en": "Thaipusam Procession", "label_bm": "Perarakan Thaipusam", "label_ta": "தைப்பூசம் ஊர்வலம்" },
+          { "image": "", "thumbnail": "", "label_en": "Navarathri Golu", "label_bm": "Navarathri Golu", "label_ta": "நவராத்திரி கொலு" }
+        ]
+      }
+    ]
   },
   {
-    "category_en": "Festivals",
-    "category_bm": "Perayaan",
-    "category_ta": "திருவிழாக்கள்",
-    "label_en": "Navarathri Golu",
-    "label_bm": "Navarathri Golu",
-    "label_ta": "நவராத்திரி கொலு"
+    "name_en": "Deities", "name_bm": "Dewa-Dewi", "name_ta": "தெய்வங்கள்",
+    "folders": [
+      {
+        "name_en": "General", "name_bm": "Umum", "name_ta": "பொது",
+        "photos": [
+          { "image": "", "thumbnail": "", "label_en": "Murugan Alankaram", "label_bm": "Alankaram Murugan", "label_ta": "முருகன் அலங்காரம்" },
+          { "image": "", "thumbnail": "", "label_en": "Ganesha Shrine", "label_bm": "Kuil Ganesha", "label_ta": "விநாயகர் ஆலயம்" }
+        ]
+      }
+    ]
   },
   {
-    "category_en": "Deities",
-    "category_bm": "Dewa-Dewi",
-    "category_ta": "தெய்வங்கள்",
-    "label_en": "Murugan Alankaram",
-    "label_bm": "Alankaram Murugan",
-    "label_ta": "முருகன் அலங்காரம்"
+    "name_en": "Temple", "name_bm": "Kuil", "name_ta": "கோயில்",
+    "folders": [
+      {
+        "name_en": "General", "name_bm": "Umum", "name_ta": "பொது",
+        "photos": [
+          { "image": "", "thumbnail": "", "label_en": "Main Gopuram", "label_bm": "Gopuram Utama", "label_ta": "முதன்மை கோபுரம்" },
+          { "image": "", "thumbnail": "", "label_en": "Inner Sanctum", "label_bm": "Bilik Suci Dalam", "label_ta": "உள் கருவறை" }
+        ]
+      }
+    ]
   },
   {
-    "category_en": "Deities",
-    "category_bm": "Dewa-Dewi",
-    "category_ta": "தெய்வங்கள்",
-    "label_en": "Ganesha Shrine",
-    "label_bm": "Kuil Ganesha",
-    "label_ta": "விநாயகர் ஆலயம்"
-  },
-  {
-    "category_en": "Temple",
-    "category_bm": "Kuil",
-    "category_ta": "கோயில்",
-    "label_en": "Main Gopuram",
-    "label_bm": "Gopuram Utama",
-    "label_ta": "முதன்மை கோபுரம்"
-  },
-  {
-    "category_en": "Temple",
-    "category_bm": "Kuil",
-    "category_ta": "கோயில்",
-    "label_en": "Inner Sanctum",
-    "label_bm": "Bilik Suci Dalam",
-    "label_ta": "உள் கருவறை"
-  },
-  {
-    "category_en": "Community",
-    "category_bm": "Komuniti",
-    "category_ta": "சமூகம்",
-    "label_en": "Annadhanam Hall",
-    "label_bm": "Dewan Annadhanam",
-    "label_ta": "அன்னதான மண்டபம்"
-  },
-  {
-    "category_en": "Community",
-    "category_bm": "Komuniti",
-    "category_ta": "சமூகம்",
-    "label_en": "Cultural Class",
-    "label_bm": "Kelas Kebudayaan",
-    "label_ta": "பண்பாட்டு வகுப்பு"
+    "name_en": "Community", "name_bm": "Komuniti", "name_ta": "சமூகம்",
+    "folders": [
+      {
+        "name_en": "General", "name_bm": "Umum", "name_ta": "பொது",
+        "photos": [
+          { "image": "", "thumbnail": "", "label_en": "Annadhanam Hall", "label_bm": "Dewan Annadhanam", "label_ta": "அன்னதான மண்டபம்" },
+          { "image": "", "thumbnail": "", "label_en": "Cultural Class", "label_bm": "Kelas Kebudayaan", "label_ta": "பண்பாட்டு வகுப்பு" }
+        ]
+      }
+    ]
   }
 ];
 

@@ -28,7 +28,7 @@ exports.handler = async () => {
   }
 
   try {
-    const [hero, tiles, about, deities, timings, sevas, announcements, gallery, contact] = await Promise.all([
+    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact] = await Promise.all([
       supabase.from("hero_banner").select("*").eq("id", 1).maybeSingle(),
       supabase.from("nav_tiles").select("*").eq("enabled", true).order("sort_order", { ascending: true }),
       supabase.from("about_page").select("*").eq("id", 1).maybeSingle(),
@@ -36,11 +36,13 @@ exports.handler = async () => {
       supabase.from("pooja_timings").select("*").order("sort_order", { ascending: true }),
       supabase.from("sevas").select("*").order("sort_order", { ascending: true }),
       supabase.from("announcements").select("*").eq("published", true).order("sort_order", { ascending: true }),
+      supabase.from("gallery_categories").select("*").order("sort_order", { ascending: true }),
+      supabase.from("gallery_folders").select("*").order("sort_order", { ascending: true }),
       supabase.from("gallery").select("*").order("sort_order", { ascending: true }),
       supabase.from("contact_info").select("*").eq("id", 1).maybeSingle()
     ]);
 
-    for (const r of [hero, tiles, about, deities, timings, sevas, announcements, gallery, contact]) {
+    for (const r of [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact]) {
       if (r.error) throw r.error;
     }
 
@@ -111,10 +113,28 @@ exports.handler = async () => {
       desc_en: x.desc_en, desc_bm: x.desc_bm, desc_ta: x.desc_ta
     }));
 
-    const galleryOut = (gallery.data || []).map(g => ({
-      image: g.image_url,
-      category_en: g.category_en, category_bm: g.category_bm, category_ta: g.category_ta,
-      label_en: g.label_en, label_bm: g.label_bm, label_ta: g.label_ta
+    // Gallery is Category > Folder > Photo. Assembled here (rather than
+    // three separate fetches on the client) so the public site gets one
+    // ready-to-render tree; cms.html's admin listing still reads the
+    // three tables flat via cms-crud.js for editing.
+    const photosByFolder = {};
+    (galleryPhotos.data || []).forEach(p => {
+      if (!p.folder_id) return; // orphaned/legacy row with no folder yet — not shown publicly
+      (photosByFolder[p.folder_id] = photosByFolder[p.folder_id] || []).push({
+        image: p.image_url, thumbnail: p.thumbnail_url || p.image_url,
+        label_en: p.label_en, label_bm: p.label_bm, label_ta: p.label_ta
+      });
+    });
+    const foldersByCategory = {};
+    (galleryFolders.data || []).forEach(f => {
+      (foldersByCategory[f.category_id] = foldersByCategory[f.category_id] || []).push({
+        id: f.id, name_en: f.name_en, name_bm: f.name_bm, name_ta: f.name_ta,
+        photos: photosByFolder[f.id] || []
+      });
+    });
+    const galleryOut = (galleryCategories.data || []).map(c => ({
+      id: c.id, name_en: c.name_en, name_bm: c.name_bm, name_ta: c.name_ta,
+      folders: foldersByCategory[c.id] || []
     }));
 
     const c = contact.data;

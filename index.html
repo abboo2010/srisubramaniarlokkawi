@@ -268,6 +268,13 @@
           <h2 id="galleryHeadingText">Gallery</h2>
           <p id="gallerySubText">Moments from festivals, poojas, and community events.</p>
         </div>
+        <div class="gallery-nav">
+          <button class="gallery-back" id="galleryBackBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5 L8 12 L15 19" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="galleryBackLabel">Back</span>
+          </button>
+          <div class="gallery-crumb" id="galleryCrumbText"></div>
+        </div>
         <div class="grid-4" id="galleryGrid"></div>
       </section>
 
@@ -429,6 +436,16 @@
       <div class="deity-modal-role" id="deityModalRole"></div>
       <p id="deityModalDesc"></p>
     </div>
+  </div>
+</div>
+
+<div class="gallery-overlay" id="galleryOverlay">
+  <div class="gallery-modal">
+    <button class="gallery-modal-close" id="galleryModalClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <div class="gallery-modal-figure"><img id="galleryModalImg" src="" alt="" /></div>
+    <div class="gallery-modal-body"><h3 id="galleryModalCaption"></h3></div>
   </div>
 </div>
 

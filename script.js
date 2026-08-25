@@ -75,6 +75,11 @@ let currentScreen = "home";
 
 function goTo(name){
   currentScreen = name;
+  // Entering the Gallery screen always starts back at the top level
+  // (Categories) — otherwise a visitor who drilled into a Folder,
+  // wandered to another screen, and came back would land wherever
+  // they left off, which reads as broken rather than intentional.
+  if (name === "gallery"){ resetGalleryView(); renderGallery(); }
   screens.forEach(s => s.classList.toggle("active", s.id === "screen-" + name));
   railBtns.forEach(b => b.classList.toggle("active", b.dataset.screen === name));
   crumb.textContent = t(CRUMB_KEY[name]) || t("navHome");
@@ -190,6 +195,7 @@ function renderStaticText(){
 
   document.getElementById("galleryHeadingText").textContent = t("galleryHeading");
   document.getElementById("gallerySubText").textContent = t("gallerySub");
+  document.getElementById("galleryBackLabel").textContent = t("galleryBack");
 
   document.getElementById("sevasHeadingText").textContent = t("sevasHeading");
   document.getElementById("sevasSubText").textContent = t("sevasSub");
@@ -566,26 +572,120 @@ function renderTimingList(){
 }
 
 // ============================================================
-// GALLERY
+// GALLERY (Category > Folder > Photo, browsed by drilling down)
 // ============================================================
+let galleryView = "categories"; // "categories" | "folders" | "photos"
+let galleryActiveCategory = null;
+let galleryActiveFolder = null;
+
+function resetGalleryView(){
+  galleryView = "categories";
+  galleryActiveCategory = null;
+  galleryActiveFolder = null;
+}
+
+// Shared tile for a Category or a Folder card: shows its first photo
+// (so browsing feels like a photo gallery even before opening
+// anything) and falls back to the colored placeholder + icon when
+// nothing's been uploaded into it yet.
+function galleryTile(coverPhoto, name, colorIndex, onClick){
+  const thumb = coverPhoto && (coverPhoto.thumbnail || coverPhoto.image);
+  const media = thumb
+    ? `<img class="gallery-photo" src="${thumb}" alt="${name}" loading="lazy" />`
+    : `<div class="gallery-ph" style="background:${PANEL_COLORS[colorIndex % PANEL_COLORS.length]}"><svg viewBox="0 0 24 24" fill="none">${GALLERY_ICON}</svg></div>`;
+  const tile = el(`
+    <div class="gallery-item gallery-tile">
+      ${media}
+      <div class="gallery-cap"><b>${name}</b></div>
+    </div>
+  `);
+  tile.addEventListener("click", onClick);
+  return tile;
+}
+
 function renderGallery(){
   const galleryGrid = document.getElementById("galleryGrid");
+  const backBtn = document.getElementById("galleryBackBtn");
+  const crumbEl = document.getElementById("galleryCrumbText");
   galleryGrid.innerHTML = "";
-  GALLERY.forEach((g,i)=>{
-    // Photos uploaded through /cms.html's Gallery tab show as a real
-    // <img>; any entry with no photo yet still falls back to the
-    // colored placeholder + icon (so an empty gallery never looks broken).
-    const photo = g.image
-      ? `<img class="gallery-photo" src="${g.image}" alt="${tf(g,"label")}" loading="lazy" />`
+
+  if (galleryView === "categories"){
+    backBtn.style.display = "none";
+    crumbEl.textContent = t("galleryHeading");
+    if (!GALLERY.length){
+      galleryGrid.appendChild(el(`<div class="gallery-empty">${t("galleryEmpty")}</div>`));
+      return;
+    }
+    GALLERY.forEach((c,i)=>{
+      const folders = c.folders || [];
+      const cover = folders.length ? (folders[0].photos || [])[0] : null;
+      galleryGrid.appendChild(galleryTile(cover, tf(c,"name"), i, ()=>{
+        galleryView = "folders"; galleryActiveCategory = c;
+        renderGallery();
+      }));
+    });
+    return;
+  }
+
+  if (galleryView === "folders"){
+    backBtn.style.display = "";
+    crumbEl.textContent = tf(galleryActiveCategory, "name");
+    const folders = galleryActiveCategory.folders || [];
+    if (!folders.length){
+      galleryGrid.appendChild(el(`<div class="gallery-empty">${t("galleryFoldersEmpty")}</div>`));
+      return;
+    }
+    folders.forEach((f,i)=>{
+      const cover = (f.photos || [])[0];
+      galleryGrid.appendChild(galleryTile(cover, tf(f,"name"), i, ()=>{
+        galleryView = "photos"; galleryActiveFolder = f;
+        renderGallery();
+      }));
+    });
+    return;
+  }
+
+  // galleryView === "photos"
+  backBtn.style.display = "";
+  crumbEl.textContent = `${tf(galleryActiveCategory,"name")} / ${tf(galleryActiveFolder,"name")}`;
+  const photos = galleryActiveFolder.photos || [];
+  if (!photos.length){
+    galleryGrid.appendChild(el(`<div class="gallery-empty">${t("galleryPhotosEmpty")}</div>`));
+    return;
+  }
+  photos.forEach((p,i)=>{
+    const thumb = p.thumbnail || p.image;
+    const media = thumb
+      ? `<img class="gallery-photo" src="${thumb}" alt="${tf(p,"label")}" loading="lazy" />`
       : `<div class="gallery-ph" style="background:${PANEL_COLORS[i % PANEL_COLORS.length]}"><svg viewBox="0 0 24 24" fill="none">${GALLERY_ICON}</svg></div>`;
-    galleryGrid.appendChild(el(`
+    const item = el(`
       <div class="gallery-item">
-        ${photo}
-        <div class="gallery-cap"><b>${tf(g,"label")}</b><span>${tf(g,"category")}</span></div>
+        ${media}
+        <div class="gallery-cap"><b>${tf(p,"label")}</b></div>
       </div>
-    `));
+    `);
+    item.addEventListener("click", ()=> openGalleryLightbox(p));
+    galleryGrid.appendChild(item);
   });
 }
+
+document.getElementById("galleryBackBtn").addEventListener("click", ()=>{
+  if (galleryView === "photos"){ galleryView = "folders"; galleryActiveFolder = null; }
+  else if (galleryView === "folders"){ galleryView = "categories"; galleryActiveCategory = null; }
+  renderGallery();
+});
+
+const galleryOverlay = document.getElementById("galleryOverlay");
+function openGalleryLightbox(p){
+  const full = p.image || p.thumbnail || "";
+  document.getElementById("galleryModalImg").src = full;
+  document.getElementById("galleryModalImg").alt = tf(p, "label");
+  document.getElementById("galleryModalCaption").textContent = tf(p, "label");
+  galleryOverlay.classList.add("show");
+}
+function closeGalleryLightbox(){ galleryOverlay.classList.remove("show"); }
+document.getElementById("galleryModalClose").addEventListener("click", closeGalleryLightbox);
+galleryOverlay.addEventListener("click", (e)=>{ if (e.target === galleryOverlay) closeGalleryLightbox(); });
 
 // ============================================================
 // SEVAS & QR MODAL

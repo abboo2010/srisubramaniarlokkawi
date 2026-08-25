@@ -159,7 +159,9 @@
     <button data-tab="timings">Pooja Timings</button>
     <button data-tab="sevas">Sevas</button>
     <button data-tab="announcements">Announcements</button>
-    <button data-tab="gallery">Gallery</button>
+    <button data-tab="galleryCategories">Gallery Categories</button>
+    <button data-tab="galleryFolders">Gallery Folders</button>
+    <button data-tab="gallery">Gallery Photos</button>
     <button data-tab="members">Membership</button>
     <button data-tab="contact">Contact Us</button>
   </div>
@@ -224,9 +226,25 @@
     <div class="table-wrap"><table id="announcements-table"><thead></thead><tbody></tbody></table></div>
   </div>
 
-  <!-- ================= GALLERY (list) ================= -->
+  <!-- ================= GALLERY CATEGORIES (list) ================= -->
+  <div class="tab-panel" id="tab-galleryCategories">
+    <p class="panel-hint">The top level of the Gallery screen — e.g. "Festivals", "Deities", "Temple", "Community". Visitors tap a Category to see its Folders.</p>
+    <div class="toolbar"><button id="galleryCategories-refresh">Refresh</button><button class="primary" id="galleryCategories-add">+ Add Category</button></div>
+    <div id="galleryCategories-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="galleryCategories-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= GALLERY FOLDERS (list) ================= -->
+  <div class="tab-panel" id="tab-galleryFolders">
+    <p class="panel-hint">Folders live inside a Category — e.g. "Thaipusam 2026" inside "Festivals". Create the Category first, then add Folders under it here.</p>
+    <div class="toolbar"><button id="galleryFolders-refresh">Refresh</button><button class="primary" id="galleryFolders-add">+ Add Folder</button></div>
+    <div id="galleryFolders-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="galleryFolders-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= GALLERY PHOTOS (list) ================= -->
   <div class="tab-panel" id="tab-gallery">
-    <p class="panel-hint">Photos shown on the Gallery screen. Upload a photo, add a caption and category in each language, and it appears on the live site immediately.</p>
+    <p class="panel-hint">Photos shown on the Gallery screen, grouped into the Folder you pick below. Upload a photo, add a caption in each language — a smaller thumbnail is generated automatically alongside the full-size photo to keep the site fast.</p>
     <div class="toolbar"><button id="gallery-refresh">Refresh</button><button class="primary" id="gallery-add">+ Add Photo</button></div>
     <div id="gallery-panel" class="edit-panel"></div>
     <div class="table-wrap"><table id="gallery-table"><thead></thead><tbody></tbody></table></div>
@@ -353,8 +371,8 @@ function resizeImageFile(file, maxDim, quality){
     reader.readAsDataURL(file);
   });
 }
-async function uploadImage(file, folder){
-  const dataUrl = await resizeImageFile(file, 1600, 0.82);
+async function uploadImage(file, folder, maxDim, quality){
+  const dataUrl = await resizeImageFile(file, maxDim || 1600, quality || 0.82);
   const res = await fetch("/.netlify/functions/cms-upload-image", {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
@@ -378,8 +396,20 @@ function fieldHtml(f, row){
     return `<div class="edit-field checkbox${wide}"><input type="checkbox" id="fld-${f.key}" ${val ? "checked" : ""} /><label for="fld-${f.key}">${f.label}</label></div>`;
   }
   if (f.type === "select"){
-    const opts = f.options.map(o => `<option value="${escAttr(o)}" ${o === val ? "selected" : ""}>${escHtml(o)}</option>`).join("");
-    return `<div class="edit-field${wide}"><label>${f.label}</label><select id="fld-${f.key}">${opts}</select></div>`;
+    // f.options is either a plain array of strings (static choices, e.g.
+    // icon names) or a function returning [{value,label}, ...] evaluated
+    // fresh each time the form opens — used for Category/Folder pickers,
+    // whose choices depend on data loaded from another tab.
+    const raw = typeof f.options === "function" ? f.options() : f.options;
+    const opts = raw.map(o => (o && typeof o === "object") ? o : { value: o, label: o });
+    const selectAttrs = opts.length ? "" : " disabled";
+    const optionsHtml = opts.length
+      ? opts.map(o => `<option value="${escAttr(o.value)}" ${String(o.value) === String(val) ? "selected" : ""}>${escHtml(o.label)}</option>`).join("")
+      : `<option value="">${escHtml(f.emptyLabel || "Nothing available yet")}</option>`;
+    return `<div class="edit-field${wide}"><label>${f.label}</label><select id="fld-${f.key}"${selectAttrs}>${optionsHtml}</select></div>`;
+  }
+  if (f.type === "hidden"){
+    return `<input type="hidden" id="fld-${f.key}" value="${escAttr(val)}" />`;
   }
   if (f.type === "textarea"){
     return `<div class="edit-field${wide}"><label>${f.label}</label><textarea id="fld-${f.key}" class="${f.tall ? "tall" : ""}">${escHtml(val)}</textarea></div>`;
@@ -392,7 +422,7 @@ function fieldHtml(f, row){
         <input type="file" accept="image/*" id="fld-${f.key}-file" />
         <input type="hidden" id="fld-${f.key}" value="${escAttr(val)}" />
       </div>
-      <div class="upload-note">Uploads automatically when you choose a file. Large photos are resized in your browser first.</div>
+      <div class="upload-note">Uploads automatically when you choose a file. Large photos are resized in your browser first.${f.thumbKey ? " A smaller thumbnail is generated and uploaded alongside it automatically." : ""}</div>
     </div>`;
   }
   return `<div class="edit-field${wide}"><label>${f.label}</label><input type="${f.type === "number" ? "number" : "text"}" id="fld-${f.key}" value="${escAttr(val)}" /></div>`;
@@ -405,10 +435,19 @@ function wireImageField(f, folder){
     const file = fileInput.files[0];
     if (!file) return;
     const wrap = document.getElementById(`imgfield-${f.key}`);
-    showStatus("Uploading photo…", "ok");
+    showStatus(f.thumbKey ? "Uploading photo (full size + thumbnail)…" : "Uploading photo…", "ok");
     try {
-      const url = await uploadImage(file, folder);
+      const url = await uploadImage(file, folder, f.maxDim, f.quality);
       document.getElementById(`fld-${f.key}`).value = url;
+      if (f.thumbKey){
+        // Same source file, resized smaller/more compressed for grid
+        // views — kept as a second Storage object so the browsing/
+        // folder views stay light while the lightbox still gets the
+        // full-size photo.
+        const thumbUrl = await uploadImage(file, folder, 480, 0.72);
+        const thumbEl = document.getElementById(`fld-${f.thumbKey}`);
+        if (thumbEl) thumbEl.value = thumbUrl;
+      }
       const old = wrap.querySelector(".preview, .no-image");
       const img = h(`<img class="preview" src="${escAttr(url)}" />`);
       old.replaceWith(img);
@@ -436,6 +475,7 @@ function makeListTab(cfg){
       const cells = cfg.columns.map(c => {
         if (c.image) return row[c.key] ? `<img class="thumb" src="${escAttr(row[c.key])}" />` : `<div class="thumb"></div>`;
         if (c.bool) return `<span class="pill ${row[c.key] ? "on" : "off"}">${row[c.key] ? "Yes" : "No"}</span>`;
+        if (c.compute) return `<td-text>${escHtml(c.compute(row))}</td-text>`;
         return `<td-text>${escHtml(row[c.key])}</td-text>`;
       });
       const tr = h(`<tr>${cells.map(c => `<td>${c}</td>`).join("")}
@@ -492,7 +532,8 @@ function makeListTab(cfg){
   }
 
   async function doDelete(row){
-    if (!confirm(`Delete this ${cfg.singularLabel.toLowerCase()}? This can't be undone.`)) return;
+    const warn = cfg.deleteWarning ? ` ${cfg.deleteWarning}` : "";
+    if (!confirm(`Delete this ${cfg.singularLabel.toLowerCase()}? This can't be undone.${warn}`)) return;
     try {
       await apiSave(cfg.entity, "delete", { id: row.id });
       showStatus("Deleted.", "ok");
@@ -515,7 +556,7 @@ function makeListTab(cfg){
   document.getElementById(cfg.tabId + "-refresh").addEventListener("click", load);
   document.getElementById(cfg.tabId + "-add").addEventListener("click", () => openForm(null));
 
-  return { load };
+  return { load, get rows(){ return state.rows; } };
 }
 
 // ---------- Home Tiles ----------
@@ -598,14 +639,61 @@ const announcementsTab = makeListTab({
   ]
 });
 
-// ---------- Gallery ----------
-const galleryTab = makeListTab({
-  tabId: "gallery", entity: "galleryItem", singularLabel: "Photo", required: ["imageUrl"], imageFolder: "gallery",
-  columns: [ {key:"imageUrl",label:"Photo",image:true}, {key:"labelEn",label:"Caption (EN)"}, {key:"categoryEn",label:"Category (EN)"}, {key:"sortOrder",label:"Order"} ],
+// ---------- Gallery: Categories > Folders > Photos ----------
+function categoryName(id){
+  const c = galleryCategoriesTab.rows.find(c => c.id === id || String(c.id) === String(id));
+  return c ? c.nameEn : "—";
+}
+function folderPath(id){
+  const f = galleryFoldersTab.rows.find(f => f.id === id || String(f.id) === String(id));
+  if (!f) return "—";
+  return `${categoryName(f.categoryId)} / ${f.nameEn}`;
+}
+
+const galleryCategoriesTab = makeListTab({
+  tabId: "galleryCategories", entity: "galleryCategory", singularLabel: "Category", required: ["nameEn"],
+  deleteWarning: "This also deletes every Folder and Photo inside it.",
+  columns: [ {key:"nameEn",label:"Name (EN)"}, {key:"sortOrder",label:"Order"} ],
   fields: [
-    { key:"imageUrl", label:"Photo", type:"image" },
+    { key:"nameEn", label:"Name (English)", type:"text" },
+    { key:"nameBm", label:"Name (Malay)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+const galleryFoldersTab = makeListTab({
+  tabId: "galleryFolders", entity: "galleryFolder", singularLabel: "Folder", required: ["categoryId","nameEn"],
+  deleteWarning: "This also deletes every Photo inside it.",
+  columns: [
+    { key:"categoryId", label:"Category", compute: row => categoryName(row.categoryId) },
+    { key:"nameEn", label:"Name (EN)" },
+    { key:"sortOrder", label:"Order" }
+  ],
+  fields: [
+    { key:"categoryId", label:"Category", type:"select", emptyLabel:"Create a Category first",
+      options: () => galleryCategoriesTab.rows.map(c => ({ value:String(c.id), label:c.nameEn })) },
+    { key:"nameEn", label:"Name (English)", type:"text" },
+    { key:"nameBm", label:"Name (Malay)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+const galleryTab = makeListTab({
+  tabId: "gallery", entity: "galleryItem", singularLabel: "Photo", required: ["imageUrl","folderId"], imageFolder: "gallery",
+  columns: [
+    { key:"imageUrl", label:"Photo", image:true },
+    { key:"folderId", label:"Folder", compute: row => folderPath(row.folderId) },
+    { key:"labelEn", label:"Caption (EN)" },
+    { key:"sortOrder", label:"Order" }
+  ],
+  fields: [
+    { key:"folderId", label:"Folder", type:"select", emptyLabel:"Create a Category and Folder first",
+      options: () => galleryFoldersTab.rows.map(f => ({ value:String(f.id), label:`${categoryName(f.categoryId)} / ${f.nameEn}` })) },
+    { key:"imageUrl", label:"Photo", type:"image", thumbKey:"thumbnailUrl", maxDim:1600, quality:0.82 },
+    { key:"thumbnailUrl", type:"hidden" },
     { key:"labelEn", label:"Caption (English)", type:"text" }, { key:"labelBm", label:"Caption (Malay)", type:"text" }, { key:"labelTa", label:"Caption (Tamil)", type:"text" },
-    { key:"categoryEn", label:"Category (English)", type:"text" }, { key:"categoryBm", label:"Category (Malay)", type:"text" }, { key:"categoryTa", label:"Category (Tamil)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
 });
@@ -855,6 +943,8 @@ function initAllTabs(){
   timingsTab.load();
   sevasTab.load();
   announcementsTab.load();
+  galleryCategoriesTab.load();
+  galleryFoldersTab.load();
   galleryTab.load();
   loadMembers();
   contactTab.load();

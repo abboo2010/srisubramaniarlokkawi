@@ -133,6 +133,7 @@ create table if not exists deities (
   sort_order    integer not null default 0,
   updated_at    timestamptz not null default now()
 );
+create unique index if not exists deities_name_en_key on deities (name_en);
 alter table deities enable row level security;
 drop trigger if exists deities_set_updated_at on deities;
 create trigger deities_set_updated_at before update on deities
@@ -153,6 +154,7 @@ create table if not exists pooja_timings (
   updated_at  timestamptz not null default now()
 );
 create index if not exists pooja_timings_list_idx on pooja_timings (list_type, sort_order);
+create unique index if not exists pooja_timings_list_name_key on pooja_timings (list_type, name_en);
 alter table pooja_timings enable row level security;
 drop trigger if exists pooja_timings_set_updated_at on pooja_timings;
 create trigger pooja_timings_set_updated_at before update on pooja_timings
@@ -176,6 +178,7 @@ create table if not exists sevas (
   sort_order  integer not null default 0,
   updated_at  timestamptz not null default now()
 );
+create unique index if not exists sevas_name_en_key on sevas (name_en);
 alter table sevas enable row level security;
 drop trigger if exists sevas_set_updated_at on sevas;
 create trigger sevas_set_updated_at before update on sevas
@@ -194,24 +197,71 @@ create table if not exists announcements (
   sort_order  integer not null default 0,
   updated_at  timestamptz not null default now()
 );
+create unique index if not exists announcements_title_en_key on announcements (title_en);
 alter table announcements enable row level security;
 drop trigger if exists announcements_set_updated_at on announcements;
 create trigger announcements_set_updated_at before update on announcements
   for each row execute function set_updated_at();
 
--- ---------- gallery ----------
-create table if not exists gallery (
+-- ---------- gallery_categories: top level of the Gallery browsing
+-- hierarchy (e.g. "Festivals", "Deities", "Temple", "Community") ----------
+create table if not exists gallery_categories (
   id          bigint generated always as identity primary key,
-  image_url   text not null default '',
-  category_en text not null default '',
-  category_bm text not null default '',
-  category_ta text not null default '',
-  label_en    text not null default '',
-  label_bm    text not null default '',
-  label_ta    text not null default '',
+  name_en     text not null default '',
+  name_bm     text not null default '',
+  name_ta     text not null default '',
   sort_order  integer not null default 0,
   updated_at  timestamptz not null default now()
 );
+create unique index if not exists gallery_categories_name_en_key on gallery_categories (name_en);
+alter table gallery_categories enable row level security;
+drop trigger if exists gallery_categories_set_updated_at on gallery_categories;
+create trigger gallery_categories_set_updated_at before update on gallery_categories
+  for each row execute function set_updated_at();
+
+-- ---------- gallery_folders: second level, each folder belongs to one
+-- category (e.g. "Thaipusam 2026" under "Festivals") ----------
+create table if not exists gallery_folders (
+  id           bigint generated always as identity primary key,
+  category_id  bigint not null references gallery_categories(id) on delete cascade,
+  name_en      text not null default '',
+  name_bm      text not null default '',
+  name_ta      text not null default '',
+  sort_order   integer not null default 0,
+  updated_at   timestamptz not null default now()
+);
+create index if not exists gallery_folders_category_idx on gallery_folders (category_id, sort_order);
+create unique index if not exists gallery_folders_category_name_key on gallery_folders (category_id, name_en);
+alter table gallery_folders enable row level security;
+drop trigger if exists gallery_folders_set_updated_at on gallery_folders;
+create trigger gallery_folders_set_updated_at before update on gallery_folders
+  for each row execute function set_updated_at();
+
+-- ---------- gallery: the photos themselves, each belonging to one
+-- folder. category_en/bm/ta are kept only as legacy columns from
+-- before the Category > Folder hierarchy existed — the CMS no longer
+-- reads or writes them, but they're left in place rather than dropped
+-- so nothing is destroyed if an older install still has data there.
+-- thumbnail_url is a smaller resized copy (generated in the browser
+-- alongside the full-size photo on upload) used for grid/browsing
+-- views, to keep Supabase egress low; image_url is the full-size
+-- photo shown in the lightbox. ----------
+create table if not exists gallery (
+  id            bigint generated always as identity primary key,
+  folder_id     bigint references gallery_folders(id) on delete cascade,
+  image_url     text not null default '',
+  thumbnail_url text not null default '',
+  category_en   text not null default '',
+  category_bm   text not null default '',
+  category_ta   text not null default '',
+  label_en      text not null default '',
+  label_bm      text not null default '',
+  label_ta      text not null default '',
+  sort_order    integer not null default 0,
+  updated_at    timestamptz not null default now()
+);
+create unique index if not exists gallery_label_en_key on gallery (label_en);
+create index if not exists gallery_folder_idx on gallery (folder_id, sort_order);
 alter table gallery enable row level security;
 drop trigger if exists gallery_set_updated_at on gallery;
 create trigger gallery_set_updated_at before update on gallery

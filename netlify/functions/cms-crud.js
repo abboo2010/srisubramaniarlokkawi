@@ -110,15 +110,32 @@ const ENTITIES = {
     ],
     boolFields: ["published"], numFields: ["sortOrder"]
   },
-  galleryItem: {
-    table: "gallery", singleton: false,
+  galleryCategory: {
+    table: "gallery_categories", singleton: false,
     fields: [
-      ["imageUrl","image_url"],
-      ["categoryEn","category_en"],["categoryBm","category_bm"],["categoryTa","category_ta"],
-      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"],
+      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
       ["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder"]
+  },
+  galleryFolder: {
+    table: "gallery_folders", singleton: false,
+    fields: [
+      ["categoryId","category_id"],
+      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
+      ["sortOrder","sort_order"]
+    ],
+    numFields: ["sortOrder","categoryId"]
+  },
+  galleryItem: {
+    table: "gallery", singleton: false,
+    fields: [
+      ["folderId","folder_id"],
+      ["imageUrl","image_url"],["thumbnailUrl","thumbnail_url"],
+      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"],
+      ["sortOrder","sort_order"]
+    ],
+    numFields: ["sortOrder","folderId"]
   }
 };
 
