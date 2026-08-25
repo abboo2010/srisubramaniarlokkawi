@@ -90,6 +90,24 @@ drop trigger if exists nav_tiles_set_updated_at on nav_tiles;
 create trigger nav_tiles_set_updated_at before update on nav_tiles
   for each row execute function set_updated_at();
 
+-- ---------- site_ticker: the scrolling notice bar above the rail/
+-- topbar on every screen (one row, id is always 1). message_bm/ta
+-- fall back to message_en on the public site when left blank, same
+-- as every other _en/_bm/_ta triplet. ----------
+create table if not exists site_ticker (
+  id           smallint primary key default 1,
+  enabled      boolean not null default true,
+  message_en   text not null default '',
+  message_bm   text not null default '',
+  message_ta   text not null default '',
+  updated_at   timestamptz not null default now(),
+  constraint site_ticker_singleton check (id = 1)
+);
+alter table site_ticker enable row level security;
+drop trigger if exists site_ticker_set_updated_at on site_ticker;
+create trigger site_ticker_set_updated_at before update on site_ticker
+  for each row execute function set_updated_at();
+
 -- ---------- about_page: one row (id is always 1) ----------
 -- history_* / activities_* are plain text in the CMS textarea: history
 -- paragraphs separated by a blank line, activities one per line.

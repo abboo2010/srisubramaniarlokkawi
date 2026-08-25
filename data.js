@@ -275,5 +275,8 @@ const TILE_META = [
     desc:  { en: "Sponsor a Weekly Friday Meal", bm: "Taja Hidangan Jumaat Mingguan", ta: "வாராந்திர வெள்ளி உணவை நிதியுதவி செய்ய" } },
   { key: "membership", icon: "membership", destination: "membership",
     title: { en: "Membership Status", bm: "Status Keahlian", ta: "உறுப்பினர் நிலை" },
-    desc:  { en: "Check Your Membership Status", bm: "Semak Status Keahlian Anda", ta: "உங்கள் உறுப்பினர் நிலையைச் சரிபார்க்கவும்" } }
+    desc:  { en: "Check Your Membership Status", bm: "Semak Status Keahlian Anda", ta: "உங்கள் உறுப்பினர் நிலையைச் சரிபார்க்கவும்" } },
+  { key: "gallery", icon: "gallery", destination: "gallery",
+    title: { en: "Gallery", bm: "Galeri", ta: "படத்தொகுப்பு" },
+    desc:  { en: "Photos from Temple Events & Festivals", bm: "Foto Acara & Perayaan Kuil", ta: "கோயில் நிகழ்வுகள் & திருவிழாக்களின் புகைப்படங்கள்" } }
 ];

@@ -164,6 +164,7 @@
     <button data-tab="gallery">Gallery Photos</button>
     <button data-tab="members">Membership</button>
     <button data-tab="contact">Contact Us</button>
+    <button data-tab="ticker">Ticker</button>
   </div>
 
   <!-- ================= HERO BANNER (singleton) ================= -->
@@ -277,6 +278,16 @@
       <p class="panel-hint">Organisation details, address, phone/email/WhatsApp, social links, and the donation bank account — shown on the Contact Us screen.</p>
       <div id="contact-form"></div>
       <div class="edit-actions"><button class="save" id="contact-save">Save Contact Us</button></div>
+    </div>
+  </div>
+
+  <!-- ================= TICKER (singleton) ================= -->
+  <div class="tab-panel" id="tab-ticker">
+    <div class="section-card">
+      <h2>Notice Ticker</h2>
+      <p class="panel-hint">The scrolling notice bar shown above the menu on every screen. Untick "Enabled" to hide it without losing the text. Malay/Tamil fall back to the English text on the live site if left blank.</p>
+      <div id="ticker-form"></div>
+      <div class="edit-actions"><button class="save" id="ticker-save">Save Ticker</button></div>
     </div>
   </div>
 </div>
@@ -560,7 +571,7 @@ function makeListTab(cfg){
 }
 
 // ---------- Home Tiles ----------
-const ICON_OPTIONS = ["about","deities","calendar","timings","sevas","prayers","fridayAnnathanam","membership"];
+const ICON_OPTIONS = ["about","deities","calendar","timings","sevas","prayers","fridayAnnathanam","membership","gallery"];
 const SCREEN_OPTIONS = ["home","about","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
 const tilesTab = makeListTab({
   tabId: "tiles", entity: "navTile", singularLabel: "Tile", required: ["tileKey"],
@@ -817,6 +828,20 @@ const contactTab = makeSingletonTab({
   ]
 });
 
+const tickerTab = makeSingletonTab({
+  tabId: "ticker", entity: "ticker",
+  groups: [
+    { title:"Visibility", fields: [
+      { key:"enabled", label:"Enabled", type:"checkbox", default:true }
+    ]},
+    { title:"Message", fields: [
+      { key:"messageEn", label:"Message (English)", type:"textarea", wide:true },
+      { key:"messageBm", label:"Message (Malay) — leave blank to reuse the English text", type:"textarea", wide:true },
+      { key:"messageTa", label:"Message (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }
+    ]}
+  ]
+});
+
 // ============================================================
 // Members — dedicated (not the generic list engine): search,
 // export, and a bulk-import box on top of the usual add/edit/delete.
@@ -951,6 +976,7 @@ function initAllTabs(){
   galleryTab.load();
   loadMembers();
   contactTab.load();
+  tickerTab.load();
 }
 </script>
 </body>

@@ -773,3 +773,13 @@ const DONATION_ACCOUNT = {
   "bank": "PUBLIC BANK",
   "accountNumber": "3233458636"
 };
+
+// Notice ticker shown above the menu on every screen — editable from
+// /cms.html's Ticker tab. This bundled copy is only used if Supabase
+// is unreachable or the site_ticker table hasn't been created yet.
+const TICKER = {
+  "enabled": true,
+  "message_en": "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
+  "message_bm": "",
+  "message_ta": ""
+};

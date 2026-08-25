@@ -49,7 +49,8 @@ const ICONS = {
   sevas: `<path d="M12 21 C7 17 3.5 13.8 3.5 9.9 C3.5 7.2 5.6 5 8.2 5 C9.8 5 11.1 5.8 12 7 C12.9 5.8 14.2 5 15.8 5 C18.4 5 20.5 7.2 20.5 9.9 C20.5 13.8 17 17 12 21 Z" stroke-linejoin="round"/>`,
   prayers: `<path d="M12 3 C13 6 15 8 15 11 C15 13.5 13.5 15 12 15 C10.5 15 9 13.5 9 11 C9 8 11 6 12 3 Z" stroke-linejoin="round"/><path d="M6 19 C6 17 8.5 15.5 12 15.5 C15.5 15.5 18 17 18 19" stroke-linecap="round"/><path d="M4 19 H20" stroke-linecap="round"/>`,
   fridayAnnathanam: `<path d="M5 11 C5 16 8 20 12 20 C16 20 19 16 19 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11 H20" stroke-linecap="round"/><path d="M9 11 V6.5 C9 5 10.5 4 12 4" stroke-linecap="round"/><circle cx="12" cy="3.3" r="0.9" fill="currentColor" stroke="none"/>`,
-  membership: `<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M5.3 16.3 C5.3 14.8 6.7 13.7 8.5 13.7 C10.3 13.7 11.7 14.8 11.7 16.3" stroke-linecap="round"/><path d="M13.8 10.3 H18.3 M13.8 13.3 H16.8" stroke-linecap="round"/>`
+  membership: `<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M5.3 16.3 C5.3 14.8 6.7 13.7 8.5 13.7 C10.3 13.7 11.7 14.8 11.7 16.3" stroke-linecap="round"/><path d="M13.8 10.3 H18.3 M13.8 13.3 H16.8" stroke-linecap="round"/>`,
+  gallery: `<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17.5 L9.5 12.5 L13 15.5 L16.5 12 L20.5 16" stroke-linecap="round" stroke-linejoin="round"/>`
 };
 
 const PANEL_COLORS = ["#711821", "#8f202b", "#c1531f", "#3e7c52", "#2b1b12", "#8e4a9e", "#3e7c8c", "#b5651d"];
@@ -234,7 +235,7 @@ function renderStaticText(){
 function renderHomeTiles(){
   const tileGrid = document.getElementById("homeTiles");
   tileGrid.innerHTML = "";
-  const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers, fridayAnnathanam: ICONS.fridayAnnathanam, membership: ICONS.membership };
+  const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers, fridayAnnathanam: ICONS.fridayAnnathanam, membership: ICONS.membership, gallery: ICONS.gallery };
   TILE_META.forEach(tItem=>{
     // "icon" picks the artwork and "destination" picks the screen it opens —
     // separate fields (both editable in /cms.html's Home Tiles tab) so a
@@ -1403,8 +1404,21 @@ function safeRender(name, fn){
   catch (err) { console.error(`[render] "${name}" failed — that section may be blank, but the rest of the site is unaffected:`, err); }
 }
 
+// ============================================================
+// NOTICE TICKER (editable from /cms.html's Ticker tab)
+// ============================================================
+function renderTicker(){
+  const bar = document.getElementById("siteTicker");
+  if (!TICKER.enabled){ bar.style.display = "none"; return; }
+  bar.style.display = "";
+  const msg = tf(TICKER, "message");
+  document.getElementById("siteTickerItem1").textContent = msg;
+  document.getElementById("siteTickerItem2").textContent = msg;
+}
+
 function renderAll(){
   safeRender("staticText", renderStaticText);
+  safeRender("ticker", renderTicker);
   safeRender("homeTiles", renderHomeTiles);
   safeRender("homeTimings", renderHomeTimings);
   safeRender("homeEvents", renderHomeEvents);
@@ -1557,6 +1571,13 @@ function loadLiveContent(){
           if (c.donationAccount.bank) DONATION_ACCOUNT.bank = c.donationAccount.bank;
           if (c.donationAccount.accountNumber) DONATION_ACCOUNT.accountNumber = c.donationAccount.accountNumber;
         }
+      }
+
+      if (data.ticker){
+        TICKER.enabled = !!data.ticker.enabled;
+        if (data.ticker.message_en) TICKER.message_en = data.ticker.message_en;
+        TICKER.message_bm = data.ticker.message_bm || "";
+        TICKER.message_ta = data.ticker.message_ta || "";
       }
 
       renderAll();

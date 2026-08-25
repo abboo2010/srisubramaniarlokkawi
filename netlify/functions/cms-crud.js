@@ -42,6 +42,14 @@ const ENTITIES = {
       ["imageUrl","image_url"]
     ]
   },
+  ticker: {
+    table: "site_ticker", singleton: true,
+    fields: [
+      ["enabled","enabled"],
+      ["messageEn","message_en"],["messageBm","message_bm"],["messageTa","message_ta"]
+    ],
+    boolFields: ["enabled"]
+  },
   about: {
     table: "about_page", singleton: true,
     fields: [

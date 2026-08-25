@@ -18,7 +18,7 @@ const { supabaseClient } = require("./_supabase");
 
 const NOT_CONFIGURED = {
   configured: false, heroBanner: null, navTiles: null, about: null, deities: null,
-  poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null
+  poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null, ticker: null
 };
 
 exports.handler = async () => {
@@ -28,7 +28,7 @@ exports.handler = async () => {
   }
 
   try {
-    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact] = await Promise.all([
+    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker] = await Promise.all([
       supabase.from("hero_banner").select("*").eq("id", 1).maybeSingle(),
       supabase.from("nav_tiles").select("*").eq("enabled", true).order("sort_order", { ascending: true }),
       supabase.from("about_page").select("*").eq("id", 1).maybeSingle(),
@@ -39,12 +39,22 @@ exports.handler = async () => {
       supabase.from("gallery_categories").select("*").order("sort_order", { ascending: true }),
       supabase.from("gallery_folders").select("*").order("sort_order", { ascending: true }),
       supabase.from("gallery").select("*").order("sort_order", { ascending: true }),
-      supabase.from("contact_info").select("*").eq("id", 1).maybeSingle()
+      supabase.from("contact_info").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("site_ticker").select("*").eq("id", 1).maybeSingle()
     ]);
 
     for (const r of [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact]) {
       if (r.error) throw r.error;
     }
+    // ticker is handled leniently on purpose: site_ticker is a newer table
+    // that may not exist yet if add-site-ticker.sql hasn't been run —
+    // that must never take down the rest of the site's live content, so
+    // its error (if any) is swallowed and the front-end just keeps its
+    // bundled default ticker text instead.
+    const tk = (!ticker.error && ticker.data) ? ticker.data : null;
+    const tickerOut = tk ? {
+      enabled: tk.enabled, message_en: tk.message_en, message_bm: tk.message_bm, message_ta: tk.message_ta
+    } : null;
 
     const h = hero.data;
     const heroBanner = h ? {
@@ -155,7 +165,8 @@ exports.handler = async () => {
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
       body: JSON.stringify({
         configured: true, heroBanner, navTiles, about: aboutOut, deities: deitiesOut,
-        poojaTimings, sevas: sevasOut, announcements: announcementsOut, gallery: galleryOut, contact: contactOut
+        poojaTimings, sevas: sevasOut, announcements: announcementsOut, gallery: galleryOut, contact: contactOut,
+        ticker: tickerOut
       })
     };
   } catch (err) {
