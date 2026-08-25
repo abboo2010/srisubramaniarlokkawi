@@ -1,7 +1,7 @@
 // Sri Subramaniar Alayam — Service Worker
 // Caches core app files so the app can install and open offline.
 // Bump CACHE_NAME whenever core files change to force a refresh.
-const CACHE_NAME = "temple-kiosk-v10";
+const CACHE_NAME = "temple-kiosk-v11";
 
 const CORE_ASSETS = [
   "./index.html",
@@ -64,9 +64,13 @@ self.addEventListener("activate", (event) => {
 
 // Cache-first for core assets; fall back to network, and cache anything new
 // that gets fetched (e.g. Google Fonts) so subsequent visits work offline too.
-// EXCEPTION: Google Sheets content requests always go network-first — this
-// data is meant to update live when someone edits the sheet, so cache-first
-// would freeze it at whatever was fetched the very first time.
+// EXCEPTION: any live data request — the site's own Netlify Functions
+// (cms-content.js, prayers-list.js, check-membership.js, cms-*.js, etc.) and
+// the old Google Sheets URLs (kept for safety, though nothing fetches those
+// client-side any more) — always goes network-first. This data changes
+// whenever someone edits it in /cms.html or /admin-prayers.html, so
+// cache-first would freeze it at whatever was fetched on the visitor's very
+// first visit and never update again, no matter how many times they reload.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   // Browser extensions (ad blockers, password managers, etc.) can trigger
@@ -74,9 +78,11 @@ self.addEventListener("fetch", (event) => {
   // moz-extension:, etc.) — only handle real http(s) requests.
   if (!event.request.url.startsWith("http")) return;
 
-  const isLiveSheetRequest = event.request.url.includes("docs.google.com/spreadsheets");
+  const isLiveDataRequest =
+    event.request.url.includes("/.netlify/functions/") ||
+    event.request.url.includes("docs.google.com/spreadsheets");
 
-  if (isLiveSheetRequest) {
+  if (isLiveDataRequest) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
