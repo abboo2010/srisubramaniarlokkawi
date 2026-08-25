@@ -958,6 +958,21 @@ img{display:block;max-width:100%;}
 .status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .status-dot.dot-green{background:#3e7c52;}
 .status-dot.dot-red{background:#c0392b;}
+.membership-print-btn{
+  display:block;margin-top:20px;background:var(--maroon-700);color:#fff;border:none;border-radius:var(--radius-sm);
+  padding:11px 22px;font-weight:800;font-size:13.5px;letter-spacing:.02em;cursor:pointer;
+}
+.membership-print-btn:hover{filter:brightness(1.1);}
+
+/* ===== Print: Membership Status result only ===== */
+@media print{
+  .no-print, .rail, .topbar, #splashScreen, #railBackdrop{display:none !important;}
+  #app, .screen-wrap{padding:0 !important;margin:0 !important;background:#fff !important;}
+  .screen{display:none !important;}
+  .screen.active{display:block !important;}
+  .membership-card{box-shadow:none !important;border:none !important;padding:0 !important;}
+  .membership-result{background:#fff !important;border:1px solid #ccc !important;}
+}
 
 @media (max-width:600px){
   .membership-card{padding:22px 18px;}

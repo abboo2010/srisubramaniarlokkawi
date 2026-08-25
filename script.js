@@ -209,6 +209,7 @@ function renderStaticText(){
   document.getElementById("membershipResultNoLabel").textContent = t("membershipResultNo");
   document.getElementById("membershipResultTypeLabel").textContent = t("membershipResultType");
   document.getElementById("membershipResultStatusLabel").textContent = t("membershipResultStatus");
+  document.getElementById("membershipPrintBtnText").textContent = t("membershipPrintBtn");
 
   document.getElementById("contactHeadingText").textContent = t("contactHeading");
   document.getElementById("contactSubText").textContent = t("contactSub");
@@ -1492,6 +1493,8 @@ if (membershipNoInput){
   });
 }
 if (membershipCheckBtn) membershipCheckBtn.addEventListener("click", checkMembership);
+const membershipPrintBtn = document.getElementById("membershipPrintBtn");
+if (membershipPrintBtn) membershipPrintBtn.addEventListener("click", () => window.print());
 
 function hideMembershipError(){ membershipErrorText.style.display = "none"; }
 function showMembershipError(key){

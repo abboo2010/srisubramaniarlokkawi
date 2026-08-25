@@ -330,21 +330,21 @@
       <!-- ===== CONTACT ===== -->
       <section class="screen" id="screen-membership">
         <div class="section-head">
-          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="tiers no-print"><span></span><span></span><span></span><span></span><span></span></div>
           <h2 id="membershipHeadingText">Membership Status</h2>
-          <p id="membershipSubText">Enter your Membership No. to check your temple membership status.</p>
+          <p class="no-print" id="membershipSubText">Enter your Membership No. to check your temple membership status.</p>
         </div>
 
         <div class="card membership-card">
-          <label class="membership-label" id="membershipInputLabel" for="membershipNoInput">Membership No.</label>
-          <div class="membership-input-row">
+          <label class="membership-label no-print" id="membershipInputLabel" for="membershipNoInput">Membership No.</label>
+          <div class="membership-input-row no-print">
             <input type="text" id="membershipNoInput" class="membership-input" placeholder="M-0231" autocomplete="off" />
             <button class="membership-check-btn" id="membershipCheckBtn">
               <span id="membershipCheckBtnText">Check Status</span>
             </button>
           </div>
-          <p class="membership-hint" id="membershipHintText">Enter the Membership No. shown on your membership card.</p>
-          <p class="membership-error" id="membershipErrorText" style="display:none;"></p>
+          <p class="membership-hint no-print" id="membershipHintText">Enter the Membership No. shown on your membership card.</p>
+          <p class="membership-error no-print" id="membershipErrorText" style="display:none;"></p>
 
           <div class="membership-result" id="membershipResult" style="display:none;">
             <div class="membership-result-header">
@@ -371,6 +371,9 @@
                 <span class="status-dot" id="membershipResultStatusDot"></span><span id="membershipResultStatusText"></span>
               </span>
             </div>
+            <button class="membership-print-btn no-print" id="membershipPrintBtn" type="button">
+              <span id="membershipPrintBtnText">Print</span>
+            </button>
           </div>
         </div>
       </section>
