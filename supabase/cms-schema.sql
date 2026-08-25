@@ -224,10 +224,12 @@ create table if not exists members (
   nric             text not null unique,
   membership_no    text not null default '',
   membership_type  text not null default 'Ordinary' check (membership_type in ('Life','Ordinary')),
+  status           text not null default 'Active' check (status in ('Active','Not Active','Pending for Annual renewal')),
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now()
 );
 create index if not exists members_nric_idx on members (nric);
+create index if not exists members_membership_no_idx on members (membership_no);
 alter table members enable row level security;
 drop trigger if exists members_set_updated_at on members;
 create trigger members_set_updated_at before update on members

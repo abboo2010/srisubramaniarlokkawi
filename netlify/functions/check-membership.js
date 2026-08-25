@@ -1,12 +1,18 @@
 // ============================================================
 // check-membership.js — Netlify Function (public, read-only)
 //
-// Looks up a single member by NRIC in the Supabase "members" table
-// (added by the /cms Membership tab). Only the matched record — or
-// a 404 if there's no match — is returned to the visitor; the full
-// member list is never sent to the client. Same public contract as
-// before (GET ?nric=XXXXXX-XX-XXXX), so index.html's Membership
-// Status screen needed no changes.
+// Looks up a single member by Membership No. in the Supabase
+// "members" table (added by the /cms Membership tab). Only the
+// matched record — or a 404 if there's no match — is returned to
+// the visitor; the full member list is never sent to the client.
+//
+// Public contract: GET ?membershipNo=M-0231 (was previously
+// ?nric=XXXXXX-XX-XXXX). Switched from NRIC to Membership No. as the
+// public search key because NRIC is a sensitive government ID
+// number — it is never accepted as a query param and never included
+// in the response below, even though it's still stored in the
+// database for the committee's own records (visible only in
+// /cms.html's Membership tab, which is password-gated).
 //
 // This replaces the earlier Google Sheets version (a private
 // "Members" sheet read via a Google service account) — that sheet
@@ -20,15 +26,13 @@
 // ============================================================
 const { supabaseClient } = require("./_supabase");
 
-const NRIC_PATTERN = /^\d{6}-\d{2}-\d{4}$/;
-
 exports.handler = async (event) => {
-  const nric = (event.queryStringParameters && event.queryStringParameters.nric || "").trim();
+  const membershipNo = (event.queryStringParameters && event.queryStringParameters.membershipNo || "").trim();
 
-  if (!NRIC_PATTERN.test(nric)) {
+  if (!membershipNo) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "Invalid NRIC format. Expected XXXXXX-XX-XXXX." })
+      body: JSON.stringify({ error: "Please enter a Membership No." })
     };
   }
 
@@ -41,8 +45,8 @@ exports.handler = async (event) => {
   try {
     const { data, error } = await supabase
       .from("members")
-      .select("name, nric, membership_no, membership_type")
-      .eq("nric", nric)
+      .select("name, membership_no, membership_type, status")
+      .ilike("membership_no", membershipNo)
       .maybeSingle();
 
     if (error) throw error;
@@ -56,9 +60,9 @@ exports.handler = async (event) => {
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
       body: JSON.stringify({
         name: data.name || "",
-        nric: data.nric || nric,
-        membershipNo: data.membership_no || "",
-        membershipType: data.membership_type || ""
+        membershipNo: data.membership_no || membershipNo,
+        membershipType: data.membership_type || "",
+        status: data.status || "Active"
       })
     };
   } catch (err) {

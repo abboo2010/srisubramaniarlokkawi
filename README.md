@@ -29,6 +29,7 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 - Supabase dashboard → **SQL Editor** → **New query**
 - Paste in the entire contents of `supabase/cms-schema.sql` → **Run** (this also creates a public `temple-media` Storage bucket for uploaded photos)
 - New query again → paste in the entire contents of `supabase/cms-seed.sql` → **Run** — this loads your site's real current content (as of when this CMS was built) into the new tables, so `/cms.html` starts out populated instead of empty. Skip this step if you'd rather start from blank/default content.
+- If you had already run `cms-schema.sql` **before** the Membership status/search-by-No. update, also run `supabase/cms-members-status-migration.sql` once — it adds the `status` column and a search index to the existing `members` table. If this is a brand-new install, `cms-schema.sql` already includes it, so this extra file is not needed.
 - Same security model as `schema.sql`: Row Level Security is on for every table with no public policies — the browser can never read/write these tables directly, only the Netlify Functions below can, using the `service_role` key.
 
 **3. Add/confirm environment variables in Netlify**
@@ -40,11 +41,13 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 - Go to `https://your-site.netlify.app/cms.html`, log in with `ADMIN_PASSWORD`
 - Ten tabs: **Hero Banner**, **Home Tiles**, **About**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**
 - Photo fields (Hero background, Deity photos, Gallery photos) resize/compress in your browser and upload straight to Supabase Storage — no separate image hosting needed
-- **Membership tab** replaces the old private Google Sheet entirely: add/edit/delete members one at a time, or use **Bulk Import** to paste CSV (`Name,NRIC,Membership No.,Membership Type`) — this is also how to migrate your existing Members sheet: open it, File → Download → CSV, open that file in a text editor, paste the contents in
+- **Membership tab** replaces the old private Google Sheet entirely: add/edit/delete members one at a time, or use **Bulk Import** to paste CSV (`Name,NRIC,Membership No.,Membership Type,Status` — Status column is optional, defaults to Active) — this is also how to migrate your existing Members sheet: open it, File → Download → CSV, open that file in a text editor, paste the contents in
+- Each member has a **Status** dropdown: `Active` (green dot), `Not Active` (red dot), or `Pending for Annual renewal` (red dot, per how it was specified) — shown next to the member's name in the CMS table, and on the public Membership Status result
+- NRIC is still stored per member (for your own records) but is **never sent to the public Membership Status page** — visitors now look themselves up by **Membership No.** instead, since NRIC is a sensitive government ID number
 
 **5. Test it**
 - Edit the Hero Banner eyebrow text → Save → reload the live site → the change should appear immediately
-- Membership Status (public page) → enter an NRIC you added in the Membership tab → should show that member's details
+- Membership Status (public page) → enter a Membership No. you added in the Membership tab → should show that member's details and status
 
 ## Annual Prayers & Registration — one-time setup
 

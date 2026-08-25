@@ -78,6 +78,9 @@
   .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:10.5px; font-weight:700; white-space:nowrap;}
   .pill.on{background:rgba(62,124,82,0.14); color:var(--green-600);}
   .pill.off{background:var(--cream-100); color:var(--ink-600);}
+  .status-dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; vertical-align:middle;}
+  .status-dot.dot-green{background:var(--green-600, #3e7c52);}
+  .status-dot.dot-red{background:#c0392b;}
 
   .row-actions{display:flex; gap:6px; flex-wrap:wrap;}
   .row-actions button{padding:5px 10px; border-radius:6px; border:1px solid var(--cream-100); background:#fff; font-size:11px; cursor:pointer; font-weight:600;}
@@ -231,7 +234,7 @@
 
   <!-- ================= MEMBERS ================= -->
   <div class="tab-panel" id="tab-members">
-    <p class="panel-hint">Membership records used by the Membership Status lookup on the site (visitors search by NRIC; the full list here is never sent to them).</p>
+    <p class="panel-hint">Membership records used by the Membership Status lookup on the site (visitors now search by Membership No., not NRIC — NRIC is kept here for your own records only and is never sent to the public lookup).</p>
     <div class="toolbar">
       <input type="text" id="members-search" placeholder="Search name, NRIC, or membership no…" />
       <button id="members-refresh">Refresh</button>
@@ -241,8 +244,8 @@
     </div>
     <div class="bulk-box" id="members-bulk-box">
       <h3 style="margin-top:0;">Bulk Import</h3>
-      <p class="panel-hint">Paste CSV with header <code>Name,NRIC,Membership No.,Membership Type</code> (Membership Type must be <code>Life</code> or <code>Ordinary</code>). Existing members are matched and updated by NRIC; new NRICs are added.</p>
-      <textarea id="members-bulk-text" placeholder="Name,NRIC,Membership No.,Membership Type&#10;Ravi Kumar,880101-12-5566,M-0231,Ordinary"></textarea>
+      <p class="panel-hint">Paste CSV with header <code>Name,NRIC,Membership No.,Membership Type,Status</code> (Membership Type must be <code>Life</code> or <code>Ordinary</code>; Status must be <code>Active</code>, <code>Not Active</code>, or <code>Pending for Annual renewal</code> — Status column is optional, defaults to Active). Existing members are matched and updated by NRIC; new NRICs are added.</p>
+      <textarea id="members-bulk-text" placeholder="Name,NRIC,Membership No.,Membership Type,Status&#10;Ravi Kumar,880101-12-5566,M-0231,Ordinary,Active"></textarea>
       <div class="edit-actions"><button class="save" id="members-bulk-submit">Import</button><button class="cancel" id="members-bulk-cancel">Cancel</button></div>
     </div>
     <div id="members-panel" class="edit-panel"></div>
@@ -728,17 +731,20 @@ const contactTab = makeSingletonTab({
 // export, and a bulk-import box on top of the usual add/edit/delete.
 // ============================================================
 const membersState = { rows: [] };
+const MEMBER_STATUS_VALUES = ["Active", "Not Active", "Pending for Annual renewal"];
+function statusDotClass(status){ return status === "Active" ? "dot-green" : "dot-red"; }
 function renderMembersTable(){
   const q = document.getElementById("members-search").value.trim().toLowerCase();
   const tbody = document.querySelector("#members-table tbody");
-  document.querySelector("#members-table thead").innerHTML = "<tr><th>Name</th><th>NRIC</th><th>Membership No.</th><th>Type</th><th>Actions</th></tr>";
+  document.querySelector("#members-table thead").innerHTML = "<tr><th>Name</th><th>NRIC</th><th>Membership No.</th><th>Type</th><th>Status</th><th>Actions</th></tr>";
   const rows = membersState.rows.filter(m => !q || (m.name + " " + m.nric + " " + m.membershipNo).toLowerCase().includes(q));
   tbody.innerHTML = "";
-  if (!rows.length){ tbody.innerHTML = `<tr><td colspan="5"><div class="empty-note">No members found.</div></td></tr>`; return; }
+  if (!rows.length){ tbody.innerHTML = `<tr><td colspan="6"><div class="empty-note">No members found.</div></td></tr>`; return; }
   rows.forEach(m => {
     const tr = h(`<tr>
       <td>${escHtml(m.name)}</td><td>${escHtml(m.nric)}</td><td>${escHtml(m.membershipNo)}</td>
       <td><span class="pill ${m.membershipType === "Life" ? "on" : "off"}">${escHtml(m.membershipType)}</span></td>
+      <td><span class="status-dot ${statusDotClass(m.status)}"></span>${escHtml(m.status || "Active")}</td>
       <td class="row-actions"><button class="edit">Edit</button><button class="delete">Delete</button></td>
     </tr>`);
     tr.querySelector(".edit").addEventListener("click", () => openMemberForm(m));
@@ -756,6 +762,7 @@ function openMemberForm(m){
       <div class="edit-field"><label>NRIC (XXXXXX-XX-XXXX)</label><input type="text" id="mf-nric" value="${escAttr(m ? m.nric : "")}" placeholder="880101-12-5566" /></div>
       <div class="edit-field"><label>Membership No.</label><input type="text" id="mf-no" value="${escAttr(m ? m.membershipNo : "")}" /></div>
       <div class="edit-field"><label>Membership Type</label><select id="mf-type"><option ${m && m.membershipType==="Ordinary"?"selected":""}>Ordinary</option><option ${m && m.membershipType==="Life"?"selected":""}>Life</option></select></div>
+      <div class="edit-field"><label>Status</label><select id="mf-status">${MEMBER_STATUS_VALUES.map(s => `<option ${(m ? m.status : "Active") === s ? "selected" : ""}>${s}</option>`).join("")}</select></div>
     </div>
     <div class="edit-actions"><button class="save">Save</button><button class="cancel">Cancel</button></div>
   `;
@@ -765,7 +772,8 @@ function openMemberForm(m){
       name: document.getElementById("mf-name").value.trim(),
       nric: document.getElementById("mf-nric").value.trim(),
       membershipNo: document.getElementById("mf-no").value.trim(),
-      membershipType: document.getElementById("mf-type").value
+      membershipType: document.getElementById("mf-type").value,
+      status: document.getElementById("mf-status").value
     };
     if (m) data.id = m.id;
     try {
@@ -803,8 +811,8 @@ document.getElementById("members-refresh").addEventListener("click", loadMembers
 document.getElementById("members-search").addEventListener("input", renderMembersTable);
 document.getElementById("members-add").addEventListener("click", () => openMemberForm(null));
 document.getElementById("members-export").addEventListener("click", () => {
-  const rows = [["Name","NRIC","Membership No.","Membership Type"]];
-  membersState.rows.forEach(m => rows.push([m.name, m.nric, m.membershipNo, m.membershipType]));
+  const rows = [["Name","NRIC","Membership No.","Membership Type","Status"]];
+  membersState.rows.forEach(m => rows.push([m.name, m.nric, m.membershipNo, m.membershipType, m.status || "Active"]));
   const csv = rows.map(r => r.map(c => { const s = String(c == null ? "" : c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -822,10 +830,13 @@ document.getElementById("members-bulk-submit").addEventListener("click", async (
   const nricIdx = header.indexOf("nric");
   const noIdx = header.findIndex(h => h.startsWith("membership no"));
   const typeIdx = header.findIndex(h => h.startsWith("membership type"));
+  const statusIdx = header.indexOf("status");
   if (nameIdx === -1 || nricIdx === -1){ showStatus("CSV needs at least Name and NRIC columns.", "error"); return; }
   const rows = lines.slice(1).map(line => {
     const cells = line.split(",").map(c => c.trim());
-    return { name: cells[nameIdx] || "", nric: cells[nricIdx] || "", membershipNo: noIdx > -1 ? (cells[noIdx] || "") : "", membershipType: typeIdx > -1 ? (cells[typeIdx] || "Ordinary") : "Ordinary" };
+    const row = { name: cells[nameIdx] || "", nric: cells[nricIdx] || "", membershipNo: noIdx > -1 ? (cells[noIdx] || "") : "", membershipType: typeIdx > -1 ? (cells[typeIdx] || "Ordinary") : "Ordinary" };
+    if (statusIdx > -1 && cells[statusIdx] && MEMBER_STATUS_VALUES.includes(cells[statusIdx])) row.status = cells[statusIdx];
+    return row;
   });
   try {
     const body = await apiMembersSave("bulkImport", { rows });

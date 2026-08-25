@@ -11,14 +11,20 @@
 //
 // GET  (header X-Admin-Password) -> { members: [...] } (full list)
 // POST (header X-Admin-Password, body { action, data }) ->
-//   action "create"     data: { name, nric, membershipNo, membershipType }
-//   action "update"     data: { id, name, nric, membershipNo, membershipType }
+//   action "create"     data: { name, nric, membershipNo, membershipType, status }
+//   action "update"     data: { id, name, nric, membershipNo, membershipType, status }
 //   action "delete"     data: { id }
-//   action "bulkImport" data: { rows: [{ name, nric, membershipNo, membershipType }, ...] }
+//   action "bulkImport" data: { rows: [{ name, nric, membershipNo, membershipType, status }, ...] }
 //                        — upserts by NRIC (updates existing members,
 //                        inserts new ones); used to migrate the old
 //                        Members sheet in one paste (see cms.html's
 //                        Members tab for the expected CSV columns).
+//
+// "status" is one of "Active", "Not Active", "Pending for Annual
+// renewal" — shown on the public Membership Status screen with a
+// colored dot (green for Active, red for the other two). Requires
+// the supabase/cms-members-status-migration.sql migration to have
+// been run (adds the "status" column to the members table).
 //
 // Required environment variables: same as admin-prayer-bookings.js
 // (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD).
@@ -26,6 +32,7 @@
 const { supabaseClient } = require("./_supabase");
 
 const NRIC_PATTERN = /^\d{6}-\d{2}-\d{4}$/;
+const STATUS_VALUES = ["Active", "Not Active", "Pending for Annual renewal"];
 
 function memberRow(data) {
   const row = {};
@@ -33,6 +40,7 @@ function memberRow(data) {
   if (data.nric !== undefined) row.nric = String(data.nric || "").trim();
   if (data.membershipNo !== undefined) row.membership_no = String(data.membershipNo || "").trim();
   if (data.membershipType !== undefined) row.membership_type = data.membershipType === "Life" ? "Life" : "Ordinary";
+  if (data.status !== undefined) row.status = STATUS_VALUES.includes(data.status) ? data.status : "Active";
   return row;
 }
 
@@ -51,7 +59,7 @@ exports.handler = async (event) => {
     try {
       const { data, error } = await supabase.from("members").select("*").order("name", { ascending: true });
       if (error) throw error;
-      const members = (data || []).map(m => ({ id: m.id, name: m.name, nric: m.nric, membershipNo: m.membership_no, membershipType: m.membership_type }));
+      const members = (data || []).map(m => ({ id: m.id, name: m.name, nric: m.nric, membershipNo: m.membership_no, membershipType: m.membership_type, status: m.status || "Active" }));
       return { statusCode: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }, body: JSON.stringify({ members }) };
     } catch (err) {
       console.error("Fetching members failed:", err);

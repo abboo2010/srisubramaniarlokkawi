@@ -201,13 +201,13 @@ function renderStaticText(){
   document.getElementById("membershipHeadingText").textContent = t("membershipHeading");
   document.getElementById("membershipSubText").textContent = t("membershipSub");
   document.getElementById("membershipInputLabel").textContent = t("membershipInputLabel");
-  document.getElementById("membershipNricInput").placeholder = t("membershipPlaceholder");
+  document.getElementById("membershipNoInput").placeholder = t("membershipPlaceholder");
   document.getElementById("membershipCheckBtnText").textContent = t("membershipCheckBtn");
   document.getElementById("membershipHintText").textContent = t("membershipHint");
   document.getElementById("membershipResultNameLabel").textContent = t("membershipResultName");
-  document.getElementById("membershipResultNricLabel").textContent = t("membershipResultNric");
   document.getElementById("membershipResultNoLabel").textContent = t("membershipResultNo");
   document.getElementById("membershipResultTypeLabel").textContent = t("membershipResultType");
+  document.getElementById("membershipResultStatusLabel").textContent = t("membershipResultStatus");
 
   document.getElementById("contactHeadingText").textContent = t("contactHeading");
   document.getElementById("contactSubText").textContent = t("contactSub");
@@ -1464,40 +1464,29 @@ fetchFridayAnnathanamFromDb();
 
 // ============================================================
 // MEMBERSHIP STATUS CHECK
-// Looks up a member by NRIC via a secure server-side function
-// (netlify/functions/check-membership.js). The full member list
-// is never sent to the browser — only the single matched record
-// (or a not-found result) for the NRIC the visitor typed in.
+// Looks up a member by Membership No. via a secure server-side
+// function (netlify/functions/check-membership.js). The full member
+// list is never sent to the browser — only the single matched
+// record (or a not-found result) for the Membership No. the visitor
+// typed in. Switched from NRIC to Membership No. as the public
+// search key since NRIC is a sensitive government ID number.
 // ============================================================
-const NRIC_PATTERN = /^\d{6}-\d{2}-\d{4}$/;
-const membershipNricInput = document.getElementById("membershipNricInput");
+const membershipNoInput = document.getElementById("membershipNoInput");
 const membershipCheckBtn = document.getElementById("membershipCheckBtn");
 const membershipErrorText = document.getElementById("membershipErrorText");
 const membershipResult = document.getElementById("membershipResult");
+const MEMBERSHIP_STATUS_KEYS = {
+  "active": "membershipStatusActive",
+  "not active": "membershipStatusNotActive",
+  "pending for annual renewal": "membershipStatusPending"
+};
 
-// Auto-insert dashes as the visitor types digits, so the field
-// always ends up formatted as XXXXXX-XX-XXXX without them needing
-// to type the dashes themselves.
-function formatNric(raw){
-  const digits = raw.replace(/\D/g, "").slice(0, 12);
-  let out = digits.slice(0, 6);
-  if (digits.length > 6) out += "-" + digits.slice(6, 8);
-  if (digits.length > 8) out += "-" + digits.slice(8, 12);
-  return out;
-}
-
-if (membershipNricInput){
-  membershipNricInput.addEventListener("input", () => {
-    const pos = membershipNricInput.selectionStart;
-    const before = membershipNricInput.value;
-    membershipNricInput.value = formatNric(before);
-    // Keep the cursor roughly in place after reformatting.
-    const diff = membershipNricInput.value.length - before.length;
-    membershipNricInput.setSelectionRange(pos + diff, pos + diff);
+if (membershipNoInput){
+  membershipNoInput.addEventListener("input", () => {
     hideMembershipError();
     hideMembershipResult();
   });
-  membershipNricInput.addEventListener("keydown", (e) => {
+  membershipNoInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") checkMembership();
   });
 }
@@ -1511,11 +1500,11 @@ function showMembershipError(key){
 function hideMembershipResult(){ membershipResult.style.display = "none"; }
 
 async function checkMembership(){
-  const nric = membershipNricInput.value.trim();
+  const membershipNo = membershipNoInput.value.trim();
   hideMembershipError();
   hideMembershipResult();
 
-  if (!NRIC_PATTERN.test(nric)){
+  if (!membershipNo){
     showMembershipError("membershipInvalidFormat");
     return;
   }
@@ -1525,7 +1514,7 @@ async function checkMembership(){
   document.getElementById("membershipCheckBtnText").textContent = t("membershipChecking");
 
   try {
-    const res = await fetch(`/.netlify/functions/check-membership?nric=${encodeURIComponent(nric)}`);
+    const res = await fetch(`/.netlify/functions/check-membership?membershipNo=${encodeURIComponent(membershipNo)}`);
     if (res.status === 404){
       showMembershipError("membershipNotFound");
     } else if (!res.ok){
@@ -1533,10 +1522,15 @@ async function checkMembership(){
     } else {
       const data = await res.json();
       document.getElementById("membershipResultName").textContent = data.name || "";
-      document.getElementById("membershipResultNric").textContent = data.nric || nric;
-      document.getElementById("membershipResultNo").textContent = data.membershipNo || "";
+      document.getElementById("membershipResultNo").textContent = data.membershipNo || membershipNo;
       const typeKey = (data.membershipType || "").trim().toLowerCase() === "life" ? "membershipTypeLife" : "membershipTypeOrdinary";
       document.getElementById("membershipResultType").textContent = t(typeKey);
+      const statusRaw = (data.status || "Active").trim().toLowerCase();
+      const statusKey = MEMBERSHIP_STATUS_KEYS[statusRaw] || "membershipStatusActive";
+      document.getElementById("membershipResultStatusText").textContent = t(statusKey);
+      const dot = document.getElementById("membershipResultStatusDot");
+      dot.classList.remove("dot-green", "dot-red");
+      dot.classList.add(statusRaw === "active" ? "dot-green" : "dot-red");
       membershipResult.style.display = "block";
     }
   } catch (err){

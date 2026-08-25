@@ -332,18 +332,18 @@
         <div class="section-head">
           <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
           <h2 id="membershipHeadingText">Membership Status</h2>
-          <p id="membershipSubText">Enter your NRIC number to check your temple membership status.</p>
+          <p id="membershipSubText">Enter your Membership No. to check your temple membership status.</p>
         </div>
 
         <div class="card membership-card">
-          <label class="membership-label" id="membershipInputLabel" for="membershipNricInput">NRIC Number</label>
+          <label class="membership-label" id="membershipInputLabel" for="membershipNoInput">Membership No.</label>
           <div class="membership-input-row">
-            <input type="text" id="membershipNricInput" class="membership-input" placeholder="XXXXXX-XX-XXXX" inputmode="numeric" maxlength="14" autocomplete="off" />
+            <input type="text" id="membershipNoInput" class="membership-input" placeholder="M-0231" autocomplete="off" />
             <button class="membership-check-btn" id="membershipCheckBtn">
               <span id="membershipCheckBtnText">Check Status</span>
             </button>
           </div>
-          <p class="membership-hint" id="membershipHintText">Format: XXXXXX-XX-XXXX (numbers only)</p>
+          <p class="membership-hint" id="membershipHintText">Enter the Membership No. shown on your membership card.</p>
           <p class="membership-error" id="membershipErrorText" style="display:none;"></p>
 
           <div class="membership-result" id="membershipResult" style="display:none;">
@@ -358,16 +358,18 @@
               <span class="membership-result-value" id="membershipResultName"></span>
             </div>
             <div class="membership-result-row">
-              <span class="membership-result-label" id="membershipResultNricLabel">NRIC</span>:
-              <span class="membership-result-value" id="membershipResultNric"></span>
-            </div>
-            <div class="membership-result-row">
               <span class="membership-result-label" id="membershipResultNoLabel">Membership No.</span>:
               <span class="membership-result-value" id="membershipResultNo"></span>
             </div>
             <div class="membership-result-row">
               <span class="membership-result-label" id="membershipResultTypeLabel">Membership Type</span>:
               <span class="membership-result-value" id="membershipResultType"></span>
+            </div>
+            <div class="membership-result-row">
+              <span class="membership-result-label" id="membershipResultStatusLabel">Status</span>:
+              <span class="membership-result-value">
+                <span class="status-dot" id="membershipResultStatusDot"></span><span id="membershipResultStatusText"></span>
+              </span>
             </div>
           </div>
         </div>
