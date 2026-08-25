@@ -249,25 +249,28 @@ const UI = {
 
 // ---------- Home quick-nav tile copy (title/desc per language) ----------
 const TILE_META = [
-  { key: "about",
+  { key: "about", icon: "about", destination: "about",
     title: { en: "About Temple", bm: "Tentang Kuil", ta: "கோயில் பற்றி" },
     desc:  { en: "History, Vision & Temple Activities", bm: "Sejarah, Visi & Aktiviti Kuil", ta: "வரலாறு, நோக்கம் & கோயில் நடவடிக்கைகள்" } },
-  { key: "deities",
+  { key: "deities", icon: "deities", destination: "deities",
     title: { en: "Deities", bm: "Dewa-Dewi", ta: "தெய்வங்கள்" },
     desc:  { en: "Sri Subramaniar & Other Deities", bm: "Sri Subramaniar & Dewa-Dewi Lain", ta: "ஸ்ரீ சுப்ரமணியர் & பிற தெய்வங்கள்" } },
-  { key: "calendar",
+  { key: "calendar", icon: "calendar", destination: "calendar",
     title: { en: "Event Calendar", bm: "Kalendar Acara", ta: "நிகழ்வு நாட்காட்டி" },
     desc:  { en: "Poojas, Festivals & Special Events", bm: "Pooja, Perayaan & Acara Khas", ta: "பூஜைகள், திருவிழாக்கள் & சிறப்பு நிகழ்வுகள்" } },
-  { key: "timings",
+  { key: "timings", icon: "timings", destination: "timings",
     title: { en: "Pooja Timings", bm: "Waktu Pooja", ta: "பூஜை நேரங்கள்" },
     desc:  { en: "Daily Pooja & Darshan Timings", bm: "Waktu Pooja Harian & Darshan", ta: "தினசரி பூஜை & தரிசன நேரங்கள்" } },
-  { key: "sevas",
+  { key: "sevas", icon: "sevas", destination: "sevas",
     title: { en: "Sevas & Donations", bm: "Seva & Derma", ta: "சேவை & நன்கொடை" },
     desc:  { en: "Support Temple & Sevas", bm: "Sokong Kuil & Seva", ta: "கோயிலுக்கும் சேவைகளுக்கும் ஆதரவு" } },
-  { key: "prayers",
+  { key: "prayers", icon: "prayers", destination: "prayers",
     title: { en: "Prayers & Registration", bm: "Pooja Tahunan & Pendaftaran", ta: "ஆண்டு பூஜைகள் & பதிவு" },
     desc:  { en: "Sponsor or Join a Pooja", bm: "Taja atau Sertai Pooja", ta: "பூஜையை நிதியுதவி செய்ய அல்லது பங்கேற்க" } },
-  { key: "fridayAnnathanam",
+  { key: "fridayAnnathanam", icon: "fridayAnnathanam", destination: "fridayAnnathanam",
     title: { en: "Friday Annathanam", bm: "Annathanam Jumaat", ta: "வெள்ளி அன்னதானம்" },
-    desc:  { en: "Sponsor a Weekly Friday Meal", bm: "Taja Hidangan Jumaat Mingguan", ta: "வாராந்திர வெள்ளி உணவை நிதியுதவி செய்ய" } }
+    desc:  { en: "Sponsor a Weekly Friday Meal", bm: "Taja Hidangan Jumaat Mingguan", ta: "வாராந்திர வெள்ளி உணவை நிதியுதவி செய்ய" } },
+  { key: "membership", icon: "membership", destination: "membership",
+    title: { en: "Membership Status", bm: "Status Keahlian", ta: "உறுப்பினர் நிலை" },
+    desc:  { en: "Check Your Membership Status", bm: "Semak Status Keahlian Anda", ta: "உங்கள் உறுப்பினர் நிலையைச் சரிபார்க்கவும்" } }
 ];
