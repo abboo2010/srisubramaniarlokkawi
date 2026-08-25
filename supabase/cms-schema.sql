@@ -280,7 +280,14 @@ create table if not exists gallery (
   sort_order    integer not null default 0,
   updated_at    timestamptz not null default now()
 );
-create unique index if not exists gallery_label_en_key on gallery (label_en);
+-- Deliberately NO unique constraint on label_en: unlike Deities/Sevas/
+-- Announcements (where a duplicate name really does mean an accidental
+-- re-seed), Gallery photos are not uniquely identified by their
+-- caption — many photos legitimately have no caption at all, or share
+-- one, especially when several are added at once via Bulk Upload. An
+-- earlier version of this schema did add that constraint, which
+-- silently broke bulk/blank-caption uploads (see
+-- supabase/fix-gallery-caption-uniqueness.sql for the live-DB fix).
 create index if not exists gallery_folder_idx on gallery (folder_id, sort_order);
 alter table gallery enable row level security;
 drop trigger if exists gallery_set_updated_at on gallery;

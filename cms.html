@@ -736,6 +736,10 @@ const galleryTab = makeListTab({
 // than all at once — kinder to the browser (each photo is resized
 // on the main thread via <canvas>) and to the upload function's
 // ~4MB-per-request cap, and it keeps the progress line meaningful.
+function titleFromFilename(name){
+  const base = String(name || "").replace(/\.[^./]+$/, "");
+  return base.replace(/[-_]+/g, " ").trim();
+}
 function populateGalleryBulkFolderSelect(){
   const sel = document.getElementById("gallery-bulk-folder");
   const folders = galleryFoldersTab.rows;
@@ -778,7 +782,11 @@ document.getElementById("gallery-bulk-submit").addEventListener("click", async (
       const thumbnailUrl = await uploadImage(file, "gallery", 480, 0.72);
       await apiSave("galleryItem", "create", {
         folderId, imageUrl, thumbnailUrl,
-        labelEn: "", labelBm: "", labelTa: "",
+        // A caption derived from the filename, not left blank — mainly
+        // so photos are distinguishable in the table afterwards; not
+        // required for the save to succeed (gallery.label_en isn't a
+        // unique column, blank or repeated captions are fine).
+        labelEn: titleFromFilename(file.name), labelBm: "", labelTa: "",
         sortOrder: existingMax + i + 1
       });
       uploaded++;

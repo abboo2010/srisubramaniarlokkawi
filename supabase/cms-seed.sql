@@ -203,38 +203,51 @@ insert into gallery_folders (category_id, name_en, name_bm, name_ta, sort_order)
   on conflict (category_id, name_en) do nothing;
 
 -- ---------- gallery (bundled captions; no photos uploaded yet — add via the CMS Gallery Photos tab) ----------
+-- Re-run protection here is a "not exists" guard on (folder_id,
+-- label_en) rather than "on conflict" — gallery.label_en has no
+-- unique constraint (captions aren't a natural key for photos; see
+-- cms-schema.sql), so on conflict isn't available, but this still
+-- keeps re-running this file safe.
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Thaipusam Procession', 'Perarakan Thaipusam', 'தைப்பூசம் ஊர்வலம்', 0
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Festivals' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Festivals' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Thaipusam Procession');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Navarathri Golu', 'Navarathri Golu', 'நவராத்திரி கொலு', 1
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Festivals' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Festivals' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Navarathri Golu');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Murugan Alankaram', 'Alankaram Murugan', 'முருகன் அலங்காரம்', 2
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Deities' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Deities' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Murugan Alankaram');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Ganesha Shrine', 'Kuil Ganesha', 'விநாயகர் ஆலயம்', 3
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Deities' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Deities' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Ganesha Shrine');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Main Gopuram', 'Gopuram Utama', 'முதன்மை கோபுரம்', 4
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Temple' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Temple' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Main Gopuram');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Inner Sanctum', 'Bilik Suci Dalam', 'உள் கருவறை', 5
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Temple' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Temple' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Inner Sanctum');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Annadhanam Hall', 'Dewan Annadhanam', 'அன்னதான மண்டபம்', 6
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Community' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Community' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Annadhanam Hall');
 insert into gallery (folder_id, image_url, label_en, label_bm, label_ta, sort_order)
   select f.id, '', 'Cultural Class', 'Kelas Kebudayaan', 'பண்பாட்டு வகுப்பு', 7
   from gallery_folders f join gallery_categories c on c.id = f.category_id
-  where c.name_en = 'Community' and f.name_en = 'General' on conflict (label_en) do nothing;
+  where c.name_en = 'Community' and f.name_en = 'General'
+    and not exists (select 1 from gallery g where g.folder_id = f.id and g.label_en = 'Cultural Class');
 
 -- ---------- contact_info (live sheet content) ----------
 insert into contact_info (id, org_name, registration_no, phone, email, whatsapp_number, social,
