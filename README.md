@@ -1,85 +1,50 @@
 # Sri Subramaniar Alayam — App (browser + tablet kiosk + installable mobile app)
  
-One responsive site — same code, same deploy — that works as a fixed touchscreen kiosk, a browsable website, and an installable PWA on phones/tablets. Content is edited through a proper admin dashboard (Decap CMS), no code editing needed for day-to-day updates.
+One responsive site — same code, same deploy — that works as a fixed touchscreen kiosk, a browsable website, and an installable PWA on phones/tablets. Content is edited live through two password-protected admin pages, no code editing, no GitHub account, and no redeploy needed for day-to-day updates:
 
-## ⚠️ Deployment changed — read this first
-Earlier versions of this app were deployed by dragging the folder onto Netlify. **The CMS requires a different setup**: it needs a real GitHub repo connected to Netlify, because saving in the CMS commits the change to that repo, which is what triggers Netlify to rebuild and republish. Drag-and-drop deploys have no repo to commit to, so the CMS won't work with that method anymore.
+- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, and Contact Us
+- **`/admin-prayers.html`** — Prayers & Registration and Friday Annathanam
 
-## One-time setup (you need to do this — I can't do it for you, it needs your own accounts)
+Both read from and write to the same Supabase (Postgres) database, and both are gated by the same `ADMIN_PASSWORD`. Neither page is linked from the site's main navigation — bookmark the URLs.
 
-Steps 1–2 (push to GitHub, connect to Netlify) are done for your site already. What's left is turning on login access for the CMS.
-
-**Note on login method:** Netlify Identity (their old built-in login system) has been unreliable for newly created projects, so this CMS is configured to use **GitHub login** instead — simpler, and not affected by that issue. The trade-off: whoever edits content needs their own free GitHub account and to be added as a collaborator on the repo.
-
-**3. Register a GitHub OAuth App**
-- Go to https://github.com/settings/developers → **OAuth Apps → New OAuth App**
-- Application name: anything (e.g. "Temple CMS")
-- Homepage URL: `https://srisubramaniarlokkawi.netlify.app`
-- **Authorization callback URL** (must be exact): `https://api.netlify.com/auth/done`
-- Register → copy the **Client ID** → click **Generate a new client secret** → copy that too
-
-**4. Add those to Netlify**
-- Netlify dashboard → your site → **Project configuration → Access & security → OAuth**
-- Under **Authentication Providers** → **Install provider** → choose **GitHub**
-- Paste in the Client ID and Client Secret from step 3 → Save
-
-**5. Give committee members access**
-- On GitHub: go to the repo (`github.com/abboo2010/srisubramaniarlokkawi`) → **Settings → Collaborators** → **Add people** → enter their GitHub username or email
-- They need to accept the invite (check their email/GitHub notifications)
-
-**6. Open the CMS**
-- Go to `https://srisubramaniarlokkawi.netlify.app/admin/`
-- Click **Login with GitHub** → authorize → you're in
-
-**5. Open the CMS**
-- Go to `https://your-site.netlify.app/admin/`
-- Log in with the invited email — you'll see the full dashboard: Deities, Event Calendar, Pooja Timings, News & Announcements, Sevas & Donations, Gallery, About the Temple, Contact & Bank Details, Temple Info
-- Edit anything, hit **Publish** — Netlify rebuilds automatically and the live site updates in ~1 minute
+> **History note:** earlier versions of this project were built around a Decap CMS at `/admin/` that committed changes to `/content/*.json` on GitHub, and — before that — around a public Google Sheet the site fetched directly in the browser. Neither is used any more. The Decap CMS was documented but never actually deployed; the Google Sheet integration has been fully replaced by `/cms.html` below. `/content/*.json` and the bundled `content-data.js` still exist and are still what `build.js` generates on every deploy, but they now serve only as an **offline fallback** shown if Supabase is ever unreachable — see "How content flows".
 
 ## How content flows
 ```
-CMS edit → commits JSON to /content/*.json on GitHub
-         → Netlify runs `node build.js`
-         → build.js reads /content/*.json → generates content-data.js
-         → site publishes with the new content-data.js
+/cms.html or /admin-prayers.html  →  Netlify Function (password-checked)  →  Supabase (Postgres)
+                                                                                    │
+index.html  ←  netlify/functions/cms-content.js, prayers-list.js, etc.  ←─────────┘
+   (falls back to the bundled content-data.js only if Supabase is unreachable)
 ```
-You never touch `content-data.js` directly — it's regenerated fresh on every save. If you ever need to edit content without the CMS (e.g. bulk changes), edit the files in `/content/*.json` directly and push — same result.
+Edits take effect on the live site immediately — there's no rebuild/redeploy step for content changes. `content-data.js` is still regenerated from `/content/*.json` on every deploy (via `build.js`, see `netlify.toml`), but that's now just the offline-fallback path; the CMS pages never write to those JSON files.
 
-## Membership Status check — one-time setup
+## Site CMS (`/cms.html`) — one-time setup
 
-The site has a "Membership Status" page where a visitor types their NRIC (`XXXXXX-XX-XXXX`) and sees their Name / NRIC / Membership No. / Membership Type. This is deliberately **not** built like the sheet-sync used elsewhere in this app — NRIC numbers are sensitive, so the full member list is never sent to visitors' browsers. Instead, a secure server-side function (`netlify/functions/check-membership.js`) looks up one NRIC at a time in a **separate, restricted** Google Sheet and returns only that one match.
+Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annual Prayers & Registration** (see that section further down) — if you've already set that up, skip to step 2.
 
-**You need to do the following once — I can't do this part for you, it needs your own Google account:**
+**1. Create a free Supabase project** (skip if you already have one for Annual Prayers)
+- Go to https://supabase.com → sign up (free tier is enough) → **New project**
 
-**1. Create the membership Google Sheet**
-- Make a new, separate Google Sheet (do **not** reuse the "subramaniar" sheet)
-- First row = headers, exactly: `Name`, `NRIC`, `Membership No.`, `Membership Type`
-- Membership Type values should be exactly `Life` or `Ordinary`
-- NRIC values should be in `XXXXXX-XX-XXXX` format
-- Name the tab `Members` (or note your own tab name for step 5)
-- **Do not** set sharing to "Anyone with the link" — leave it private. Access is granted only to the service account below.
+**2. Create the CMS tables**
+- Supabase dashboard → **SQL Editor** → **New query**
+- Paste in the entire contents of `supabase/cms-schema.sql` → **Run** (this also creates a public `temple-media` Storage bucket for uploaded photos)
+- New query again → paste in the entire contents of `supabase/cms-seed.sql` → **Run** — this loads your site's real current content (as of when this CMS was built) into the new tables, so `/cms.html` starts out populated instead of empty. Skip this step if you'd rather start from blank/default content.
+- Same security model as `schema.sql`: Row Level Security is on for every table with no public policies — the browser can never read/write these tables directly, only the Netlify Functions below can, using the `service_role` key.
 
-**2. Create a Google Cloud service account**
-- Go to https://console.cloud.google.com/ → create a project (or use an existing one)
-- **APIs & Services → Library** → search "Google Sheets API" → **Enable**
-- **APIs & Services → Credentials** → **Create Credentials → Service account** → give it any name (e.g. "temple-membership-check") → Create
-- Open the new service account → **Keys** tab → **Add Key → Create new key → JSON** → this downloads a `.json` file — keep it safe, don't commit it to GitHub
+**3. Add/confirm environment variables in Netlify**
+- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — same values as Annual Prayers, from **Project Settings → API**
+- `ADMIN_PASSWORD` — same one used for `/admin-prayers.html`
+- Trigger a redeploy so the new functions (`cms-content.js`, `cms-crud.js`, `cms-upload-image.js`, `cms-members.js`, and the rewritten `check-membership.js`) pick up the variables
 
-**3. Share the Sheet with the service account**
-- Open the downloaded JSON file, copy the `client_email` value (looks like `something@your-project.iam.gserviceaccount.com`)
-- In your membership Google Sheet, click **Share** → paste that email → set to **Viewer** → Send/Share
-
-**4. Add environment variables in Netlify**
-- Netlify dashboard → your site → **Project configuration → Environment variables → Add a variable**, add all four:
-  - `GOOGLE_SERVICE_ACCOUNT_EMAIL` — the `client_email` from the JSON file
-  - `GOOGLE_PRIVATE_KEY` — the `private_key` value from the JSON file (paste the whole thing, including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`)
-  - `MEMBERSHIP_SHEET_ID` — the long ID from the sheet's URL, e.g. in `https://docs.google.com/spreadsheets/d/THIS_PART/edit`, copy `THIS_PART`
-  - `MEMBERSHIP_SHEET_TAB` — the tab name from step 1 (skip this variable entirely if you named it `Members`, since that's the default)
-- Trigger a redeploy (Netlify → Deploys → Trigger deploy) so the function picks up the new variables
+**4. Open it**
+- Go to `https://your-site.netlify.app/cms.html`, log in with `ADMIN_PASSWORD`
+- Ten tabs: **Hero Banner**, **Home Tiles**, **About**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**
+- Photo fields (Hero background, Deity photos, Gallery photos) resize/compress in your browser and upload straight to Supabase Storage — no separate image hosting needed
+- **Membership tab** replaces the old private Google Sheet entirely: add/edit/delete members one at a time, or use **Bulk Import** to paste CSV (`Name,NRIC,Membership No.,Membership Type`) — this is also how to migrate your existing Members sheet: open it, File → Download → CSV, open that file in a text editor, paste the contents in
 
 **5. Test it**
-- Go to your site → Membership Status → enter an NRIC that exists in your sheet → should show the member's details
-- Enter one that doesn't exist → should show "No membership record was found"
+- Edit the Hero Banner eyebrow text → Save → reload the live site → the change should appear immediately
+- Membership Status (public page) → enter an NRIC you added in the Membership tab → should show that member's details
 
 ## Annual Prayers & Registration — one-time setup
 
@@ -131,7 +96,7 @@ A pooja is labelled **Upcoming** or **Completed** automatically, based on today'
 - Check `/admin-prayers.html` → Bookings tab shows the new registration; try the Schedule tab to edit a pooja's notes and confirm it updates live
 
 ## What's NOT in the CMS
-Interface text (nav labels, button text, section headings) and the home-screen tile blurbs stay in `data.js` as developer-owned config — they rarely change and aren't really "temple content." Everything the committee actually needs to update regularly (festival dates, announcements, sevas, deity info, photos, contact details) is in the CMS.
+Fixed interface chrome — the icon artwork itself (`ICONS` in `script.js`), the list of valid destination screens, and generic UI strings not tied to any one section (e.g. "Loading…", validation messages) — stays in `script.js`/`data.js` as developer-owned config. Everything the committee actually needs to update regularly is in `/cms.html` or `/admin-prayers.html` now, including the Home Tiles themselves (title, description, icon choice, and which screen each one opens).
 
 ## Installing as a mobile app (PWA)
 Once deployed:

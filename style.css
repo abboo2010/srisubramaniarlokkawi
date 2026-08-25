@@ -484,6 +484,7 @@ img{display:block;max-width:100%;}
   height:130px;display:flex;align-items:center;justify-content:center;color:#fff;
 }
 .gallery-ph svg{width:34px;height:34px;opacity:0.85;}
+.gallery-photo{height:130px;width:100%;object-fit:cover;display:block;}
 .gallery-cap{padding:10px 12px;}
 .gallery-cap b{display:block;font-size:12.5px;color:var(--ink-900);}
 .gallery-cap span{font-size:11px;color:var(--ink-600);}

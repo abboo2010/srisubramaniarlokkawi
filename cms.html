@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Site CMS — Sri Subramaniar Alayam</title>
+<style>
+  :root{
+    --maroon-800:#521118; --ember-500:#c1531f; --gold-500:#c99a3e;
+    --ink-900:#2b1b12; --ink-600:#5b463a; --cream-50:#faf4e8; --cream-100:#f2e8d6;
+    --green-600:#3e7c52; --radius-sm:9px; --radius-md:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI', Arial, sans-serif; color:var(--ink-900);
+    padding:24px 16px 60px; min-height:100vh; position:relative;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-2;
+    background-image:url("assets/admin-bg.jpg");
+    background-size:cover; background-position:center 30%; background-repeat:no-repeat;
+    filter:blur(8px) brightness(0.55) saturate(1.15);
+    transform:scale(1.1);
+  }
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1;
+    background:linear-gradient(160deg, rgba(82,17,24,0.82) 0%, rgba(193,83,31,0.55) 55%, rgba(82,17,24,0.78) 100%);
+  }
+  body.dashboard-view{ background:var(--cream-50); }
+  body.dashboard-view::before, body.dashboard-view::after{ content:none; }
+
+  .admin-logo{display:block; width:68px; height:68px; margin:0 auto 12px; object-fit:contain; filter:drop-shadow(0 4px 10px rgba(38,7,11,0.35));}
+  .app-header-row{display:flex; align-items:center; gap:14px; margin-bottom:18px;}
+  .app-header-row .admin-logo{margin:0; width:54px; height:54px; flex-shrink:0;}
+  .app-title-line1{font-size:13px; font-weight:700; letter-spacing:.02em; color:var(--ember-500); text-transform:uppercase;}
+  .app-title-line2{font-family:'Segoe UI', Arial, sans-serif; font-size:20px; font-weight:700; color:var(--maroon-800); margin:1px 0 4px;}
+  .app-header-text p.sub{color:var(--ink-600); margin:0;}
+  h1{font-size:19px; margin:0 0 4px;} h2{font-size:15px; margin:0 0 12px;}
+  h3{font-size:13.5px; margin:18px 0 8px; color:var(--maroon-800);}
+  .sub{color:var(--ink-600); font-size:13px; margin:0 0 20px;}
+  .wrap{max-width:1200px; margin:0 auto;}
+
+  #loginBox{
+    max-width:380px; margin:80px auto; padding:32px 26px; text-align:center;
+    background:rgba(255,255,255,0.94); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-radius:var(--radius-md); border:1px solid rgba(255,255,255,0.5);
+    box-shadow:0 20px 44px rgba(20,4,6,0.35);
+  }
+  #loginBox h1{margin-bottom:16px;}
+  #loginBox input{width:100%; padding:11px 13px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:14px; margin-bottom:12px;}
+  #loginBox button{width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--ember-500); color:#fff; font-weight:700; font-size:14px; cursor:pointer;}
+  #loginError{color:#a4232f; font-size:13px; margin-top:10px; display:none;}
+  .login-links{margin-top:16px; font-size:12.5px;}
+  .login-links a{color:var(--ember-500); text-decoration:none; font-weight:600;}
+
+  #appBox{display:none;}
+  .tab-switch{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .tab-switch button{padding:9px 16px; border-radius:20px; border:1.5px solid var(--cream-100); background:#fff; cursor:pointer; font-size:12.5px; font-weight:700; color:var(--ink-600);}
+  .tab-switch button.active{background:var(--maroon-800); color:#f6e9c8; border-color:var(--maroon-800);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px;}
+  .toolbar select, .toolbar input{padding:9px 11px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px;}
+  .toolbar input{flex:1; min-width:180px;}
+  .toolbar button{padding:9px 16px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); background:#fff; cursor:pointer; font-size:13px; font-weight:600;}
+  .toolbar button.primary{background:var(--ember-500); border-color:var(--ember-500); color:#fff;}
+
+  table{width:100%; border-collapse:collapse; background:#fff; border-radius:var(--radius-md); overflow:hidden; box-shadow:0 4px 14px rgba(38,7,11,0.06);}
+  th, td{text-align:left; padding:10px 12px; font-size:12.5px; border-bottom:1px solid var(--cream-100); vertical-align:top;}
+  th{background:var(--maroon-800); color:#f6e9c8; font-size:11px; text-transform:uppercase; letter-spacing:.03em; position:sticky; top:0;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--cream-50);}
+  .table-wrap{overflow-x:auto; max-height:65vh; overflow-y:auto;}
+  .empty-note{padding:30px; text-align:center; color:var(--ink-600); font-size:13px;}
+  .thumb{width:46px; height:46px; border-radius:8px; object-fit:cover; background:var(--cream-100); display:block;}
+
+  .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:10.5px; font-weight:700; white-space:nowrap;}
+  .pill.on{background:rgba(62,124,82,0.14); color:var(--green-600);}
+  .pill.off{background:var(--cream-100); color:var(--ink-600);}
+
+  .row-actions{display:flex; gap:6px; flex-wrap:wrap;}
+  .row-actions button{padding:5px 10px; border-radius:6px; border:1px solid var(--cream-100); background:#fff; font-size:11px; cursor:pointer; font-weight:600;}
+  .row-actions button.edit{color:var(--maroon-800); border-color:var(--gold-500); background:rgba(201,154,62,0.12);}
+  .row-actions button.delete{color:#a4232f; border-color:#a4232f;}
+
+  .status-msg{font-size:13px; margin:10px 0; padding:10px 14px; border-radius:var(--radius-sm);}
+  .status-msg.error{background:#fdecec; color:#a4232f;}
+  .status-msg.ok{background:rgba(62,124,82,0.12); color:var(--green-600);}
+
+  .edit-panel{background:#fff; border-radius:var(--radius-md); padding:20px 22px; margin-bottom:18px; box-shadow:0 6px 18px rgba(38,7,11,0.1); display:none;}
+  .edit-panel.show{display:block;}
+  .panel-hint{color:var(--ink-600); font-size:12.5px; margin:-4px 0 16px; max-width:640px;}
+  .edit-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px;}
+  .edit-field{min-width:0;}
+  .edit-field.wide{grid-column:1 / -1;}
+  .edit-field label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-600); margin-bottom:4px; text-transform:uppercase; letter-spacing:.02em;}
+  .edit-field input, .edit-field select, .edit-field textarea{width:100%; padding:9px 10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:13px; font-family:inherit;}
+  .edit-field textarea{min-height:80px; resize:vertical;}
+  .edit-field textarea.tall{min-height:160px;}
+  .edit-field.checkbox{display:flex; align-items:center; gap:8px; margin-top:22px;}
+  .edit-field.checkbox input{width:18px; height:18px; flex-shrink:0; cursor:pointer;}
+  .edit-field.checkbox label{margin:0; text-transform:none; letter-spacing:normal; font-weight:600; cursor:pointer;}
+  .edit-actions{display:flex; gap:10px; margin-top:16px;}
+  .edit-actions button{padding:10px 18px; border-radius:var(--radius-sm); border:none; font-size:13px; font-weight:700; cursor:pointer;}
+  .edit-actions .save{background:var(--ember-500); color:#fff;}
+  .edit-actions .cancel{background:var(--cream-100); color:var(--ink-600);}
+
+  .image-field{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .image-field img.preview{width:64px; height:64px; border-radius:8px; object-fit:cover; background:var(--cream-100);}
+  .image-field .no-image{width:64px; height:64px; border-radius:8px; background:var(--cream-100); display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--ink-600); text-align:center;}
+  .image-field input[type=file]{font-size:11.5px;}
+  .upload-note{font-size:11px; color:var(--ink-600);}
+
+  .lang-group{border:1px dashed var(--cream-100); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:12px;}
+  .lang-group-title{font-size:11px; font-weight:800; color:var(--ember-500); text-transform:uppercase; letter-spacing:.03em; margin-bottom:8px;}
+
+  .section-card{background:#fff; border-radius:var(--radius-md); padding:20px 22px; margin-bottom:16px; box-shadow:0 4px 14px rgba(38,7,11,0.06);}
+
+  .bulk-box{background:#fff; border-radius:var(--radius-md); padding:18px 20px; margin-bottom:18px; display:none;}
+  .bulk-box.show{display:block;}
+  .bulk-box textarea{width:100%; min-height:140px; padding:10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-family:monospace; font-size:12.5px;}
+
+  @media print{ body{display:none;} }
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
+  <h1>Site CMS</h1>
+  <p class="sub">Sri Subramaniar Alayam, Lok Kawi</p>
+  <input type="password" id="passwordInput" placeholder="Admin password" autocomplete="current-password" />
+  <button id="loginBtn">Log In</button>
+  <p id="loginError">Incorrect password.</p>
+  <p class="login-links"><a href="admin-prayers.html">Go to Annual Prayers admin →</a></p>
+</div>
+
+<div class="wrap" id="appBox">
+  <div class="app-header-row">
+    <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
+    <div class="app-header-text">
+      <div class="app-title-line1">Sri Subramaniar Alayam, Lok Kawi</div>
+      <div class="app-title-line2">Site CMS</div>
+      <p class="sub">Edit the Hero Banner, Home Tiles, About, Deities, Pooja Timings, Sevas, Announcements, Gallery, Membership, and Contact Us — changes go live immediately, no redeploy needed. For Prayers &amp; Registration or Friday Annathanam, use the <a href="admin-prayers.html">Annual Prayers admin</a> instead.</p>
+    </div>
+  </div>
+
+  <div id="statusMsg" class="status-msg" style="display:none;"></div>
+
+  <div class="tab-switch">
+    <button class="active" data-tab="hero">Hero Banner</button>
+    <button data-tab="tiles">Home Tiles</button>
+    <button data-tab="about">About</button>
+    <button data-tab="deities">Deities</button>
+    <button data-tab="timings">Pooja Timings</button>
+    <button data-tab="sevas">Sevas</button>
+    <button data-tab="announcements">Announcements</button>
+    <button data-tab="gallery">Gallery</button>
+    <button data-tab="members">Membership</button>
+    <button data-tab="contact">Contact Us</button>
+  </div>
+
+  <!-- ================= HERO BANNER (singleton) ================= -->
+  <div class="tab-panel active" id="tab-hero">
+    <div class="section-card">
+      <h2>Hero Banner</h2>
+      <p class="panel-hint">The big welcome section at the top of the home screen — background photo, eyebrow/title text, the three stat numbers, and the two call-to-action buttons.</p>
+      <div id="hero-form"></div>
+      <div class="edit-actions"><button class="save" id="hero-save">Save Hero Banner</button></div>
+    </div>
+  </div>
+
+  <!-- ================= HOME TILES (list) ================= -->
+  <div class="tab-panel" id="tab-tiles">
+    <p class="panel-hint">The link boxes on the home screen that lead to About Temple, Deities, Pooja Timings, Sevas &amp; Donations, Prayers &amp; Registration, and Friday Annathanam.</p>
+    <div class="toolbar"><button id="tiles-refresh">Refresh</button><button class="primary" id="tiles-add">+ Add Tile</button></div>
+    <div id="tiles-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="tiles-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= ABOUT (singleton) ================= -->
+  <div class="tab-panel" id="tab-about">
+    <div class="section-card">
+      <h2>About Temple</h2>
+      <p class="panel-hint">Vision, mission, history, and the temple's ongoing activities — shown on the About Temple screen.</p>
+      <div id="about-form"></div>
+      <div class="edit-actions"><button class="save" id="about-save">Save About</button></div>
+    </div>
+  </div>
+
+  <!-- ================= DEITIES (list) ================= -->
+  <div class="tab-panel" id="tab-deities">
+    <p class="panel-hint">Each shrine/deity card shown on the Deities screen — name, role, description, and photo, in all three languages.</p>
+    <div class="toolbar"><button id="deities-refresh">Refresh</button><button class="primary" id="deities-add">+ Add Deity</button></div>
+    <div id="deities-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="deities-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= POOJA TIMINGS (list) ================= -->
+  <div class="tab-panel" id="tab-timings">
+    <p class="panel-hint">Daily poojas ("Today" and "Daily" are usually identical — "Today" is what shows on the Home screen preview), plus the special Friday and Full Moon schedules.</p>
+    <div class="toolbar"><button id="timings-refresh">Refresh</button><button class="primary" id="timings-add">+ Add Timing</button></div>
+    <div id="timings-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="timings-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= SEVAS (list) ================= -->
+  <div class="tab-panel" id="tab-sevas">
+    <p class="panel-hint">Sevas &amp; Donations offerings — name, price, description, and button text, shown on the Sevas &amp; Donations screen.</p>
+    <div class="toolbar"><button id="sevas-refresh">Refresh</button><button class="primary" id="sevas-add">+ Add Seva</button></div>
+    <div id="sevas-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="sevas-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= ANNOUNCEMENTS (list) ================= -->
+  <div class="tab-panel" id="tab-announcements">
+    <p class="panel-hint">News &amp; Announcements shown on the home screen and the News screen. Untick "Published" to hide one without deleting it.</p>
+    <div class="toolbar"><button id="announcements-refresh">Refresh</button><button class="primary" id="announcements-add">+ Add Announcement</button></div>
+    <div id="announcements-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="announcements-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= GALLERY (list) ================= -->
+  <div class="tab-panel" id="tab-gallery">
+    <p class="panel-hint">Photos shown on the Gallery screen. Upload a photo, add a caption and category in each language, and it appears on the live site immediately.</p>
+    <div class="toolbar"><button id="gallery-refresh">Refresh</button><button class="primary" id="gallery-add">+ Add Photo</button></div>
+    <div id="gallery-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="gallery-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= MEMBERS ================= -->
+  <div class="tab-panel" id="tab-members">
+    <p class="panel-hint">Membership records used by the Membership Status lookup on the site (visitors search by NRIC; the full list here is never sent to them).</p>
+    <div class="toolbar">
+      <input type="text" id="members-search" placeholder="Search name, NRIC, or membership no…" />
+      <button id="members-refresh">Refresh</button>
+      <button id="members-export">Export CSV</button>
+      <button id="members-bulk-toggle">Bulk Import</button>
+      <button class="primary" id="members-add">+ Add Member</button>
+    </div>
+    <div class="bulk-box" id="members-bulk-box">
+      <h3 style="margin-top:0;">Bulk Import</h3>
+      <p class="panel-hint">Paste CSV with header <code>Name,NRIC,Membership No.,Membership Type</code> (Membership Type must be <code>Life</code> or <code>Ordinary</code>). Existing members are matched and updated by NRIC; new NRICs are added.</p>
+      <textarea id="members-bulk-text" placeholder="Name,NRIC,Membership No.,Membership Type&#10;Ravi Kumar,880101-12-5566,M-0231,Ordinary"></textarea>
+      <div class="edit-actions"><button class="save" id="members-bulk-submit">Import</button><button class="cancel" id="members-bulk-cancel">Cancel</button></div>
+    </div>
+    <div id="members-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="members-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= CONTACT US (singleton) ================= -->
+  <div class="tab-panel" id="tab-contact">
+    <div class="section-card">
+      <h2>Contact Us</h2>
+      <p class="panel-hint">Organisation details, address, phone/email/WhatsApp, social links, and the donation bank account — shown on the Contact Us screen.</p>
+      <div id="contact-form"></div>
+      <div class="edit-actions"><button class="save" id="contact-save">Save Contact Us</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let adminPassword = "";
+const loginBox = document.getElementById("loginBox");
+const appBox = document.getElementById("appBox");
+const passwordInput = document.getElementById("passwordInput");
+const loginError = document.getElementById("loginError");
+
+document.getElementById("loginBtn").addEventListener("click", login);
+passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+
+async function login(){
+  const pw = passwordInput.value.trim();
+  if (!pw) return;
+  loginError.style.display = "none";
+  try {
+    const res = await fetch("/.netlify/functions/cms-crud?entity=contact", { headers: { "X-Admin-Password": pw } });
+    if (!res.ok){ loginError.style.display = "block"; return; }
+    adminPassword = pw;
+    loginBox.style.display = "none";
+    appBox.style.display = "block";
+    document.body.classList.add("dashboard-view");
+    initAllTabs();
+  } catch (err){
+    loginError.textContent = "Could not reach the server. Please try again.";
+    loginError.style.display = "block";
+  }
+}
+
+function showStatus(msg, kind){
+  const el = document.getElementById("statusMsg");
+  el.textContent = msg;
+  el.className = "status-msg " + kind;
+  el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 3500);
+}
+
+function h(html){ const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstChild; }
+function escAttr(s){ return String(s == null ? "" : s).replace(/"/g, "&quot;"); }
+function escHtml(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+document.querySelectorAll(".tab-switch button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-switch button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+async function apiGet(entity){
+  const res = await fetch("/.netlify/functions/cms-crud?entity=" + encodeURIComponent(entity), { headers: { "X-Admin-Password": adminPassword } });
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+async function apiSave(entity, action, data){
+  const res = await fetch("/.netlify/functions/cms-crud", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+    body: JSON.stringify({ entity, action, data })
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
+  return body;
+}
+
+// ---------- image upload helper: resizes/compresses in-browser, then
+// uploads via cms-upload-image.js and returns the public URL ----------
+function resizeImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim){
+          if (width >= height){ height = Math.round(height * (maxDim / width)); width = maxDim; }
+          else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadImage(file, folder){
+  const dataUrl = await resizeImageFile(file, 1600, 0.82);
+  const res = await fetch("/.netlify/functions/cms-upload-image", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+    body: JSON.stringify({ folder, filename: file.name, dataUrl })
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || "Upload failed.");
+  return body.url;
+}
+
+// ============================================================
+// Generic list-entity engine — used by Home Tiles, Deities,
+// Pooja Timings, Sevas, Announcements, and Gallery. Each config
+// describes the table columns and the edit-form fields; the engine
+// renders the table + slide-down add/edit form from that config.
+// ============================================================
+function fieldHtml(f, row){
+  const val = row ? (row[f.key] == null ? "" : row[f.key]) : (f.default !== undefined ? f.default : "");
+  const wide = f.wide ? " wide" : "";
+  if (f.type === "checkbox"){
+    return `<div class="edit-field checkbox${wide}"><input type="checkbox" id="fld-${f.key}" ${val ? "checked" : ""} /><label for="fld-${f.key}">${f.label}</label></div>`;
+  }
+  if (f.type === "select"){
+    const opts = f.options.map(o => `<option value="${escAttr(o)}" ${o === val ? "selected" : ""}>${escHtml(o)}</option>`).join("");
+    return `<div class="edit-field${wide}"><label>${f.label}</label><select id="fld-${f.key}">${opts}</select></div>`;
+  }
+  if (f.type === "textarea"){
+    return `<div class="edit-field${wide}"><label>${f.label}</label><textarea id="fld-${f.key}" class="${f.tall ? "tall" : ""}">${escHtml(val)}</textarea></div>`;
+  }
+  if (f.type === "image"){
+    const img = val ? `<img class="preview" src="${escAttr(val)}" />` : `<div class="no-image">No photo</div>`;
+    return `<div class="edit-field wide"><label>${f.label}</label>
+      <div class="image-field" id="imgfield-${f.key}">
+        ${img}
+        <input type="file" accept="image/*" id="fld-${f.key}-file" />
+        <input type="hidden" id="fld-${f.key}" value="${escAttr(val)}" />
+      </div>
+      <div class="upload-note">Uploads automatically when you choose a file. Large photos are resized in your browser first.</div>
+    </div>`;
+  }
+  return `<div class="edit-field${wide}"><label>${f.label}</label><input type="${f.type === "number" ? "number" : "text"}" id="fld-${f.key}" value="${escAttr(val)}" /></div>`;
+}
+
+function wireImageField(f, folder){
+  const fileInput = document.getElementById(`fld-${f.key}-file`);
+  if (!fileInput) return;
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const wrap = document.getElementById(`imgfield-${f.key}`);
+    showStatus("Uploading photo…", "ok");
+    try {
+      const url = await uploadImage(file, folder);
+      document.getElementById(`fld-${f.key}`).value = url;
+      const old = wrap.querySelector(".preview, .no-image");
+      const img = h(`<img class="preview" src="${escAttr(url)}" />`);
+      old.replaceWith(img);
+      showStatus("Photo uploaded.", "ok");
+    } catch (err){
+      showStatus(err.message || "Upload failed.", "error");
+    }
+  });
+}
+
+function makeListTab(cfg){
+  const state = { rows: [], editingId: null };
+  const tableEl = document.getElementById(cfg.tabId + "-table");
+  const panelEl = document.getElementById(cfg.tabId + "-panel");
+
+  function renderTable(){
+    const thead = tableEl.querySelector("thead"), tbody = tableEl.querySelector("tbody");
+    thead.innerHTML = "<tr>" + cfg.columns.map(c => `<th>${c.label}</th>`).join("") + "<th>Actions</th></tr>";
+    tbody.innerHTML = "";
+    if (!state.rows.length){
+      tbody.innerHTML = `<tr><td colspan="${cfg.columns.length + 1}"><div class="empty-note">Nothing here yet.</div></td></tr>`;
+      return;
+    }
+    state.rows.forEach(row => {
+      const cells = cfg.columns.map(c => {
+        if (c.image) return row[c.key] ? `<img class="thumb" src="${escAttr(row[c.key])}" />` : `<div class="thumb"></div>`;
+        if (c.bool) return `<span class="pill ${row[c.key] ? "on" : "off"}">${row[c.key] ? "Yes" : "No"}</span>`;
+        return `<td-text>${escHtml(row[c.key])}</td-text>`;
+      });
+      const tr = h(`<tr>${cells.map(c => `<td>${c}</td>`).join("")}
+        <td class="row-actions">
+          <button class="edit">Edit</button>
+          <button class="delete">Delete</button>
+        </td>
+      </tr>`);
+      tr.querySelector(".edit").addEventListener("click", () => openForm(row));
+      tr.querySelector(".delete").addEventListener("click", () => doDelete(row));
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openForm(row){
+    state.editingId = row ? row.id : null;
+    panelEl.classList.add("show");
+    panelEl.innerHTML = `
+      <h2>${row ? "Edit" : "Add"} ${cfg.singularLabel}</h2>
+      <div class="edit-grid">${cfg.fields.map(f => fieldHtml(f, row)).join("")}</div>
+      <div class="edit-actions">
+        <button class="save">Save</button>
+        <button class="cancel">Cancel</button>
+      </div>
+    `;
+    cfg.fields.filter(f => f.type === "image").forEach(f => wireImageField(f, cfg.imageFolder));
+    panelEl.querySelector(".cancel").addEventListener("click", closeForm);
+    panelEl.querySelector(".save").addEventListener("click", () => saveForm(row));
+    panelEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  function closeForm(){ panelEl.classList.remove("show"); panelEl.innerHTML = ""; state.editingId = null; }
+
+  async function saveForm(row){
+    const data = {};
+    cfg.fields.forEach(f => {
+      const el = document.getElementById(`fld-${f.key}`);
+      if (!el) return;
+      data[f.key] = f.type === "checkbox" ? el.checked : el.value;
+    });
+    if (cfg.required){
+      for (const key of cfg.required){
+        if (!data[key]){ showStatus(`${key} is required.`, "error"); return; }
+      }
+    }
+    if (row) data.id = row.id;
+    try {
+      await apiSave(cfg.entity, row ? "update" : "create", data);
+      showStatus("Saved.", "ok");
+      closeForm();
+      await load();
+    } catch (err){
+      showStatus(err.message || "Save failed.", "error");
+    }
+  }
+
+  async function doDelete(row){
+    if (!confirm(`Delete this ${cfg.singularLabel.toLowerCase()}? This can't be undone.`)) return;
+    try {
+      await apiSave(cfg.entity, "delete", { id: row.id });
+      showStatus("Deleted.", "ok");
+      await load();
+    } catch (err){
+      showStatus(err.message || "Delete failed.", "error");
+    }
+  }
+
+  async function load(){
+    try {
+      const body = await apiGet(cfg.entity);
+      state.rows = body.rows || [];
+      renderTable();
+    } catch (err){
+      showStatus(`Could not load ${cfg.tabId}.`, "error");
+    }
+  }
+
+  document.getElementById(cfg.tabId + "-refresh").addEventListener("click", load);
+  document.getElementById(cfg.tabId + "-add").addEventListener("click", () => openForm(null));
+
+  return { load };
+}
+
+// ---------- Home Tiles ----------
+const ICON_OPTIONS = ["about","deities","calendar","timings","sevas","prayers","fridayAnnathanam"];
+const SCREEN_OPTIONS = ["home","about","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
+const tilesTab = makeListTab({
+  tabId: "tiles", entity: "navTile", singularLabel: "Tile", required: ["tileKey"],
+  columns: [ {key:"titleEn",label:"Title (EN)"}, {key:"destination",label:"Goes to"}, {key:"enabled",label:"Enabled",bool:true}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"tileKey", label:"Key (unique, e.g. \"about\")", type:"text" },
+    { key:"icon", label:"Icon", type:"select", options: ICON_OPTIONS },
+    { key:"titleEn", label:"Title (English)", type:"text" },
+    { key:"titleBm", label:"Title (Malay)", type:"text" },
+    { key:"titleTa", label:"Title (Tamil)", type:"text" },
+    { key:"descEn", label:"Description (English)", type:"text" },
+    { key:"descBm", label:"Description (Malay)", type:"text" },
+    { key:"descTa", label:"Description (Tamil)", type:"text" },
+    { key:"destination", label:"Destination Screen", type:"select", options: SCREEN_OPTIONS },
+    { key:"enabled", label:"Enabled", type:"checkbox", default:true },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ---------- Deities ----------
+const deitiesTab = makeListTab({
+  tabId: "deities", entity: "deity", singularLabel: "Deity", required: ["nameEn"], imageFolder: "deities",
+  columns: [ {key:"imageUrl",label:"Photo",image:true}, {key:"nameEn",label:"Name (EN)"}, {key:"roleEn",label:"Role (EN)"}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"imageUrl", label:"Photo", type:"image" },
+    { key:"nameEn", label:"Name (English)", type:"text" },
+    { key:"nameBm", label:"Name (Malay)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"roleEn", label:"Role (English)", type:"text" },
+    { key:"roleBm", label:"Role (Malay)", type:"text" },
+    { key:"roleTa", label:"Role (Tamil)", type:"text" },
+    { key:"descriptionEn", label:"Description (English)", type:"textarea", wide:true },
+    { key:"descriptionBm", label:"Description (Malay)", type:"textarea", wide:true },
+    { key:"descriptionTa", label:"Description (Tamil)", type:"textarea", wide:true },
+    { key:"color", label:"Accent Color (hex)", type:"text", default:"#711821" },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ---------- Pooja Timings ----------
+const timingsTab = makeListTab({
+  tabId: "timings", entity: "poojaTiming", singularLabel: "Timing", required: ["nameEn","listType"],
+  columns: [ {key:"listType",label:"List"}, {key:"nameEn",label:"Pooja Name (EN)"}, {key:"timeLabel",label:"Time"}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"listType", label:"List", type:"select", options:["today","daily","friday","fullMoon"] },
+    { key:"nameEn", label:"Pooja Name (English)", type:"text" },
+    { key:"nameBm", label:"Pooja Name (Malay)", type:"text" },
+    { key:"nameTa", label:"Pooja Name (Tamil)", type:"text" },
+    { key:"timeLabel", label:"Time (e.g. 6:00 AM)", type:"text" },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ---------- Sevas ----------
+const sevasTab = makeListTab({
+  tabId: "sevas", entity: "seva", singularLabel: "Seva", required: ["nameEn"],
+  columns: [ {key:"nameEn",label:"Name (EN)"}, {key:"priceEn",label:"Price"}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"nameEn", label:"Name (English)", type:"text" }, { key:"nameBm", label:"Name (Malay)", type:"text" }, { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"priceEn", label:"Price (English)", type:"text" }, { key:"priceBm", label:"Price (Malay)", type:"text" }, { key:"priceTa", label:"Price (Tamil)", type:"text" },
+    { key:"descEn", label:"Description (English)", type:"textarea", wide:true }, { key:"descBm", label:"Description (Malay)", type:"textarea", wide:true }, { key:"descTa", label:"Description (Tamil)", type:"textarea", wide:true },
+    { key:"ctaEn", label:"Button Text (English)", type:"text" }, { key:"ctaBm", label:"Button Text (Malay)", type:"text" }, { key:"ctaTa", label:"Button Text (Tamil)", type:"text" },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ---------- Announcements ----------
+const announcementsTab = makeListTab({
+  tabId: "announcements", entity: "announcement", singularLabel: "Announcement", required: ["titleEn"],
+  columns: [ {key:"titleEn",label:"Title (EN)"}, {key:"published",label:"Published",bool:true}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"titleEn", label:"Title (English)", type:"text" }, { key:"titleBm", label:"Title (Malay)", type:"text" }, { key:"titleTa", label:"Title (Tamil)", type:"text" },
+    { key:"descEn", label:"Description (English)", type:"textarea", wide:true }, { key:"descBm", label:"Description (Malay)", type:"textarea", wide:true }, { key:"descTa", label:"Description (Tamil)", type:"textarea", wide:true },
+    { key:"published", label:"Published", type:"checkbox", default:true },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ---------- Gallery ----------
+const galleryTab = makeListTab({
+  tabId: "gallery", entity: "galleryItem", singularLabel: "Photo", required: ["imageUrl"], imageFolder: "gallery",
+  columns: [ {key:"imageUrl",label:"Photo",image:true}, {key:"labelEn",label:"Caption (EN)"}, {key:"categoryEn",label:"Category (EN)"}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"imageUrl", label:"Photo", type:"image" },
+    { key:"labelEn", label:"Caption (English)", type:"text" }, { key:"labelBm", label:"Caption (Malay)", type:"text" }, { key:"labelTa", label:"Caption (Tamil)", type:"text" },
+    { key:"categoryEn", label:"Category (English)", type:"text" }, { key:"categoryBm", label:"Category (Malay)", type:"text" }, { key:"categoryTa", label:"Category (Tamil)", type:"text" },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ============================================================
+// Singleton forms — Hero Banner, About, Contact Us
+// ============================================================
+function makeSingletonTab(cfg){
+  const formEl = document.getElementById(cfg.tabId + "-form");
+  let currentRow = null;
+
+  function render(row){
+    currentRow = row || {};
+    formEl.innerHTML = cfg.groups.map(g => `
+      <div class="lang-group">
+        <div class="lang-group-title">${g.title}</div>
+        <div class="edit-grid">${g.fields.map(f => fieldHtml(f, currentRow)).join("")}</div>
+      </div>
+    `).join("");
+    cfg.groups.forEach(g => g.fields.filter(f => f.type === "image").forEach(f => wireImageField(f, cfg.imageFolder)));
+  }
+
+  async function load(){
+    try {
+      const body = await apiGet(cfg.entity);
+      render(body.row || {});
+    } catch (err){
+      showStatus(`Could not load ${cfg.tabId}.`, "error");
+    }
+  }
+
+  async function save(){
+    const data = {};
+    cfg.groups.forEach(g => g.fields.forEach(f => {
+      const el = document.getElementById(`fld-${f.key}`);
+      if (!el) return;
+      data[f.key] = f.type === "checkbox" ? el.checked : el.value;
+    }));
+    try {
+      await apiSave(cfg.entity, "update", data);
+      showStatus("Saved.", "ok");
+    } catch (err){
+      showStatus(err.message || "Save failed.", "error");
+    }
+  }
+
+  document.getElementById(cfg.tabId + "-save").addEventListener("click", save);
+  return { load };
+}
+
+const heroTab = makeSingletonTab({
+  tabId: "hero", entity: "heroBanner", imageFolder: "hero",
+  groups: [
+    { title:"Background Photo", fields: [ { key:"imageUrl", label:"Hero Background Photo", type:"image" } ] },
+    { title:"Eyebrow & Title", fields: [
+      { key:"eyebrowEn", label:"Eyebrow (English)", type:"text" }, { key:"eyebrowBm", label:"Eyebrow (Malay)", type:"text" }, { key:"eyebrowTa", label:"Eyebrow (Tamil)", type:"text" },
+      { key:"titleLine1En", label:"Title Line 1 (English)", type:"text" }, { key:"titleLine1Bm", label:"Title Line 1 (Malay)", type:"text" }, { key:"titleLine1Ta", label:"Title Line 1 (Tamil)", type:"text" },
+      { key:"titleLine2En", label:"Title Line 2 (English)", type:"text" }, { key:"titleLine2Bm", label:"Title Line 2 (Malay)", type:"text" }, { key:"titleLine2Ta", label:"Title Line 2 (Tamil)", type:"text" }
+    ]},
+    { title:"Stats", fields: [
+      { key:"establishedValue", label:"Established Year", type:"text" },
+      { key:"establishedLabelEn", label:"Established Label (EN)", type:"text" }, { key:"establishedLabelBm", label:"Established Label (BM)", type:"text" }, { key:"establishedLabelTa", label:"Established Label (TA)", type:"text" },
+      { key:"devoteesValue", label:"Devotees", type:"text" },
+      { key:"devoteesLabelEn", label:"Devotees Label (EN)", type:"text" }, { key:"devoteesLabelBm", label:"Devotees Label (BM)", type:"text" }, { key:"devoteesLabelTa", label:"Devotees Label (TA)", type:"text" },
+      { key:"annualEventsValue", label:"Annual Events", type:"text" },
+      { key:"annualEventsLabelEn", label:"Annual Events Label (EN)", type:"text" }, { key:"annualEventsLabelBm", label:"Annual Events Label (BM)", type:"text" }, { key:"annualEventsLabelTa", label:"Annual Events Label (TA)", type:"text" }
+    ]},
+    { title:"Buttons", fields: [
+      { key:"upcomingEventsLabelEn", label:"Events Button (EN)", type:"text" }, { key:"upcomingEventsLabelBm", label:"Events Button (BM)", type:"text" }, { key:"upcomingEventsLabelTa", label:"Events Button (TA)", type:"text" },
+      { key:"upcomingEventsLink", label:"Events Button Goes To", type:"select", options: SCREEN_OPTIONS },
+      { key:"poojaTimingsLabelEn", label:"Timings Button (EN)", type:"text" }, { key:"poojaTimingsLabelBm", label:"Timings Button (BM)", type:"text" }, { key:"poojaTimingsLabelTa", label:"Timings Button (TA)", type:"text" },
+      { key:"poojaTimingsLink", label:"Timings Button Goes To", type:"select", options: SCREEN_OPTIONS }
+    ]}
+  ]
+});
+
+const aboutTab = makeSingletonTab({
+  tabId: "about", entity: "about",
+  groups: [
+    { title:"Vision", fields: [ { key:"visionEn", label:"Vision (English)", type:"textarea", wide:true }, { key:"visionBm", label:"Vision (Malay)", type:"textarea", wide:true }, { key:"visionTa", label:"Vision (Tamil)", type:"textarea", wide:true } ] },
+    { title:"Mission", fields: [ { key:"missionEn", label:"Mission (English)", type:"textarea", wide:true }, { key:"missionBm", label:"Mission (Malay)", type:"textarea", wide:true }, { key:"missionTa", label:"Mission (Tamil)", type:"textarea", wide:true } ] },
+    { title:"History (separate paragraphs with a blank line)", fields: [
+      { key:"historyEn", label:"History (English)", type:"textarea", tall:true, wide:true },
+      { key:"historyBm", label:"History (Malay)", type:"textarea", tall:true, wide:true },
+      { key:"historyTa", label:"History (Tamil)", type:"textarea", tall:true, wide:true }
+    ]},
+    { title:"Activities (one per line)", fields: [
+      { key:"activitiesEn", label:"Activities (English)", type:"textarea", wide:true },
+      { key:"activitiesBm", label:"Activities (Malay)", type:"textarea", wide:true },
+      { key:"activitiesTa", label:"Activities (Tamil)", type:"textarea", wide:true }
+    ]}
+  ]
+});
+
+const contactTab = makeSingletonTab({
+  tabId: "contact", entity: "contact",
+  groups: [
+    { title:"Organisation", fields: [
+      { key:"orgName", label:"Organisation Name", type:"text", wide:true },
+      { key:"registrationNo", label:"Registration No.", type:"text" },
+      { key:"phone", label:"Phone", type:"text" }, { key:"email", label:"Email", type:"text" },
+      { key:"whatsappNumber", label:"WhatsApp Number (digits only, with country code)", type:"text" },
+      { key:"social", label:"Social Links (comma-separated, e.g. Facebook, Instagram, YouTube, WhatsApp)", type:"text", wide:true }
+    ]},
+    { title:"Address", fields: [
+      { key:"addressEn", label:"Address (English)", type:"textarea", wide:true },
+      { key:"addressBm", label:"Address (Malay)", type:"textarea", wide:true },
+      { key:"addressTa", label:"Address (Tamil)", type:"textarea", wide:true }
+    ]},
+    { title:"Enquiries Card", fields: [
+      { key:"enquiriesHeadingEn", label:"Heading (EN)", type:"text" }, { key:"enquiriesHeadingBm", label:"Heading (BM)", type:"text" }, { key:"enquiriesHeadingTa", label:"Heading (TA)", type:"text" },
+      { key:"whatsappCaptionEn", label:"Caption (EN)", type:"text" }, { key:"whatsappCaptionBm", label:"Caption (BM)", type:"text" }, { key:"whatsappCaptionTa", label:"Caption (TA)", type:"text" }
+    ]},
+    { title:"Donation Bank Account", fields: [
+      { key:"donationAccountName", label:"Account Name", type:"text", wide:true },
+      { key:"donationBank", label:"Bank", type:"text" }, { key:"donationAccountNumber", label:"Account Number", type:"text" }
+    ]}
+  ]
+});
+
+// ============================================================
+// Members — dedicated (not the generic list engine): search,
+// export, and a bulk-import box on top of the usual add/edit/delete.
+// ============================================================
+const membersState = { rows: [] };
+function renderMembersTable(){
+  const q = document.getElementById("members-search").value.trim().toLowerCase();
+  const tbody = document.querySelector("#members-table tbody");
+  document.querySelector("#members-table thead").innerHTML = "<tr><th>Name</th><th>NRIC</th><th>Membership No.</th><th>Type</th><th>Actions</th></tr>";
+  const rows = membersState.rows.filter(m => !q || (m.name + " " + m.nric + " " + m.membershipNo).toLowerCase().includes(q));
+  tbody.innerHTML = "";
+  if (!rows.length){ tbody.innerHTML = `<tr><td colspan="5"><div class="empty-note">No members found.</div></td></tr>`; return; }
+  rows.forEach(m => {
+    const tr = h(`<tr>
+      <td>${escHtml(m.name)}</td><td>${escHtml(m.nric)}</td><td>${escHtml(m.membershipNo)}</td>
+      <td><span class="pill ${m.membershipType === "Life" ? "on" : "off"}">${escHtml(m.membershipType)}</span></td>
+      <td class="row-actions"><button class="edit">Edit</button><button class="delete">Delete</button></td>
+    </tr>`);
+    tr.querySelector(".edit").addEventListener("click", () => openMemberForm(m));
+    tr.querySelector(".delete").addEventListener("click", () => deleteMember(m));
+    tbody.appendChild(tr);
+  });
+}
+function openMemberForm(m){
+  const panelEl = document.getElementById("members-panel");
+  panelEl.classList.add("show");
+  panelEl.innerHTML = `
+    <h2>${m ? "Edit" : "Add"} Member</h2>
+    <div class="edit-grid">
+      <div class="edit-field"><label>Name</label><input type="text" id="mf-name" value="${escAttr(m ? m.name : "")}" /></div>
+      <div class="edit-field"><label>NRIC (XXXXXX-XX-XXXX)</label><input type="text" id="mf-nric" value="${escAttr(m ? m.nric : "")}" placeholder="880101-12-5566" /></div>
+      <div class="edit-field"><label>Membership No.</label><input type="text" id="mf-no" value="${escAttr(m ? m.membershipNo : "")}" /></div>
+      <div class="edit-field"><label>Membership Type</label><select id="mf-type"><option ${m && m.membershipType==="Ordinary"?"selected":""}>Ordinary</option><option ${m && m.membershipType==="Life"?"selected":""}>Life</option></select></div>
+    </div>
+    <div class="edit-actions"><button class="save">Save</button><button class="cancel">Cancel</button></div>
+  `;
+  panelEl.querySelector(".cancel").addEventListener("click", () => { panelEl.classList.remove("show"); panelEl.innerHTML = ""; });
+  panelEl.querySelector(".save").addEventListener("click", async () => {
+    const data = {
+      name: document.getElementById("mf-name").value.trim(),
+      nric: document.getElementById("mf-nric").value.trim(),
+      membershipNo: document.getElementById("mf-no").value.trim(),
+      membershipType: document.getElementById("mf-type").value
+    };
+    if (m) data.id = m.id;
+    try {
+      await apiMembersSave(m ? "update" : "create", data);
+      showStatus("Saved.", "ok");
+      panelEl.classList.remove("show"); panelEl.innerHTML = "";
+      await loadMembers();
+    } catch (err){ showStatus(err.message || "Save failed.", "error"); }
+  });
+}
+async function deleteMember(m){
+  if (!confirm(`Delete ${m.name}?`)) return;
+  try { await apiMembersSave("delete", { id: m.id }); showStatus("Deleted.", "ok"); await loadMembers(); }
+  catch (err){ showStatus(err.message || "Delete failed.", "error"); }
+}
+async function apiMembersSave(action, data){
+  const res = await fetch("/.netlify/functions/cms-members", {
+    method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+    body: JSON.stringify({ action, data })
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
+  return body;
+}
+async function loadMembers(){
+  try {
+    const res = await fetch("/.netlify/functions/cms-members", { headers: { "X-Admin-Password": adminPassword } });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const body = await res.json();
+    membersState.rows = body.members || [];
+    renderMembersTable();
+  } catch (err){ showStatus("Could not load members.", "error"); }
+}
+document.getElementById("members-refresh").addEventListener("click", loadMembers);
+document.getElementById("members-search").addEventListener("input", renderMembersTable);
+document.getElementById("members-add").addEventListener("click", () => openMemberForm(null));
+document.getElementById("members-export").addEventListener("click", () => {
+  const rows = [["Name","NRIC","Membership No.","Membership Type"]];
+  membersState.rows.forEach(m => rows.push([m.name, m.nric, m.membershipNo, m.membershipType]));
+  const csv = rows.map(r => r.map(c => { const s = String(c == null ? "" : c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "members.csv";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+});
+document.getElementById("members-bulk-toggle").addEventListener("click", () => document.getElementById("members-bulk-box").classList.toggle("show"));
+document.getElementById("members-bulk-cancel").addEventListener("click", () => document.getElementById("members-bulk-box").classList.remove("show"));
+document.getElementById("members-bulk-submit").addEventListener("click", async () => {
+  const text = document.getElementById("members-bulk-text").value.trim();
+  if (!text){ showStatus("Paste some CSV first.", "error"); return; }
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const header = lines[0].split(",").map(h => h.trim().toLowerCase());
+  const nameIdx = header.indexOf("name");
+  const nricIdx = header.indexOf("nric");
+  const noIdx = header.findIndex(h => h.startsWith("membership no"));
+  const typeIdx = header.findIndex(h => h.startsWith("membership type"));
+  if (nameIdx === -1 || nricIdx === -1){ showStatus("CSV needs at least Name and NRIC columns.", "error"); return; }
+  const rows = lines.slice(1).map(line => {
+    const cells = line.split(",").map(c => c.trim());
+    return { name: cells[nameIdx] || "", nric: cells[nricIdx] || "", membershipNo: noIdx > -1 ? (cells[noIdx] || "") : "", membershipType: typeIdx > -1 ? (cells[typeIdx] || "Ordinary") : "Ordinary" };
+  });
+  try {
+    const body = await apiMembersSave("bulkImport", { rows });
+    showStatus(`Imported ${body.imported} member(s)${body.skipped ? `, skipped ${body.skipped} invalid row(s)` : ""}.`, "ok");
+    document.getElementById("members-bulk-text").value = "";
+    document.getElementById("members-bulk-box").classList.remove("show");
+    await loadMembers();
+  } catch (err){ showStatus(err.message || "Import failed.", "error"); }
+});
+
+function initAllTabs(){
+  heroTab.load();
+  tilesTab.load();
+  aboutTab.load();
+  deitiesTab.load();
+  timingsTab.load();
+  sevasTab.load();
+  announcementsTab.load();
+  galleryTab.load();
+  loadMembers();
+  contactTab.load();
+}
+</script>
+</body>
+</html>

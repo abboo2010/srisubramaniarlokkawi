@@ -228,14 +228,21 @@ function renderHomeTiles(){
   tileGrid.innerHTML = "";
   const iconMap = { about: ICONS.about, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers, fridayAnnathanam: ICONS.fridayAnnathanam };
   TILE_META.forEach(tItem=>{
+    // "icon" picks the artwork and "destination" picks the screen it opens —
+    // separate fields (both editable in /cms.html's Home Tiles tab) so a
+    // tile's icon and its link no longer have to be the same fixed key.
+    // Falls back to the "about" icon if an unrecognized icon key ever
+    // reaches here, so a tile never renders with a missing icon.
+    const icon = iconMap[tItem.icon] || iconMap.about;
+    const dest = tItem.destination || tItem.key;
     const btn = el(`
-      <button class="tile" data-goto="${tItem.key}">
-        <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${iconMap[tItem.key]}</svg></div>
+      <button class="tile" data-goto="${dest}">
+        <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${icon}</svg></div>
         <h3>${tItem.title[currentLang]}</h3>
         <p>${tItem.desc[currentLang]}</p>
       </button>
     `);
-    btn.addEventListener("click", ()=>goTo(tItem.key));
+    btn.addEventListener("click", ()=>goTo(dest));
     tileGrid.appendChild(btn);
   });
 }
@@ -563,11 +570,15 @@ function renderGallery(){
   const galleryGrid = document.getElementById("galleryGrid");
   galleryGrid.innerHTML = "";
   GALLERY.forEach((g,i)=>{
+    // Photos uploaded through /cms.html's Gallery tab show as a real
+    // <img>; any entry with no photo yet still falls back to the
+    // colored placeholder + icon (so an empty gallery never looks broken).
+    const photo = g.image
+      ? `<img class="gallery-photo" src="${g.image}" alt="${tf(g,"label")}" loading="lazy" />`
+      : `<div class="gallery-ph" style="background:${PANEL_COLORS[i % PANEL_COLORS.length]}"><svg viewBox="0 0 24 24" fill="none">${GALLERY_ICON}</svg></div>`;
     galleryGrid.appendChild(el(`
       <div class="gallery-item">
-        <div class="gallery-ph" style="background:${PANEL_COLORS[i % PANEL_COLORS.length]}">
-          <svg viewBox="0 0 24 24" fill="none">${GALLERY_ICON}</svg>
-        </div>
+        ${photo}
         <div class="gallery-cap"><b>${tf(g,"label")}</b><span>${tf(g,"category")}</span></div>
       </div>
     `));
@@ -1318,31 +1329,26 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 }
 
 // ============================================================
-// LIVE CONTENT FROM A GOOGLE SHEET (optional — safe if unset)
+// LIVE CONTENT FROM THE SITE CMS (netlify/functions/cms-content.js)
 // ============================================================
-// Fill in SHEET_ID once the Sheet exists and its sharing is set to
-// "Anyone with the link — Viewer". Until then this is a no-op and the
-// site just uses the bundled content, exactly as before.
+// Replaces the old client-side Google Sheets fetch (10 separate sheet
+// tabs) with one request to the CMS backend, which reads Supabase —
+// the same tables /cms.html edits. Safe if Supabase isn't configured
+// yet or unreachable: cms-content.js returns { configured:false } and
+// the site just keeps using the bundled content, exactly as before.
 // Seed per-language address fields from the bundled content, so the
-// contact card has something to show even before any live sheet data
-// arrives (and as the fallback for any language left blank in the sheet).
+// contact card has something to show even before any live content
+// arrives (and as the fallback for any language left blank in a row).
 if (!CONTACT.address_en) CONTACT.address_en = CONTACT.address;
 if (!CONTACT.address_bm) CONTACT.address_bm = CONTACT.address;
 if (!CONTACT.address_ta) CONTACT.address_ta = CONTACT.address;
 
-const SHEET_ID = "18_VoVU1CGM8uRhxcRJP_LSUCDRuc-GDrmefMj3debMg";
-
-// Snapshot of the bundled deity photos/colors, keyed by English name, taken
-// before any live sheet data overwrites DEITIES. Used so that leaving the
-// "Photo Link" cell blank in the sheet means "keep using the current photo"
-// instead of showing a broken image.
-const BUNDLED_DEITIES_BY_NAME = {};
-DEITIES.forEach(d => { BUNDLED_DEITIES_BY_NAME[d.name_en] = d; });
-
 // Converts a normal Google Drive "share" link (any common format) into a
-// URL that actually works in an <img src="">. If the input doesn't look
-// like a Drive link, it's returned as-is (so a direct image URL from
-// anywhere else still works too).
+// URL that actually works in an <img src="">. Kept as a defensive
+// fallback in case a photo URL is ever set by hand in the Supabase Table
+// Editor rather than uploaded through /cms.html (which always stores a
+// direct Supabase Storage URL already). If the input doesn't look like a
+// Drive link, it's returned as-is.
 function driveImageUrl(link){
   if (!link) return "";
   const match = link.match(/[-\w]{25,}/); // Drive file IDs are long alphanumeric tokens
@@ -1352,261 +1358,104 @@ function driveImageUrl(link){
   return link;
 }
 
-function sheetCsvUrl(tabName){
-  // A cache-busting timestamp param, since Google's gviz CSV export can
-  // otherwise serve a stale cached response for several minutes after a
-  // sheet edit, and the browser's own fetch cache can do the same.
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_=${Date.now()}`;
-}
-
-// The name-based gviz/tq endpoint above has been observed to serve a
-// stubbornly stale cached response for the HeroBanner tab specifically,
-// even minutes after edits and even with cache-busting. The gid-based
-// export endpoint below has proven reliable for it, so HeroBanner uses
-// this instead. (Find a tab's gid in its URL: .../edit#gid=XXXXXXX)
-const TAB_GID = { HeroBanner: "171468680", Contact: "877259840" };
-
-function sheetCsvUrlByGid(gid){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&_=${Date.now()}`;
-}
-
-function fetchSheetTab(tabName){
-  const url = TAB_GID[tabName] ? sheetCsvUrlByGid(TAB_GID[tabName]) : sheetCsvUrl(tabName);
-  return fetch(url, { cache: "no-store" })
-    .then(res => { if(!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
-    .then(text => new Promise((resolve, reject) => {
-      Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        // Trims stray leading/trailing spaces in column headers (e.g. a
-        // header typed as "English " instead of "English"), since a
-        // mismatched key silently breaks every lookup for that column
-        // with no visible error.
-        transformHeader: (h) => h.trim(),
-        complete: (results) => resolve(results.data),
-        error: reject
-      });
-    }))
-    .catch(err => {
-      // A problem with ONE tab (wrong name, doesn't exist yet, etc.) must
-      // never take down the others — resolve to "no rows" instead of
-      // rejecting, so every other tab still updates normally.
-      console.warn(`Could not load the "${tabName}" sheet tab — that section will keep its current content:`, err);
-      return [];
-    });
-}
+const VALID_SCREENS = ["home","about","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
 
 function loadLiveContent(){
-  if (!SHEET_ID) return;
+  fetch("/.netlify/functions/cms-content", { cache: "no-store" })
+    .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(data => {
+      if (!data || !data.configured) return; // not set up yet — keep bundled content
 
-  // The Events tab is intentionally NOT fetched here any more — the Event
-  // Calendar now pulls exclusively from Annual Prayers (see
-  // getCalendarEvents()) so the same festival never shows twice from two
-  // different sources. content/events.json and the EVENTS array still
-  // exist but nothing renders from them any more; left in place rather
-  // than deleted in case this ever needs to be reverted.
-  Promise.all([
-    fetchSheetTab("Announcements"),
-    fetchSheetTab("PoojaTimings"),
-    fetchSheetTab("PoojaNames"),
-    fetchSheetTab("Sevas"),
-    fetchSheetTab("Deities"),
-    fetchSheetTab("AboutInfo"),
-    fetchSheetTab("AboutHistory"),
-    fetchSheetTab("AboutActivities"),
-    fetchSheetTab("HeroBanner"),
-    fetchSheetTab("Contact")
-  ]).then(([annRows, timingsRows, namesRows, sevasRows, deitiesRows, aboutInfoRows, aboutHistoryRows, aboutActivitiesRows, heroRows, contactRows]) => {
-
-    if (annRows.length){
-      const fresh = annRows.map(r => ({
-        title_en: r["Title (English)"] || "", title_bm: r["Title (Malay)"] || "", title_ta: r["Title (Tamil)"] || "",
-        desc_en: r["Description (English)"] || "", desc_bm: r["Description (Malay)"] || "", desc_ta: r["Description (Tamil)"] || ""
-      })).filter(a => a.title_en);
-      if (fresh.length){ ANNOUNCEMENTS.length = 0; fresh.forEach(a => ANNOUNCEMENTS.push(a)); }
-    }
-
-    if (timingsRows.length){
-      const byList = { today: [], daily: [], friday: [], fullMoon: [] };
-      timingsRows.forEach(r => {
-        const list = (r["List (today / daily / friday / fullMoon)"] || "").trim();
-        const name = (r["Pooja Name"] || "").trim();
-        const time = (r["Time"] || "").trim();
-        if (byList[list] && name && time) byList[list].push({ name, time });
-      });
-      if (byList.today.length){ POOJA_TIMINGS_TODAY.length = 0; byList.today.forEach(x => POOJA_TIMINGS_TODAY.push(x)); }
-      if (byList.daily.length) POOJA_TIMINGS_WEEKLY.daily = byList.daily;
-      if (byList.friday.length) POOJA_TIMINGS_WEEKLY.friday = byList.friday;
-      if (byList.fullMoon.length) POOJA_TIMINGS_WEEKLY.fullMoon = byList.fullMoon;
-    }
-
-    if (namesRows.length){
-      namesRows.forEach(r => {
-        const key = (r["Key (must match Pooja Name above)"] || "").trim();
-        if (key) POOJA_NAME[key] = { bm: r["Malay"] || "", ta: r["Tamil"] || "" };
-      });
-    }
-
-    if (sevasRows.length){
-      const fresh = sevasRows.map(r => ({
-        name_en: r["Name (EN)"] || "", name_bm: r["Name (BM)"] || "", name_ta: r["Name (TA)"] || "",
-        price_en: r["Price (EN)"] || "", price_bm: r["Price (BM)"] || "", price_ta: r["Price (TA)"] || "",
-        desc_en: r["Description (EN)"] || "", desc_bm: r["Description (BM)"] || "", desc_ta: r["Description (TA)"] || "",
-        cta_en: r["Button Text (EN)"] || "", cta_bm: r["Button Text (BM)"] || "", cta_ta: r["Button Text (TA)"] || ""
-      })).filter(s => s.name_en);
-      if (fresh.length){ SEVAS.length = 0; fresh.forEach(s => SEVAS.push(s)); }
-    }
-
-    if (deitiesRows.length){
-      const fresh = deitiesRows.map(r => {
-        const name_en = (r["Name (EN)"] || "").trim();
-        const bundled = BUNDLED_DEITIES_BY_NAME[name_en];
-        const photoInput = (r["Photo Link (leave blank to keep current photo)"] || "").trim();
-        return {
-          name_en,
-          name_bm: r["Name (BM)"] || "",
-          name_ta: r["Name (TA)"] || "",
-          role_en: r["Role (EN)"] || "",
-          role_bm: r["Role (BM)"] || "",
-          role_ta: r["Role (TA)"] || "",
-          description_en: r["Description (EN)"] || "",
-          description_bm: r["Description (BM)"] || "",
-          description_ta: r["Description (TA)"] || "",
-          color: bundled ? bundled.color : "#711821",
-          image: photoInput ? driveImageUrl(photoInput) : (bundled ? bundled.image : "")
-        };
-      }).filter(d => d.name_en);
-      if (fresh.length){ DEITIES.length = 0; fresh.forEach(d => DEITIES.push(d)); }
-    }
-
-    if (aboutInfoRows.length){
-      aboutInfoRows.forEach(r => {
-        const field = (r["Field (Vision / Mission)"] || "").trim().toLowerCase();
-        const en = (r["English"] || "").trim();
-        const bm = (r["Malay"] || "").trim();
-        const ta = (r["Tamil"] || "").trim();
-        if (field === "vision" && en){ ABOUT.vision_en = en; ABOUT.vision_bm = bm || en; ABOUT.vision_ta = ta || en; }
-        if (field === "mission" && en){ ABOUT.mission_en = en; ABOUT.mission_bm = bm || en; ABOUT.mission_ta = ta || en; }
-      });
-    }
-
-    if (aboutHistoryRows.length){
-      const en = aboutHistoryRows.map(r => (r["Paragraph (EN)"] || "").trim()).filter(Boolean);
-      const bm = aboutHistoryRows.map(r => (r["Paragraph (BM)"] || "").trim()).filter(Boolean);
-      const ta = aboutHistoryRows.map(r => (r["Paragraph (TA)"] || "").trim()).filter(Boolean);
-      if (en.length){
-        ABOUT.history_en = en;
-        ABOUT.history_bm = bm.length === en.length ? bm : en;
-        ABOUT.history_ta = ta.length === en.length ? ta : en;
-      }
-    }
-
-    if (aboutActivitiesRows.length){
-      const en = aboutActivitiesRows.map(r => (r["Activity (EN)"] || "").trim()).filter(Boolean);
-      const bm = aboutActivitiesRows.map(r => (r["Activity (BM)"] || "").trim()).filter(Boolean);
-      const ta = aboutActivitiesRows.map(r => (r["Activity (TA)"] || "").trim()).filter(Boolean);
-      if (en.length){
-        ABOUT.activities_en = en;
-        ABOUT.activities_bm = bm.length === en.length ? bm : en;
-        ABOUT.activities_ta = ta.length === en.length ? ta : en;
-      }
-    }
-
-    // HeroBanner tab: one row per field, columns Field / English / Malay / Tamil.
-    // Text fields (Eyebrow, Title Line 1, Title Line 2) are per-language.
-    // Number fields (Established Year, Devotees, Annual Events) use the
-    // English column only, since digits don't change across languages.
-    if (heroRows.length){
-      const byField = {};
-      heroRows.forEach(r => {
-        const field = (r["Field"] || "").trim();
-        if (field) byField[field] = { en: (r["English"] || "").trim(), bm: (r["Malay"] || "").trim(), ta: (r["Tamil"] || "").trim() };
-      });
-      const setText = (field, key) => {
-        const row = byField[field];
-        if (row && row.en){
-          UI.en[key] = row.en;
-          UI.bm[key] = row.bm || row.en;
-          UI.ta[key] = row.ta || row.en;
+      if (data.heroBanner){
+        const hb = data.heroBanner;
+        const setText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; } };
+        setText("heroEyebrow", hb.eyebrow);
+        setText("heroTitleLine1", hb.titleLine1);
+        setText("heroTitleLine2", hb.titleLine2);
+        setText("statEstablished", hb.establishedLabel);
+        setText("statDevotees", hb.devoteesLabel);
+        setText("statEvents", hb.annualEventsLabel);
+        setText("heroBtnEvents", hb.upcomingEventsLabel);
+        setText("heroBtnTimings", hb.poojaTimingsLabel);
+        if (hb.establishedValue) document.getElementById("statEstablishedValue").textContent = hb.establishedValue;
+        if (hb.devoteesValue) document.getElementById("statDevoteesValue").textContent = hb.devoteesValue;
+        if (hb.annualEventsValue) document.getElementById("statEventsValue").textContent = hb.annualEventsValue;
+        if (VALID_SCREENS.includes(hb.upcomingEventsLink)) document.getElementById("heroBtnEvents").setAttribute("data-goto", hb.upcomingEventsLink);
+        if (VALID_SCREENS.includes(hb.poojaTimingsLink)) document.getElementById("heroBtnTimings").setAttribute("data-goto", hb.poojaTimingsLink);
+        if (hb.imageUrl){
+          const heroEl = document.getElementById("heroSection");
+          if (heroEl) heroEl.style.setProperty("--hero-img", `url('${hb.imageUrl.replace(/'/g, "\\'")}')`);
         }
-      };
-      setText("Eyebrow", "heroEyebrow");
-      setText("Title Line 1", "heroTitleLine1");
-      setText("Title Line 2", "heroTitleLine2");
-      setText("Established Label", "statEstablished");
-      setText("Devotees Label", "statDevotees");
-      setText("Annual Events Label", "statEvents");
-      setText("Upcoming Events Label", "heroBtnEvents");
-      setText("Pooja Timings Label", "heroBtnTimings");
-
-      // Button destinations: which internal screen each hero button opens.
-      // Valid values: home, about, deities, calendar, timings, gallery,
-      // sevas, news, membership, contact. Falls back to the current
-      // destination if the sheet cell is blank or not one of these.
-      const VALID_SCREENS = ["home","about","deities","calendar","timings","gallery","sevas","news","membership","contact"];
-      const setLink = (field, elId) => {
-        const row = byField[field];
-        const dest = row && row.en ? row.en.trim().toLowerCase() : "";
-        if (VALID_SCREENS.includes(dest)) document.getElementById(elId).setAttribute("data-goto", dest);
-      };
-      setLink("Upcoming Events Link", "heroBtnEvents");
-      setLink("Pooja Timings Link", "heroBtnTimings");
-
-      const setNumber = (field, elId) => {
-        const row = byField[field];
-        if (row && row.en) document.getElementById(elId).textContent = row.en;
-      };
-      setNumber("Established Year", "statEstablishedValue");
-      setNumber("Devotees", "statDevoteesValue");
-      setNumber("Annual Events", "statEventsValue");
-    }
-
-    // Contact tab: one row per field. orgName/registrationNo/phone/email/
-    // whatsappNumber/social are the same regardless of language (English
-    // column only). Address is translated per language since it's the one
-    // field that genuinely differs — falls back to English if a language
-    // cell is left blank.
-    if (contactRows.length){
-      const byContactField = {};
-      contactRows.forEach(r => {
-        const field = (r["Field"] || "").trim();
-        if (field) byContactField[field] = { en: (r["English"] || "").trim(), bm: (r["Malay"] || "").trim(), ta: (r["Tamil"] || "").trim() };
-      });
-      const plain = (field) => byContactField[field] && byContactField[field].en;
-
-      if (plain("Organisation Name")) CONTACT.orgName = plain("Organisation Name");
-      if (plain("Registration No")) CONTACT.registrationNo = plain("Registration No");
-      if (plain("Phone")) CONTACT.phone = plain("Phone");
-      if (plain("Email")) CONTACT.email = plain("Email");
-      if (plain("WhatsApp Number")) CONTACT.whatsappNumber = plain("WhatsApp Number");
-      if (plain("Social Links")) CONTACT.social = plain("Social Links").split(",").map(s => s.trim()).filter(Boolean);
-
-      const addrRow = byContactField["Address"];
-      if (addrRow && addrRow.en){
-        CONTACT.address_en = addrRow.en;
-        CONTACT.address_bm = addrRow.bm || addrRow.en;
-        CONTACT.address_ta = addrRow.ta || addrRow.en;
       }
 
-      // Enquiries card: heading, caption, and the WhatsApp number shown
-      // there. Heading/caption are per-language; the number itself is
-      // the same regardless of language, sourced from the field above.
-      const setContactText = (field, key) => {
-        const row = byContactField[field];
-        if (row && row.en){
-          UI.en[key] = row.en;
-          UI.bm[key] = row.bm || row.en;
-          UI.ta[key] = row.ta || row.en;
-        }
-      };
-      setContactText("Enquiries Heading", "enquiriesTitle");
-      setContactText("Enquiries Caption", "whatsappCaption");
-    }
+      if (Array.isArray(data.navTiles) && data.navTiles.length){
+        TILE_META.length = 0;
+        data.navTiles.forEach(t => TILE_META.push(t));
+      }
 
-    renderAll();
-  }).catch(err => {
-    console.warn("Could not load live sheet content — using bundled content instead:", err);
-  });
+      if (data.about){
+        Object.assign(ABOUT, data.about);
+      }
+
+      if (Array.isArray(data.deities) && data.deities.length){
+        DEITIES.length = 0;
+        data.deities.forEach(d => { d.image = driveImageUrl(d.image); DEITIES.push(d); });
+      }
+
+      if (data.poojaTimings){
+        const pt = data.poojaTimings;
+        if (pt.today && pt.today.length){ POOJA_TIMINGS_TODAY.length = 0; pt.today.forEach(x => POOJA_TIMINGS_TODAY.push(x)); }
+        if (pt.weekly){
+          if (pt.weekly.daily && pt.weekly.daily.length) POOJA_TIMINGS_WEEKLY.daily = pt.weekly.daily;
+          if (pt.weekly.friday && pt.weekly.friday.length) POOJA_TIMINGS_WEEKLY.friday = pt.weekly.friday;
+          if (pt.weekly.fullMoon && pt.weekly.fullMoon.length) POOJA_TIMINGS_WEEKLY.fullMoon = pt.weekly.fullMoon;
+        }
+        if (pt.poojaNames) Object.assign(POOJA_NAME, pt.poojaNames);
+      }
+
+      if (Array.isArray(data.sevas) && data.sevas.length){
+        SEVAS.length = 0;
+        data.sevas.forEach(s => SEVAS.push(s));
+      }
+
+      if (Array.isArray(data.announcements) && data.announcements.length){
+        ANNOUNCEMENTS.length = 0;
+        data.announcements.forEach(a => ANNOUNCEMENTS.push(a));
+      }
+
+      if (Array.isArray(data.gallery) && data.gallery.length){
+        GALLERY.length = 0;
+        data.gallery.forEach(g => GALLERY.push(g));
+      }
+
+      if (data.contact){
+        const c = data.contact;
+        if (c.orgName) CONTACT.orgName = c.orgName;
+        if (c.registrationNo) CONTACT.registrationNo = c.registrationNo;
+        if (c.phone) CONTACT.phone = c.phone;
+        if (c.email) CONTACT.email = c.email;
+        if (c.whatsappNumber) CONTACT.whatsappNumber = c.whatsappNumber;
+        if (c.social && c.social.length) CONTACT.social = c.social;
+        if (c.address_en){
+          CONTACT.address_en = c.address_en;
+          CONTACT.address_bm = c.address_bm || c.address_en;
+          CONTACT.address_ta = c.address_ta || c.address_en;
+        }
+        const setContactText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; } };
+        setContactText("enquiriesTitle", c.enquiriesHeading);
+        setContactText("whatsappCaption", c.whatsappCaption);
+        if (c.donationAccount){
+          if (c.donationAccount.accountName) DONATION_ACCOUNT.accountName = c.donationAccount.accountName;
+          if (c.donationAccount.bank) DONATION_ACCOUNT.bank = c.donationAccount.bank;
+          if (c.donationAccount.accountNumber) DONATION_ACCOUNT.accountNumber = c.donationAccount.accountNumber;
+        }
+      }
+
+      renderAll();
+    })
+    .catch(err => {
+      console.warn("Could not load live CMS content — using bundled content instead:", err);
+    });
 }
 
 loadLiveContent();
