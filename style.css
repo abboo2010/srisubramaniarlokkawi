@@ -248,7 +248,7 @@ img{display:block;max-width:100%;}
   background:
     radial-gradient(120% 140% at 85% 10%, rgba(201,154,62,0.35), transparent 55%),
     linear-gradient(120deg, rgba(38,7,11,0.88) 0%, rgba(122,26,26,0.82) 55%, rgba(230,111,26,0.55) 130%),
-    url("assets/hero-banner.jpg");
+    var(--hero-img, url("assets/hero-banner.jpg"));
   background-size: cover;
   background-position: center;
   color:var(--gold-100);
