@@ -584,14 +584,20 @@ function resetGalleryView(){
   galleryActiveFolder = null;
 }
 
-// Shared tile for a Category or a Folder card: shows its first photo
-// (so browsing feels like a photo gallery even before opening
-// anything) and falls back to the colored placeholder + icon when
-// nothing's been uploaded into it yet.
-function galleryTile(coverPhoto, name, colorIndex, onClick){
-  const thumb = coverPhoto && (coverPhoto.thumbnail || coverPhoto.image);
-  const media = thumb
-    ? `<img class="gallery-photo" src="${thumb}" alt="${name}" loading="lazy" />`
+// A Category/Folder's cover image: whatever was explicitly set via
+// the CMS's "Cover Photo" field wins; otherwise fall back to its
+// first photo (so browsing still feels like a photo gallery), and
+// finally to nothing, which renders as the colored placeholder + icon.
+function resolveCoverUrl(entity, firstPhoto){
+  if (entity && entity.cover) return entity.cover;
+  if (firstPhoto) return firstPhoto.thumbnail || firstPhoto.image;
+  return "";
+}
+
+// Shared tile for a Category or a Folder card.
+function galleryTile(coverUrl, name, colorIndex, onClick){
+  const media = coverUrl
+    ? `<img class="gallery-photo" src="${coverUrl}" alt="${name}" loading="lazy" />`
     : `<div class="gallery-ph" style="background:${PANEL_COLORS[colorIndex % PANEL_COLORS.length]}"><svg viewBox="0 0 24 24" fill="none">${GALLERY_ICON}</svg></div>`;
   const tile = el(`
     <div class="gallery-item gallery-tile">
@@ -618,8 +624,8 @@ function renderGallery(){
     }
     GALLERY.forEach((c,i)=>{
       const folders = c.folders || [];
-      const cover = folders.length ? (folders[0].photos || [])[0] : null;
-      galleryGrid.appendChild(galleryTile(cover, tf(c,"name"), i, ()=>{
+      const firstPhoto = folders.length ? (folders[0].photos || [])[0] : null;
+      galleryGrid.appendChild(galleryTile(resolveCoverUrl(c, firstPhoto), tf(c,"name"), i, ()=>{
         galleryView = "folders"; galleryActiveCategory = c;
         renderGallery();
       }));
@@ -636,8 +642,8 @@ function renderGallery(){
       return;
     }
     folders.forEach((f,i)=>{
-      const cover = (f.photos || [])[0];
-      galleryGrid.appendChild(galleryTile(cover, tf(f,"name"), i, ()=>{
+      const firstPhoto = (f.photos || [])[0];
+      galleryGrid.appendChild(galleryTile(resolveCoverUrl(f, firstPhoto), tf(f,"name"), i, ()=>{
         galleryView = "photos"; galleryActiveFolder = f;
         renderGallery();
       }));

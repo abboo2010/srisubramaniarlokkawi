@@ -129,11 +129,13 @@ exports.handler = async () => {
     (galleryFolders.data || []).forEach(f => {
       (foldersByCategory[f.category_id] = foldersByCategory[f.category_id] || []).push({
         id: f.id, name_en: f.name_en, name_bm: f.name_bm, name_ta: f.name_ta,
+        cover: f.cover_url || "",
         photos: photosByFolder[f.id] || []
       });
     });
     const galleryOut = (galleryCategories.data || []).map(c => ({
       id: c.id, name_en: c.name_en, name_bm: c.name_bm, name_ta: c.name_ta,
+      cover: c.cover_url || "",
       folders: foldersByCategory[c.id] || []
     }));
 

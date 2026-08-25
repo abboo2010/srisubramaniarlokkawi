@@ -228,7 +228,7 @@
 
   <!-- ================= GALLERY CATEGORIES (list) ================= -->
   <div class="tab-panel" id="tab-galleryCategories">
-    <p class="panel-hint">The top level of the Gallery screen — e.g. "Festivals", "Deities", "Temple", "Community". Visitors tap a Category to see its Folders.</p>
+    <p class="panel-hint">The top level of the Gallery screen — e.g. "Festivals", "Deities", "Temple", "Community". Visitors tap a Category to see its Folders. Add a Cover Photo so the tile looks good even before any photos are uploaded inside it — otherwise it shows the first photo found inside, or a plain color if it's still empty.</p>
     <div class="toolbar"><button id="galleryCategories-refresh">Refresh</button><button class="primary" id="galleryCategories-add">+ Add Category</button></div>
     <div id="galleryCategories-panel" class="edit-panel"></div>
     <div class="table-wrap"><table id="galleryCategories-table"><thead></thead><tbody></tbody></table></div>
@@ -236,7 +236,7 @@
 
   <!-- ================= GALLERY FOLDERS (list) ================= -->
   <div class="tab-panel" id="tab-galleryFolders">
-    <p class="panel-hint">Folders live inside a Category — e.g. "Thaipusam 2026" inside "Festivals". Create the Category first, then add Folders under it here.</p>
+    <p class="panel-hint">Folders live inside a Category — e.g. "Thaipusam 2026" inside "Festivals". Create the Category first, then add Folders under it here. Add a Cover Photo so the tile looks good even before any photos are uploaded inside it.</p>
     <div class="toolbar"><button id="galleryFolders-refresh">Refresh</button><button class="primary" id="galleryFolders-add">+ Add Folder</button></div>
     <div id="galleryFolders-panel" class="edit-panel"></div>
     <div class="table-wrap"><table id="galleryFolders-table"><thead></thead><tbody></tbody></table></div>
@@ -651,21 +651,23 @@ function folderPath(id){
 }
 
 const galleryCategoriesTab = makeListTab({
-  tabId: "galleryCategories", entity: "galleryCategory", singularLabel: "Category", required: ["nameEn"],
+  tabId: "galleryCategories", entity: "galleryCategory", singularLabel: "Category", required: ["nameEn"], imageFolder: "gallery",
   deleteWarning: "This also deletes every Folder and Photo inside it.",
-  columns: [ {key:"nameEn",label:"Name (EN)"}, {key:"sortOrder",label:"Order"} ],
+  columns: [ {key:"coverUrl",label:"Cover",image:true}, {key:"nameEn",label:"Name (EN)"}, {key:"sortOrder",label:"Order"} ],
   fields: [
     { key:"nameEn", label:"Name (English)", type:"text" },
     { key:"nameBm", label:"Name (Malay)", type:"text" },
     { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"coverUrl", label:"Cover Photo", type:"image", maxDim:900, quality:0.78 },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
 });
 
 const galleryFoldersTab = makeListTab({
-  tabId: "galleryFolders", entity: "galleryFolder", singularLabel: "Folder", required: ["categoryId","nameEn"],
+  tabId: "galleryFolders", entity: "galleryFolder", singularLabel: "Folder", required: ["categoryId","nameEn"], imageFolder: "gallery",
   deleteWarning: "This also deletes every Photo inside it.",
   columns: [
+    { key:"coverUrl", label:"Cover", image:true },
     { key:"categoryId", label:"Category", compute: row => categoryName(row.categoryId) },
     { key:"nameEn", label:"Name (EN)" },
     { key:"sortOrder", label:"Order" }
@@ -676,6 +678,7 @@ const galleryFoldersTab = makeListTab({
     { key:"nameEn", label:"Name (English)", type:"text" },
     { key:"nameBm", label:"Name (Malay)", type:"text" },
     { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"coverUrl", label:"Cover Photo", type:"image", maxDim:900, quality:0.78 },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
 });

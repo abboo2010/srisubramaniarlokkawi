@@ -210,6 +210,7 @@ create table if not exists gallery_categories (
   name_en     text not null default '',
   name_bm     text not null default '',
   name_ta     text not null default '',
+  cover_url   text not null default '',
   sort_order  integer not null default 0,
   updated_at  timestamptz not null default now()
 );
@@ -227,6 +228,7 @@ create table if not exists gallery_folders (
   name_en      text not null default '',
   name_bm      text not null default '',
   name_ta      text not null default '',
+  cover_url    text not null default '',
   sort_order   integer not null default 0,
   updated_at   timestamptz not null default now()
 );

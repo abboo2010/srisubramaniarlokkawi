@@ -114,6 +114,7 @@ const ENTITIES = {
     table: "gallery_categories", singleton: false,
     fields: [
       ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
+      ["coverUrl","cover_url"],
       ["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder"]
@@ -123,6 +124,7 @@ const ENTITIES = {
     fields: [
       ["categoryId","category_id"],
       ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
+      ["coverUrl","cover_url"],
       ["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder","categoryId"]
