@@ -21,6 +21,23 @@
 })();
 
 let currentLang = "en";
+
+// Bundled default for the notice ticker. Declared HERE, not in
+// content-data.js, on purpose: content-data.js is regenerated from
+// scratch by build.js on every Netlify deploy (it reads /content/*.json,
+// which the ticker feature doesn't exist in) — anything hand-added
+// there gets silently discarded on the next deploy. Putting it in
+// script.js instead means it always exists, however content-data.js
+// is built. This is only the fallback used if Supabase is unreachable
+// or the site_ticker table hasn't been created yet — the CMS-edited
+// version always takes priority once it loads (see loadLiveContent()).
+const TICKER = {
+  enabled: true,
+  message_en: "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
+  message_bm: "⚠️ LAMAN WEB DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk tujuan ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Sila jangan anggap ia sebagai rasmi atau muktamad.",
+  message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
+};
+
 function eventTitle(ev){
   if (currentLang === "ta" && ev.title_ta) return ev.title_ta;
   if (currentLang === "bm" && ev.title_bm) return ev.title_bm;
@@ -1482,13 +1499,25 @@ function driveImageUrl(link){
 
 const VALID_SCREENS = ["home","about","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
 
+// Applies one section of the live CMS payload, isolated in its own
+// try/catch. A problem with any single field (a field that's missing,
+// a global that isn't defined the way this function expects, etc.)
+// must never stop the OTHER sections from being applied, and must
+// never stop the trailing renderAll() from running — that was a real
+// bug here once already (see the ticker section below).
+function safeApply(name, fn){
+  try { fn(); }
+  catch (err) { console.error(`[loadLiveContent] applying "${name}" failed — that section keeps its bundled/previous content, but everything else still updates:`, err); }
+}
+
 function loadLiveContent(){
   fetch("/.netlify/functions/cms-content", { cache: "no-store" })
     .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
     .then(data => {
       if (!data || !data.configured) return; // not set up yet — keep bundled content
 
-      if (data.heroBanner){
+      safeApply("heroBanner", () => {
+        if (!data.heroBanner) return;
         const hb = data.heroBanner;
         const setText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; } };
         setText("heroEyebrow", hb.eyebrow);
@@ -1508,23 +1537,27 @@ function loadLiveContent(){
           const heroEl = document.getElementById("heroSection");
           if (heroEl) heroEl.style.setProperty("--hero-img", `url('${hb.imageUrl.replace(/'/g, "\\'")}')`);
         }
-      }
+      });
 
-      if (Array.isArray(data.navTiles) && data.navTiles.length){
+      safeApply("navTiles", () => {
+        if (!Array.isArray(data.navTiles) || !data.navTiles.length) return;
         TILE_META.length = 0;
         data.navTiles.forEach(t => TILE_META.push(t));
-      }
+      });
 
-      if (data.about){
+      safeApply("about", () => {
+        if (!data.about) return;
         Object.assign(ABOUT, data.about);
-      }
+      });
 
-      if (Array.isArray(data.deities) && data.deities.length){
+      safeApply("deities", () => {
+        if (!Array.isArray(data.deities) || !data.deities.length) return;
         DEITIES.length = 0;
         data.deities.forEach(d => { d.image = driveImageUrl(d.image); DEITIES.push(d); });
-      }
+      });
 
-      if (data.poojaTimings){
+      safeApply("poojaTimings", () => {
+        if (!data.poojaTimings) return;
         const pt = data.poojaTimings;
         if (pt.today && pt.today.length){ POOJA_TIMINGS_TODAY.length = 0; pt.today.forEach(x => POOJA_TIMINGS_TODAY.push(x)); }
         if (pt.weekly){
@@ -1533,24 +1566,28 @@ function loadLiveContent(){
           if (pt.weekly.fullMoon && pt.weekly.fullMoon.length) POOJA_TIMINGS_WEEKLY.fullMoon = pt.weekly.fullMoon;
         }
         if (pt.poojaNames) Object.assign(POOJA_NAME, pt.poojaNames);
-      }
+      });
 
-      if (Array.isArray(data.sevas) && data.sevas.length){
+      safeApply("sevas", () => {
+        if (!Array.isArray(data.sevas) || !data.sevas.length) return;
         SEVAS.length = 0;
         data.sevas.forEach(s => SEVAS.push(s));
-      }
+      });
 
-      if (Array.isArray(data.announcements) && data.announcements.length){
+      safeApply("announcements", () => {
+        if (!Array.isArray(data.announcements) || !data.announcements.length) return;
         ANNOUNCEMENTS.length = 0;
         data.announcements.forEach(a => ANNOUNCEMENTS.push(a));
-      }
+      });
 
-      if (Array.isArray(data.gallery) && data.gallery.length){
+      safeApply("gallery", () => {
+        if (!Array.isArray(data.gallery) || !data.gallery.length) return;
         GALLERY.length = 0;
         data.gallery.forEach(g => GALLERY.push(g));
-      }
+      });
 
-      if (data.contact){
+      safeApply("contact", () => {
+        if (!data.contact) return;
         const c = data.contact;
         if (c.orgName) CONTACT.orgName = c.orgName;
         if (c.registrationNo) CONTACT.registrationNo = c.registrationNo;
@@ -1571,14 +1608,15 @@ function loadLiveContent(){
           if (c.donationAccount.bank) DONATION_ACCOUNT.bank = c.donationAccount.bank;
           if (c.donationAccount.accountNumber) DONATION_ACCOUNT.accountNumber = c.donationAccount.accountNumber;
         }
-      }
+      });
 
-      if (data.ticker){
+      safeApply("ticker", () => {
+        if (!data.ticker) return;
         TICKER.enabled = !!data.ticker.enabled;
         if (data.ticker.message_en) TICKER.message_en = data.ticker.message_en;
         TICKER.message_bm = data.ticker.message_bm || "";
         TICKER.message_ta = data.ticker.message_ta || "";
-      }
+      });
 
       renderAll();
     })

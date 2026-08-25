@@ -774,12 +774,10 @@ const DONATION_ACCOUNT = {
   "accountNumber": "3233458636"
 };
 
-// Notice ticker shown above the menu on every screen — editable from
-// /cms.html's Ticker tab. This bundled copy is only used if Supabase
-// is unreachable or the site_ticker table hasn't been created yet.
-const TICKER = {
-  "enabled": true,
-  "message_en": "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
-  "message_bm": "⚠️ LAMAN WEB DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk tujuan ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Sila jangan anggap ia sebagai rasmi atau muktamad.",
-  "message_ta": "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
-};
+// NOTE: TICKER used to be declared here, but this whole file gets
+// regenerated from scratch by build.js on every Netlify deploy (see
+// netlify.toml → "node build.js"), which has no concept of the ticker
+// feature — so anything added here for it was silently discarded on
+// every deploy, no matter what got merged into this file. TICKER now
+// lives in script.js instead, which build.js never touches. Don't
+// re-add it here.
