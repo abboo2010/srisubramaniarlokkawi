@@ -71,7 +71,22 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: "Title and message are both required." }) };
   }
 
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT, process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+  // web-push throws synchronously if VAPID_SUBJECT isn't exactly "mailto:someone@example.com"
+  // (or a valid "https://" URL), or if either key is malformed — without this try/catch, that
+  // throw crashes the whole function and Netlify just reports a bare, unhelpful "502 Bad Gateway"
+  // with no explanation. Catching it here turns that into a clear message in the CMS instead.
+  try {
+    webpush.setVapidDetails(process.env.VAPID_SUBJECT, process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+  } catch (err) {
+    console.error("cms-push-send: invalid VAPID configuration:", err && err.message);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: "Push notification settings look wrong (VAPID_SUBJECT/VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY in Netlify). " +
+          "VAPID_SUBJECT must be exactly \"mailto:someone@example.com\" (with the mailto: prefix, no extra spaces)."
+      })
+    };
+  }
 
   const { data: subs, error: loadError } = await supabase
     .from("push_subscriptions")
