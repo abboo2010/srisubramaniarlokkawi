@@ -1511,7 +1511,7 @@ function safeApply(name, fn){
 }
 
 function loadLiveContent(){
-  fetch("/.netlify/functions/cms-content", { cache: "no-store" })
+  return fetch("/.netlify/functions/cms-content", { cache: "no-store" })
     .then(res => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
     .then(data => {
       if (!data || !data.configured) return; // not set up yet — keep bundled content
@@ -1628,6 +1628,43 @@ function loadLiveContent(){
 loadLiveContent();
 fetchPrayersFromDb();
 fetchFridayAnnathanamFromDb();
+
+// ============================================================
+// KEEP AN ALREADY-OPEN PAGE IN SYNC WITH THE CMS
+// ============================================================
+// loadLiveContent() above only ever ran once, right when the page
+// first opened — a device that's freshly opened or reloaded always
+// gets the latest CMS content (see the "no-store" fetch above), but
+// one that's just sitting open would not, until someone reloaded it.
+// That matters most for a kiosk tablet mounted somewhere and left
+// running for hours or days.
+//
+// This applies equally to every device — a phone or tablet browser,
+// or the installed PWA "app" — since they all run this exact same
+// script.js; there's no separate native app build to update.
+//
+// Two triggers, both reusing loadLiveContent() itself so this can
+// never drift from what a fresh page load already does correctly:
+//   1. a periodic re-check every few minutes, and
+//   2. an immediate re-check whenever the page becomes visible again
+//      — the screen wakes up, the browser tab is switched back to, or
+//      the app is brought back to the foreground. This is the one
+//      that matters most for a kiosk whose screen has been asleep.
+//
+// A visitor who's mid-way through a Prayer/Friday Annathanam booking
+// form is unaffected — that form lives in its own popup, which this
+// never touches; only the underlying lists/content refresh under it.
+const LIVE_CONTENT_REFRESH_MS = 3 * 60 * 1000; // 3 minutes — adjust if needed
+let liveContentRefreshInFlight = false;
+function refreshLiveContentIfIdle(){
+  if (liveContentRefreshInFlight) return;
+  liveContentRefreshInFlight = true;
+  Promise.resolve(loadLiveContent()).finally(() => { liveContentRefreshInFlight = false; });
+}
+setInterval(refreshLiveContentIfIdle, LIVE_CONTENT_REFRESH_MS);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshLiveContentIfIdle();
+});
 
 // ============================================================
 // MEMBERSHIP STATUS CHECK
