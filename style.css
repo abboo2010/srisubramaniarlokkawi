@@ -244,6 +244,17 @@ img{display:block;max-width:100%;}
 }
 .lang-pill button.active{background:var(--maroon-800);color:var(--gold-100);}
 
+.notif-bell{
+  width:38px;height:38px;border-radius:999px;border:none;flex-shrink:0;
+  background:var(--cream-100);color:var(--ink-600);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s ease,color .15s ease;
+}
+.notif-bell svg{width:18px;height:18px;}
+.notif-bell.active{background:var(--maroon-800);color:var(--gold-100);}
+.notif-bell.denied{color:var(--ink-600);opacity:0.5;}
+.notif-bell:disabled{opacity:0.5;}
+
 .screen-wrap{
   flex:1;
   overflow-y:auto;

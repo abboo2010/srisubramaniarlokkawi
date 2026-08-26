@@ -1667,6 +1667,127 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // ============================================================
+// PUSH NOTIFICATIONS — bell button in the top bar
+// ============================================================
+// Lets a visitor opt in on their own device to receive push
+// notifications the temple sends from the "Push Notifications" tab
+// in /cms.html (e.g. "Special pooja today at 6pm"). Nothing is sent
+// automatically — this only wires up the subscribe/unsubscribe side.
+//
+// This public key is safe to ship in the page source — it's how the
+// browser proves to Apple/Google/Mozilla's push service which app is
+// asking to send notifications; it's not a secret. The matching
+// private key lives only in the cms-push-send.js Netlify Function's
+// environment variables, never in this file.
+const VAPID_PUBLIC_KEY = "BE1CchgL8b29u88JqWShwxoMmz1NBI37bXL25dE1bZr6WLaxmpkyUKKLBD2rKJrkq5281niBV5KwB02lcC6HlEg";
+
+function urlBase64ToUint8Array(base64String){
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+const notifBellBtn = document.getElementById("notifBellBtn");
+const pushSupported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window
+  && location.protocol !== "file:";
+
+function setBellState(state){
+  // state: "off" | "on" | "denied" | "busy"
+  if (!notifBellBtn) return;
+  notifBellBtn.classList.toggle("active", state === "on");
+  notifBellBtn.classList.toggle("denied", state === "denied");
+  notifBellBtn.disabled = state === "busy";
+  const titles = {
+    off: "Turn on notifications for temple updates",
+    on: "Notifications are on — tap to turn off",
+    denied: "Notifications are blocked — enable them in your browser's site settings",
+    busy: "Please wait…"
+  };
+  notifBellBtn.title = titles[state] || titles.off;
+  notifBellBtn.setAttribute("aria-label", titles[state] || titles.off);
+}
+
+async function refreshBellState(){
+  if (!pushSupported || !notifBellBtn) return;
+  if (Notification.permission === "denied"){ setBellState("denied"); return; }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    setBellState(sub ? "on" : "off");
+  } catch (err){
+    setBellState("off");
+  }
+}
+
+async function subscribeToPush(){
+  setBellState("busy");
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted"){
+      setBellState(permission === "denied" ? "denied" : "off");
+      return;
+    }
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub){
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    await fetch("/.netlify/functions/push-subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sub.toJSON())
+    });
+    setBellState("on");
+  } catch (err){
+    console.error("Push subscribe failed:", err);
+    setBellState("off");
+  }
+}
+
+async function unsubscribeFromPush(){
+  setBellState("busy");
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub){
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe();
+      fetch("/.netlify/functions/push-subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "unsubscribe", endpoint })
+      }).catch(() => {});
+    }
+    setBellState("off");
+  } catch (err){
+    console.error("Push unsubscribe failed:", err);
+    setBellState("off");
+  }
+}
+
+if (notifBellBtn){
+  if (!pushSupported){
+    notifBellBtn.style.display = "none";
+  } else {
+    notifBellBtn.addEventListener("click", () => {
+      if (notifBellBtn.classList.contains("denied")){
+        alert("Notifications are blocked for this site. Enable them in your browser's site settings, then tap this bell again.");
+        return;
+      }
+      if (notifBellBtn.classList.contains("active")) unsubscribeFromPush();
+      else subscribeToPush();
+    });
+    window.addEventListener("load", refreshBellState);
+  }
+}
+
+// ============================================================
 // MEMBERSHIP STATUS CHECK
 // Looks up a member by Membership No. via a secure server-side
 // function (netlify/functions/check-membership.js). The full member

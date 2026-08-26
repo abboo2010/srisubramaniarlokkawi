@@ -1,7 +1,7 @@
 // Sri Subramaniar Alayam — Service Worker
 // Caches core app files so the app can install and open offline.
 // Bump CACHE_NAME whenever core files change to force a refresh.
-const CACHE_NAME = "temple-kiosk-v15";
+const CACHE_NAME = "temple-kiosk-v16";
 
 const CORE_ASSETS = [
   "./index.html",
@@ -109,6 +109,50 @@ self.addEventListener("fetch", (event) => {
           return response;
         })
         .catch(() => cached);
+    })
+  );
+});
+
+// ============================================================
+// PUSH NOTIFICATIONS
+// ============================================================
+// Fired when the browser delivers a push message sent from the CMS
+// (via cms-push-send.js). Shows a system notification even if the
+// app/tab isn't open — that's the whole point of push. If the
+// payload can't be parsed for any reason, falls back to a generic
+// message rather than silently doing nothing.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (err) {
+    data = { title: "Sri Subramaniar Alayam", body: event.data ? event.data.text() : "" };
+  }
+
+  const title = data.title || "Sri Subramaniar Alayam";
+  const options = {
+    body: data.body || "",
+    icon: "./assets/icons/icon-192.png",
+    badge: "./assets/icons/icon-192.png",
+    data: { url: data.url || "./index.html" }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Fired when someone taps the notification. Focuses an already-open
+// tab/window if there is one, otherwise opens a new one — either way
+// landing on the URL the CMS sent (defaults to the home screen).
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || "./index.html";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if ("focus" in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
     })
   );
 });

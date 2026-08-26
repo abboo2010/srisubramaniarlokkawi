@@ -165,6 +165,7 @@
     <button data-tab="members">Membership</button>
     <button data-tab="contact">Contact Us</button>
     <button data-tab="ticker">Ticker</button>
+    <button data-tab="push">Push Notifications</button>
   </div>
 
   <!-- ================= HERO BANNER (singleton) ================= -->
@@ -304,6 +305,20 @@
       <p class="panel-hint">The scrolling notice bar shown above the menu on every screen. Untick "Enabled" to hide it without losing the text. Malay/Tamil fall back to the English text on the live site if left blank.</p>
       <div id="ticker-form"></div>
       <div class="edit-actions"><button class="save" id="ticker-save">Save Ticker</button></div>
+    </div>
+  </div>
+
+  <!-- ================= PUSH NOTIFICATIONS ================= -->
+  <div class="tab-panel" id="tab-push">
+    <div class="section-card">
+      <h2>Push Notifications</h2>
+      <p class="panel-hint">Send a notification to every visitor who has tapped the bell icon on the site to turn notifications on. There's no schedule — this sends immediately, to whoever is currently subscribed. <span id="push-subscriber-count">Loading subscriber count…</span></p>
+      <p class="panel-hint">Note: on iPhone/iPad, a visitor must first "Add to Home Screen" from Safari before the bell icon can turn notifications on — this is an Apple requirement, not something this app can change. Android phones/tablets and desktop browsers can turn notifications on directly from the site.</p>
+      <div class="edit-grid">
+        <div class="edit-field wide"><label>Title</label><input type="text" id="push-title" maxlength="60" placeholder="e.g. Special Pooja Today" /></div>
+        <div class="edit-field wide"><label>Message</label><textarea id="push-body" maxlength="150" rows="3" placeholder="e.g. Abhishekam starts at 6pm today. All devotees welcome."></textarea></div>
+      </div>
+      <div class="edit-actions"><button class="save" id="push-send">Send Notification</button></div>
     </div>
   </div>
 </div>
@@ -1056,6 +1071,53 @@ document.getElementById("members-bulk-submit").addEventListener("click", async (
   } catch (err){ showStatus(err.message || "Import failed.", "error"); }
 });
 
+// ============================================================
+// PUSH NOTIFICATIONS — compose & send (netlify/functions/cms-push-send.js)
+// ============================================================
+const pushSubscriberCountEl = document.getElementById("push-subscriber-count");
+const pushTitleInput = document.getElementById("push-title");
+const pushBodyInput = document.getElementById("push-body");
+const pushSendBtn = document.getElementById("push-send");
+
+async function loadPushSubscriberCount(){
+  if (!pushSubscriberCountEl) return;
+  try {
+    const res = await fetch("/.netlify/functions/cms-push-send", { headers: { "X-Admin-Password": adminPassword } });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
+    pushSubscriberCountEl.textContent = `${body.count} device(s) currently subscribed.`;
+  } catch (err){
+    pushSubscriberCountEl.textContent = "Could not load subscriber count.";
+  }
+}
+
+if (pushSendBtn){
+  pushSendBtn.addEventListener("click", async () => {
+    const title = (pushTitleInput.value || "").trim();
+    const message = (pushBodyInput.value || "").trim();
+    if (!title || !message){ showStatus("Title and message are both required.", "error"); return; }
+    if (!confirm(`Send this notification to every subscribed device now?\n\n${title}\n${message}`)) return;
+    pushSendBtn.disabled = true;
+    try {
+      const res = await fetch("/.netlify/functions/cms-push-send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        body: JSON.stringify({ title, body: message })
+      });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(result.error || ("HTTP " + res.status));
+      showStatus(`Sent to ${result.sent} device(s)${result.failed ? `, ${result.failed} failed` : ""}.`, result.sent ? "ok" : "error");
+      pushTitleInput.value = "";
+      pushBodyInput.value = "";
+      loadPushSubscriberCount();
+    } catch (err){
+      showStatus(err.message || "Send failed.", "error");
+    } finally {
+      pushSendBtn.disabled = false;
+    }
+  });
+}
+
 function initAllTabs(){
   heroTab.load();
   tilesTab.load();
@@ -1070,6 +1132,7 @@ function initAllTabs(){
   loadMembers();
   contactTab.load();
   tickerTab.load();
+  loadPushSubscriberCount();
 }
 </script>
 </body>

@@ -2,7 +2,7 @@
  
 One responsive site — same code, same deploy — that works as a fixed touchscreen kiosk, a browsable website, and an installable PWA on phones/tablets. Content is edited live through two password-protected admin pages, no code editing, no GitHub account, and no redeploy needed for day-to-day updates:
 
-- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, and Contact Us
+- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, Contact Us, Notice Ticker, and Push Notifications
 - **`/admin-prayers.html`** — Prayers & Registration and Friday Annathanam
 
 Both read from and write to the same Supabase (Postgres) database, and both are gated by the same `ADMIN_PASSWORD`. Neither page is linked from the site's main navigation — bookmark the URLs.
@@ -48,6 +48,33 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 **5. Test it**
 - Edit the Hero Banner eyebrow text → Save → reload the live site → the change should appear immediately
 - Membership Status (public page) → enter a Membership No. you added in the Membership tab → should show that member's details and status
+
+## Push Notifications — one-time setup
+
+Visitors can tap the bell icon in the top bar (next to EN/BM/Tamil) to turn on notifications for that device. From the **Push Notifications** tab in `/cms.html`, type a title and message and press Send — every device currently subscribed gets it right away. This is a free browser feature (the "Web Push" standard) — it doesn't need a paid Supabase or Netlify plan, and there's no per-notification cost or limit from either of them.
+
+**1. Add the new database table**
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-push-notifications.sql` → **Run**
+
+**2. Add three new environment variables in Netlify**
+- `VAPID_PUBLIC_KEY` = `BE1CchgL8b29u88JqWShwxoMmz1NBI37bXL25dE1bZr6WLaxmpkyUKKLBD2rKJrkq5281niBV5KwB02lcC6HlEg`
+- `VAPID_PRIVATE_KEY` = `ykPvIxOSK-VHCZg69zpXboUUuql-gVM7HmwLg6b-QGs`
+- `VAPID_SUBJECT` = `mailto:` followed by an email address the browser vendors (Apple/Google/Mozilla) can contact if something's ever wrong with how the site sends notifications — this is never shown to visitors, e.g. `mailto:temple@example.com`
+
+These two keys are a matched pair generated specifically for this site — treat `VAPID_PRIVATE_KEY` like a password (Netlify environment variables are already private, so just don't share it elsewhere). If it's ever leaked, generate a fresh pair (any "web-push VAPID key generator" works) and update both this variable and `VAPID_PUBLIC_KEY` in Netlify **and** the matching `VAPID_PUBLIC_KEY` constant near the top of the Push Notifications section in `script.js` — the public key must match in both places or new subscriptions will fail.
+
+- Trigger a redeploy so the new functions (`push-subscribe.js`, `cms-push-send.js`) pick up the variables
+
+**3. Test it**
+- On your own phone or laptop, open the live site and tap the bell icon → allow notifications when the browser asks
+- In `/cms.html` → **Push Notifications** tab, it should show "1 device(s) currently subscribed" (or more, if others already opted in)
+- Send a test notification → it should arrive within a few seconds, even if the site's tab/app isn't open — tapping it opens the site
+
+**Good to know:**
+- **Android phones/tablets and desktop browsers (Chrome, Edge, Firefox)** can turn notifications on directly from the site, no install needed.
+- **iPhone/iPad (Safari)** requires the visitor to first "Add to Home Screen" — only after that will the bell icon work. This is an Apple platform rule (since iOS 16.4), not something this app can bypass. The Push Notifications tab in the CMS shows this reminder.
+- A device stops receiving notifications if the visitor turns the bell off, uninstalls the app, clears their browser data, or (rarely) the push service reports the subscription as gone — in every case it's removed from the subscriber count automatically, no cleanup needed on your end.
+- No visitor's name, phone number, or any personal detail is ever collected by this feature — only an anonymous per-device subscription used to deliver the notification.
 
 ## Annual Prayers & Registration — one-time setup
 
