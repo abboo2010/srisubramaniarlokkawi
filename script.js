@@ -801,7 +801,79 @@ function renderPrayerCategoryTabs(){
   wrap.innerHTML = "";
   PRAYER_CATEGORY_KEYS.forEach(key=>{
     const btn = el(`<button class="tab-btn${key===currentPrayerCategory ? " active" : ""}" data-key="${key}">${t(PRAYER_CATEGORY_UIKEY[key])}</button>`);
-    btn.addEventListener("click", ()=>{ currentPrayerCategory = key; renderPrayerCategoryTabs(); renderPrayerGrid(); });
+    btn.addEventListener("click", ()=>{
+      currentPrayerCategory = key;
+      // Switching category starts a fresh pooja-type selection — a "Shasthi"
+      // filter picked while looking at Monthly shouldn't silently carry over
+      // and hide everything if you then tap Special.
+      currentPrayerType = "all";
+      renderPrayerCategoryTabs();
+      renderPrayerTypeTabs();
+      renderPrayerGrid();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+// Pooja-type sub-tabs, shown only under Monthly/Special. Monthly and Special
+// poojas repeat under the same name every cycle (Bairavar, Shasthi, Pournami,
+// and "more to come" per the treasurer) — without this, a year of Monthly
+// alone would be dozens of same-named cards mixed together in one date-sorted
+// list. Tabs are generated automatically from whatever distinct pooja names
+// already exist in that category, not a fixed/hardcoded list, so a brand-new
+// pooja type gets its own tab the moment it's added in /admin-prayers.html —
+// no code change or redeploy needed to keep this current.
+let currentPrayerType = "all";
+
+function renderPrayerTypeTabs(){
+  const wrap = document.getElementById("prayersTypeTabs");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+
+  if (currentPrayerCategory === "annual"){
+    // Annual already has many one-off, mostly-unique event names — grouping
+    // those into name-tabs wouldn't help (it'd just be a wall of tabs), so
+    // this row stays hidden there and Annual keeps its existing flat list.
+    wrap.style.display = "none";
+    return;
+  }
+
+  const list = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []);
+  const seen = new Set();
+  const names = [];
+  list.forEach(p=>{
+    if ((p.category || "annual") !== currentPrayerCategory) return;
+    const name = (p.name || "").trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    names.push(name);
+  });
+  names.sort((a,b)=> a.localeCompare(b));
+
+  // Nothing to split yet (no poojas, or only one distinct name in this
+  // category) — an "All" tab next to a single duplicate tab adds noise
+  // without adding any way to actually narrow things down.
+  if (names.length <= 1){
+    wrap.style.display = "none";
+    if (currentPrayerType !== "all") currentPrayerType = "all";
+    return;
+  }
+
+  // If the previously-selected type no longer exists in this category's data
+  // (e.g. it was renamed/removed in the CMS, or content just refreshed),
+  // fall back to "All" rather than silently showing an empty grid.
+  if (currentPrayerType !== "all" && !seen.has(currentPrayerType)){
+    currentPrayerType = "all";
+  }
+
+  wrap.style.display = "";
+  const allBtn = el(`<button class="tab-btn${currentPrayerType==="all" ? " active" : ""}" data-key="all">${t("prayersFilterAll")}</button>`);
+  allBtn.addEventListener("click", ()=>{ currentPrayerType = "all"; renderPrayerTypeTabs(); renderPrayerGrid(); });
+  wrap.appendChild(allBtn);
+
+  names.forEach(name=>{
+    const btn = el(`<button class="tab-btn${name===currentPrayerType ? " active" : ""}" data-key="${name}">${name}</button>`);
+    btn.addEventListener("click", ()=>{ currentPrayerType = name; renderPrayerTypeTabs(); renderPrayerGrid(); });
     wrap.appendChild(btn);
   });
 }
@@ -828,6 +900,7 @@ function renderPrayerGrid(){
   const list = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).slice().sort((a,b)=> a.date.localeCompare(b.date));
   const filtered = list.filter(p=>{
     if ((p.category || "annual") !== currentPrayerCategory) return false;
+    if (currentPrayerType !== "all" && (p.name || "").trim() !== currentPrayerType) return false;
     const over = prayerIsOver(p);
     if (currentPrayerFilter === "upcoming") return !over;
     if (currentPrayerFilter === "over") return over;
@@ -1175,6 +1248,7 @@ function renderPrayers(){
   document.getElementById("prayersCaterersSubText").textContent = t("prayersCaterersSub");
   document.getElementById("prayerParticipantsHeadingText").textContent = t("prayersParticipantsHeading");
   renderPrayerCategoryTabs();
+  renderPrayerTypeTabs();
   renderPrayerFilterTabs();
   renderPrayerGrid();
   renderCaterers();
