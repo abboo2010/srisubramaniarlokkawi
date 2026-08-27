@@ -832,6 +832,30 @@ function renderPrayerCategoryTabs(){
 // to choose from.
 let currentPrayerType = null;
 
+// Real Monthly/Special poojas turn out to be entered with the specific
+// occurrence baked right into the name — e.g. "Monthly Bairavar Pooja
+// (April 2026)", one per calendar month — rather than the same plain name
+// repeating every month. Grouping by the raw name alone (the first version
+// of this feature) meant every single month became its own "type" tab, so
+// Monthly ended up with a dozen near-empty Bairavar tabs instead of one.
+// This derives the pooja's actual recurring identity — "Bairavar" — by
+// stripping the trailing "(Month Year)" and the category word (Monthly/
+// Special) and a trailing "Pooja"/"Prayer" word, wherever they appear, so
+// every month's Bairavar pooja collapses onto the same tab. If a name
+// doesn't match that pattern at all, it's left as-is (its own tab) rather
+// than silently dropped.
+function prayerTypeLabel(rawName, category){
+  let name = (rawName || "").trim();
+  if (!name) return "";
+  name = name.replace(/\s*\([^)]*\)\s*$/, "").trim();
+  const categoryWord = category === "monthly" ? "Monthly" : category === "special" ? "Special" : null;
+  if (categoryWord){
+    name = name.replace(new RegExp("\\b" + categoryWord + "\\b", "gi"), "").replace(/\s+/g, " ").trim();
+  }
+  name = name.replace(/\s+(pooja|prayer|prayers)\s*$/i, "").trim();
+  return name || (rawName || "").trim();
+}
+
 function renderPrayerTypeTabs(){
   const wrap = document.getElementById("prayersTypeTabs");
   if (!wrap) return;
@@ -851,7 +875,7 @@ function renderPrayerTypeTabs(){
   const names = [];
   list.forEach(p=>{
     if ((p.category || "annual") !== currentPrayerCategory) return;
-    const name = (p.name || "").trim();
+    const name = prayerTypeLabel(p.name, currentPrayerCategory);
     if (!name || seen.has(name)) return;
     seen.add(name);
     names.push(name);
@@ -977,7 +1001,7 @@ function renderPrayerGrid(){
   // shows one specific pooja's own occurrences at a time under Monthly/
   // Special — never a merged view of every type at once.
   const filtered = byCategoryAndStatus.filter(p =>
-    !currentPrayerType || (p.name || "").trim() === currentPrayerType
+    !currentPrayerType || prayerTypeLabel(p.name, currentPrayerCategory) === currentPrayerType
   );
 
   if (!filtered.length){
