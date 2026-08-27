@@ -28,6 +28,13 @@ create table if not exists prayers (
   -- was, implicitly, before Monthly/Special existed), so nothing already
   -- in the schedule needs to be touched to keep showing up where it does.
   category             text not null default 'annual' check (category in ('annual', 'monthly', 'special')),
+  -- The pooja's recurring identity within Monthly/Special (e.g. "Bairavar",
+  -- "Shasthi", "Pournami") — every month's occurrence of the same pooja sets
+  -- this to the same value, which is what the public site's sub-tabs group
+  -- and filter on. Free text, not a fixed list — admin-managed in
+  -- /admin-prayers.html's Add/Edit form, with existing values offered as
+  -- suggestions. Always null for Annual, which has no sub-tabs.
+  pooja_type           text,
   ubayam_fee           numeric,
   ubayakarar_sponsor   text,
   ubayakarar_open      boolean not null default true,

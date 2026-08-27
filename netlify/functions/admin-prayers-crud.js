@@ -26,6 +26,22 @@ function prayerRowFromInput(data) {
   if (data.date !== undefined) row.date = data.date;
   if (data.name !== undefined) row.name = data.name;
   if (data.category !== undefined) row.category = PRAYER_CATEGORIES.includes(data.category) ? data.category : "annual";
+  // Pooja Type is what the public site's Monthly/Special sub-tabs group on —
+  // e.g. every "Bairavar" pooja, whichever month it's for, lands on the same
+  // tab. Only meaningful for Monthly/Special (Annual is always cleared to
+  // null, even if something was sent, since it has no sub-tabs); if left
+  // blank for a Monthly/Special pooja, falls back to the pooja's own Name
+  // rather than staying blank, so it always groups onto *some* tab instead
+  // of silently vanishing from the public site's tab list.
+  if (data.poojaType !== undefined) {
+    const effectiveCategory = data.category !== undefined ? row.category : undefined;
+    if (effectiveCategory === "monthly" || effectiveCategory === "special") {
+      const trimmedType = String(data.poojaType || "").trim();
+      row.pooja_type = trimmedType || (data.name !== undefined ? String(data.name).trim() : null) || null;
+    } else if (effectiveCategory === "annual") {
+      row.pooja_type = null;
+    }
+  }
   if (data.ubayamFee !== undefined) row.ubayam_fee = data.ubayamFee === "" || data.ubayamFee === null ? null : Number(data.ubayamFee);
   if (data.ubayakararSponsor !== undefined) row.ubayakarar_sponsor = data.ubayakararSponsor || null;
   if (data.ubayakararOpen !== undefined) row.ubayakarar_open = !!data.ubayakararOpen;

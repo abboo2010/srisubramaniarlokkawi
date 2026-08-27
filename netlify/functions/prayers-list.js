@@ -50,6 +50,7 @@ exports.handler = async () => {
       date: p.date,
       name: p.name,
       category: p.category || "annual",
+      poojaType: p.pooja_type || null,
       ubayamFee: p.ubayam_fee,
       ubayakararSponsor: p.ubayakarar_sponsor,
       ubayakararOpen: p.ubayakarar_open,

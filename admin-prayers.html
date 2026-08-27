@@ -322,6 +322,9 @@
         <option value="monthly">Monthly Prayers/Poojas</option>
         <option value="special">Special Prayers/Poojas</option>
       </select>
+      <select id="schedulePoojaTypeFilter" style="display:none;">
+        <option value="all">All Pooja Types</option>
+      </select>
       <button id="refreshScheduleBtn">Refresh</button>
       <button id="printScheduleBtn">Print</button>
       <button id="exportScheduleBtn">Export CSV</button>
@@ -348,6 +351,11 @@
             <option value="special">Special Prayers/Poojas</option>
           </select>
         </div>
+        <div class="edit-field" id="f_poojaTypeField" style="display:none;">
+          <label>Pooja Type (e.g. Bairavar, Shasthi, Pournami)</label>
+          <input id="f_poojaType" list="poojaTypeOptions" placeholder="Pick an existing one or type a new one" />
+          <datalist id="poojaTypeOptions"></datalist>
+        </div>
         <div class="edit-field"><label>Status Override</label>
           <select id="f_statusOverride">
             <option value="">Automatic (by date)</option>
@@ -357,6 +365,7 @@
         </div>
         <div class="edit-field" style="grid-column:1/-1;"><label>Notes (shown to devotees)</label><textarea id="f_notes" rows="2"></textarea></div>
       </div>
+      <p class="panel-hint" id="f_poojaTypeHint" style="display:none;margin-top:-8px;">Pooja Type is what groups this pooja's monthly/special occurrences together on the public site — e.g. every "Bairavar" pooja, whichever month, lands on the same tab. Pick an existing one from the list, or type a brand-new name to create it — the first time you save a new type here, it just starts appearing as a tab on the public site and as a suggestion next time.</p>
 
       <div class="edit-section-title">Ubayakarar Sponsorship</div>
       <div class="edit-grid">
@@ -389,7 +398,7 @@
         <thead>
           <tr>
             <th class="select-col"><input type="checkbox" id="scheduleSelectAll" title="Select all shown"></th>
-            <th>Date</th><th>Pooja</th><th>Category</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
+            <th>Date</th><th>Pooja</th><th>Category</th><th>Pooja Type</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
             <th>Participants</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
@@ -1300,25 +1309,64 @@
   document.getElementById("refreshScheduleBtn").addEventListener("click", loadSchedule);
   document.getElementById("scheduleSearchInput").addEventListener("input", renderSchedule);
   document.getElementById("scheduleCategoryFilter").addEventListener("change", renderSchedule);
+  document.getElementById("schedulePoojaTypeFilter").addEventListener("change", renderSchedule);
   document.getElementById("printScheduleBtn").addEventListener("click", () => window.print());
   document.getElementById("exportScheduleBtn").addEventListener("click", () => {
-    const rows = [["Date","Pooja","Category","Ubayam Fee","Ubayakarar Sponsor","Ubayakarar Open","Annathanam Sponsor","Annathanam Open","Public Registration Enabled","Participant Fee","Notes","Status Override"]];
-    filteredSchedule().forEach(p => rows.push([p.date, p.name, categoryLabel(p.category), p.ubayamFee, p.ubayakararSponsor, p.ubayakararOpen, p.annathanamSponsor, p.annathanamOpen, p.participantsEnabled, p.participantFee, p.notes, p.statusOverride]));
+    const rows = [["Date","Pooja","Category","Pooja Type","Ubayam Fee","Ubayakarar Sponsor","Ubayakarar Open","Annathanam Sponsor","Annathanam Open","Public Registration Enabled","Participant Fee","Notes","Status Override"]];
+    filteredSchedule().forEach(p => rows.push([p.date, p.name, categoryLabel(p.category), p.poojaType || "", p.ubayamFee, p.ubayakararSponsor, p.ubayakararOpen, p.annathanamSponsor, p.annathanamOpen, p.participantsEnabled, p.participantFee, p.notes, p.statusOverride]));
     downloadCsv("annual-prayers-events.csv", rows);
   });
 
   const PRAYER_CATEGORY_LABELS = { annual: "Annual Prayers/Poojas", monthly: "Monthly Prayers/Poojas", special: "Special Prayers/Poojas" };
   function categoryLabel(cat){ return PRAYER_CATEGORY_LABELS[cat] || PRAYER_CATEGORY_LABELS.annual; }
 
+  // Distinct Pooja Type values already in use for a given category, sorted —
+  // shared by the Schedule toolbar's filter and the Add/Edit form's
+  // suggestion list, so both always reflect whatever types actually exist
+  // rather than a fixed/hardcoded list.
+  function poojaTypesForCategory(category){
+    const seen = new Set();
+    allPrayers.forEach(p => {
+      if ((p.category || "annual") !== category) return;
+      const type = (p.poojaType || "").trim();
+      if (type) seen.add(type);
+    });
+    return [...seen].sort((a,b) => a.localeCompare(b));
+  }
+
+  // Keeps the Schedule toolbar's Pooja Type filter in sync with the
+  // selected Category filter — hidden entirely for Annual/All (no types
+  // there), shown with that category's real types otherwise. Called on
+  // load, on Category filter change, and after any save/delete that could
+  // have added or removed a type.
+  function refreshScheduleFilterPoojaTypes(){
+    const category = document.getElementById("scheduleCategoryFilter").value;
+    const select = document.getElementById("schedulePoojaTypeFilter");
+    const previous = select.value;
+    if (category !== "monthly" && category !== "special"){
+      select.style.display = "none";
+      select.value = "all";
+      return;
+    }
+    const types = poojaTypesForCategory(category);
+    select.innerHTML = '<option value="all">All Pooja Types</option>' +
+      types.map(t => `<option value="${t}">${t}</option>`).join("");
+    select.value = types.includes(previous) ? previous : "all";
+    select.style.display = types.length ? "" : "none";
+  }
+
   function filteredSchedule(){
     const search = document.getElementById("scheduleSearchInput").value.trim().toLowerCase();
     const category = document.getElementById("scheduleCategoryFilter").value;
+    const poojaType = document.getElementById("schedulePoojaTypeFilter").value;
     return allPrayers.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""))
       .filter(p => !search || p.name.toLowerCase().includes(search))
-      .filter(p => category === "all" || (p.category || "annual") === category);
+      .filter(p => category === "all" || (p.category || "annual") === category)
+      .filter(p => poojaType === "all" || (category !== "monthly" && category !== "special") || (p.poojaType || "") === poojaType);
   }
 
   function renderSchedule(){
+    refreshScheduleFilterPoojaTypes();
     const filtered = filteredSchedule();
     const body = document.getElementById("scheduleBody");
     const emptyNote = document.getElementById("scheduleEmptyNote");
@@ -1346,6 +1394,7 @@
         <td>${p.date}</td>
         <td>${p.name}</td>
         <td>${categoryLabel(p.category)}</td>
+        <td>${p.poojaType || "—"}</td>
         <td>${feeText}</td>
         <td><span class="pill ${p.ubayakararOpen ? "open" : "taken"}">${p.ubayakararOpen ? "Open" : "Taken"}</span>${p.ubayakararSponsor ? "<br>" + p.ubayakararSponsor : ""}</td>
         <td><span class="pill ${p.annathanamOpen ? "open" : "taken"}">${p.annathanamOpen ? "Open" : "Taken"}</span>${p.annathanamSponsor ? "<br>" + p.annathanamSponsor : ""}</td>
@@ -1379,6 +1428,25 @@
     document.querySelectorAll(".schedule-select").forEach(cb => { cb.checked = e.target.checked; });
     updateScheduleDuplicateButtonState();
   });
+
+  // Shows/hides the Pooja Type field (Annual doesn't use it) and refreshes
+  // its suggestion list to whatever types already exist for the currently
+  // selected Category — called on category change and whenever the form
+  // opens, so switching Category in the form mid-edit always offers the
+  // right suggestions rather than stale ones from a previous category.
+  function refreshPoojaTypeField(){
+    const category = document.getElementById("f_category").value;
+    const applies = category === "monthly" || category === "special";
+    document.getElementById("f_poojaTypeField").style.display = applies ? "" : "none";
+    document.getElementById("f_poojaTypeHint").style.display = applies ? "" : "none";
+    if (!applies){
+      document.getElementById("f_poojaType").value = "";
+      return;
+    }
+    const datalist = document.getElementById("poojaTypeOptions");
+    datalist.innerHTML = poojaTypesForCategory(category).map(t => `<option value="${t}"></option>`).join("");
+  }
+  document.getElementById("f_category").addEventListener("change", refreshPoojaTypeField);
 
   const prayerEditPanel = document.getElementById("prayerEditPanel");
   document.getElementById("addPrayerBtn").addEventListener("click", () => openPrayerEdit(null));
@@ -1421,6 +1489,8 @@
     document.getElementById("f_date").value = p.date;
     document.getElementById("f_name").value = p.name;
     document.getElementById("f_category").value = p.category || "annual";
+    refreshPoojaTypeField();
+    document.getElementById("f_poojaType").value = p.poojaType || "";
     document.getElementById("f_ubayamFee").value = p.ubayamFee != null ? p.ubayamFee : "";
     document.getElementById("f_ubayakararSponsor").value = p.ubayakararSponsor || "";
     document.getElementById("f_ubayakararOpen").checked = !!p.ubayakararOpen;
@@ -1453,6 +1523,8 @@
     document.getElementById("f_date").value = p ? p.date : "";
     document.getElementById("f_name").value = p ? p.name : "";
     document.getElementById("f_category").value = p ? (p.category || "annual") : "annual";
+    refreshPoojaTypeField();
+    document.getElementById("f_poojaType").value = p ? (p.poojaType || "") : "";
     document.getElementById("f_ubayamFee").value = p && p.ubayamFee != null ? p.ubayamFee : "";
     document.getElementById("f_ubayakararSponsor").value = p ? (p.ubayakararSponsor || "") : "";
     document.getElementById("f_ubayakararOpen").checked = p ? !!p.ubayakararOpen : true;
@@ -1473,6 +1545,7 @@
       date: document.getElementById("f_date").value,
       name: document.getElementById("f_name").value.trim(),
       category: document.getElementById("f_category").value,
+      poojaType: document.getElementById("f_poojaType").value.trim(),
       ubayamFee: document.getElementById("f_ubayamFee").value,
       ubayakararSponsor: document.getElementById("f_ubayakararSponsor").value.trim(),
       ubayakararOpen: document.getElementById("f_ubayakararOpen").checked,

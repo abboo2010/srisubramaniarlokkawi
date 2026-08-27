@@ -832,28 +832,20 @@ function renderPrayerCategoryTabs(){
 // to choose from.
 let currentPrayerType = null;
 
-// Real Monthly/Special poojas turn out to be entered with the specific
-// occurrence baked right into the name — e.g. "Monthly Bairavar Pooja
-// (April 2026)", one per calendar month — rather than the same plain name
-// repeating every month. Grouping by the raw name alone (the first version
-// of this feature) meant every single month became its own "type" tab, so
-// Monthly ended up with a dozen near-empty Bairavar tabs instead of one.
-// This derives the pooja's actual recurring identity — "Bairavar" — by
-// stripping the trailing "(Month Year)" and the category word (Monthly/
-// Special) and a trailing "Pooja"/"Prayer" word, wherever they appear, so
-// every month's Bairavar pooja collapses onto the same tab. If a name
-// doesn't match that pattern at all, it's left as-is (its own tab) rather
-// than silently dropped.
-function prayerTypeLabel(rawName, category){
-  let name = (rawName || "").trim();
-  if (!name) return "";
-  name = name.replace(/\s*\([^)]*\)\s*$/, "").trim();
-  const categoryWord = category === "monthly" ? "Monthly" : category === "special" ? "Special" : null;
-  if (categoryWord){
-    name = name.replace(new RegExp("\\b" + categoryWord + "\\b", "gi"), "").replace(/\s+/g, " ").trim();
-  }
-  name = name.replace(/\s+(pooja|prayer|prayers)\s*$/i, "").trim();
-  return name || (rawName || "").trim();
+// A pooja's recurring identity — "Bairavar", "Shasthi", "Pournami" — is what
+// the Monthly/Special sub-tabs group and filter on, so every month's
+// Bairavar pooja lands on the same tab regardless of which month it's for.
+// This now comes straight from the admin-set `poojaType` field (set in
+// /admin-prayers.html's Add/Edit form, stored in the `prayers.pooja_type`
+// column) rather than being guessed from the pooja's display name — an
+// earlier version of this tried to derive it by parsing the name (stripping
+// "(Month Year)", "Monthly"/"Special", "Pooja"/"Prayer"), which worked for
+// the naming pattern seen at the time but is exactly the kind of guesswork
+// that breaks the moment a pooja is named differently. `poojaType` is
+// authoritative now; a raw, un-set `p.name` is only a last-resort fallback
+// (e.g. a pooja saved before this field existed and not yet re-saved).
+function prayerTypeLabel(p){
+  return (p.poojaType || "").trim() || (p.name || "").trim();
 }
 
 function renderPrayerTypeTabs(){
@@ -875,7 +867,7 @@ function renderPrayerTypeTabs(){
   const names = [];
   list.forEach(p=>{
     if ((p.category || "annual") !== currentPrayerCategory) return;
-    const name = prayerTypeLabel(p.name, currentPrayerCategory);
+    const name = prayerTypeLabel(p);
     if (!name || seen.has(name)) return;
     seen.add(name);
     names.push(name);
@@ -1001,7 +993,7 @@ function renderPrayerGrid(){
   // shows one specific pooja's own occurrences at a time under Monthly/
   // Special — never a merged view of every type at once.
   const filtered = byCategoryAndStatus.filter(p =>
-    !currentPrayerType || prayerTypeLabel(p.name, currentPrayerCategory) === currentPrayerType
+    !currentPrayerType || prayerTypeLabel(p) === currentPrayerType
   );
 
   if (!filtered.length){
