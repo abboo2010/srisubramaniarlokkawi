@@ -129,6 +129,8 @@ Set a pooja's category from its **Category** dropdown in the Add/Edit Pooja form
 
 Under **Monthly** and **Special**, a second row of tabs appears automatically to group poojas by name (e.g. Bairavar / Shasthi / Pournami) whenever a category has more than one distinct pooja name in it — since those repeat every month, this keeps the list from turning into one long mixed pile of same-named cards. These sub-tabs are generated live from whatever pooja names already exist in Supabase — nothing to configure, and a brand-new recurring pooja type gets its own tab automatically the moment it's added in the Schedule tab, no code change needed. Keep a recurring pooja's name spelled exactly the same every time it's added (e.g. always "Shasthi", not "Shasthi Pooja" one month and "Sashti" the next) so its occurrences group under one tab instead of splitting into two. Annual keeps its original flat list (its events are mostly one-off and unique by name, so grouping wouldn't help there).
 
+Tapping **Monthly** (or **Special**) itself lands on the "All" tab, which shows every pooja in that category clustered under a heading per name — Bairavar's poojas together, then Shasthi's, then Pournami's, and so on — so it's readable at a glance instead of one mixed list. Tapping one of the name tabs (e.g. Bairavar) narrows the grid down to just that pooja's own occurrences.
+
 **6. Test it**
 - Go to your site → Prayers & Registration → open a pooja that's still open → Register as Ubayakarar → submit with a test name/phone
 - Refresh the Prayers & Registration page — that slot should now show as Reserved to every visitor, not just you

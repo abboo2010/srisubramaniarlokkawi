@@ -893,78 +893,106 @@ function renderPrayerFilterTabs(){
   });
 }
 
+function buildPrayerCard(p){
+  const over = prayerIsOver(p);
+  const ubayakararTaken = prayerRoleTaken(p, "ubayakarar");
+  const annathanamTaken = prayerRoleTaken(p, "annathanam");
+  // Same sponsor lookup the pooja detail popup already uses (prayerRoleRow
+  // below) — showing it here too means a devotee can see who's already
+  // sponsoring a pooja without needing to open it first.
+  const ubayakararSponsor = prayerRoleSponsorDisplay(p, "ubayakarar");
+  const annathanamSponsor = prayerRoleSponsorDisplay(p, "annathanam");
+  // Payment/confirmation status pills — same booking lookup and Paid
+  // logic the popup already uses for the Ubayam Fee row (see
+  // openPrayerModal below), just surfaced here too so a devotee doesn't
+  // have to open the card to see it. Annathanam never collects payment
+  // (the sponsor pays the caterer directly), so it gets a
+  // Confirmed/Not Confirmed status instead of a paid/unpaid one.
+  const ubayakararBooking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).ubayakarar;
+  const ubayakararPaid = ubayakararBooking && (ubayakararBooking.status === "Confirmed" || ubayakararBooking.status === "Paid/Confirmed");
+  const ubayakararPaidPillHtml = ubayakararBooking
+    ? `<span class="prayer-role-pill ${ubayakararPaid ? "paid" : "unpaid"}">${ubayakararPaid ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
+    : "";
+  const annathanamBooking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).annathanam;
+  const annathanamConfirmed = annathanamBooking && annathanamBooking.status === "Confirmed";
+  const annathanamStatusPillHtml = annathanamBooking
+    ? `<span class="prayer-role-pill ${annathanamConfirmed ? "paid" : "unpaid"}">${annathanamConfirmed ? t("prayersConfirmedBadge") : t("prayersNotConfirmedBadge")}</span>`
+    : "";
+  const feeText = p.ubayamFee != null ? `RM ${p.ubayamFee.toLocaleString()}` : t("prayersAsArranged");
+  const card = el(`
+    <div class="prayer-card">
+      <div class="prayer-card-date"><b>${dayNum(p.date)}</b><small>${monthAbbr(p.date)}</small></div>
+      <div class="prayer-card-body">
+        <div class="prayer-card-top">
+          <h4>${p.name}</h4>
+          <span class="prayer-status-pill ${over ? "over" : "upcoming"}">${over ? t("prayersStatusOver") : t("prayersStatusUpcoming")}</span>
+        </div>
+        <div class="prayer-card-fee">${feeText}</div>
+        <div class="prayer-card-pills">
+          <div class="prayer-role-block">
+            <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+            ${ubayakararSponsor ? `<span class="prayer-role-sponsor">${ubayakararSponsor}</span>` : ""}
+            ${ubayakararPaidPillHtml}
+          </div>
+          <div class="prayer-role-block">
+            <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
+            ${annathanamSponsor ? `<span class="prayer-role-sponsor">${annathanamSponsor}</span>` : ""}
+            ${annathanamStatusPillHtml}
+          </div>
+          ${p.participantsEnabled ? `<span class="prayer-role-pill ${over ? "taken" : "open"}">${t("prayersParticipantLabel")}${over ? ": " + t("prayersClosedBadge") : ""}</span>` : ""}
+        </div>
+      </div>
+    </div>
+  `);
+  card.addEventListener("click", ()=>openPrayerModal(p));
+  return card;
+}
+
 function renderPrayerGrid(){
   const grid = document.getElementById("prayerGrid");
   if (!grid) return;
   grid.innerHTML = "";
   const list = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).slice().sort((a,b)=> a.date.localeCompare(b.date));
-  const filtered = list.filter(p=>{
+  const byCategoryAndStatus = list.filter(p=>{
     if ((p.category || "annual") !== currentPrayerCategory) return false;
-    if (currentPrayerType !== "all" && (p.name || "").trim() !== currentPrayerType) return false;
     const over = prayerIsOver(p);
     if (currentPrayerFilter === "upcoming") return !over;
     if (currentPrayerFilter === "over") return over;
     return true;
   });
 
+  // Landing on Monthly/Special with no specific pooja type picked ("All")
+  // is the one case where cards get clustered under a heading per pooja
+  // name (Bairavar, Shasthi, Pournami, ...) instead of one big date-sorted
+  // mix — this is what makes "tap Monthly, see everything, organized by
+  // type" actually readable rather than just a long list. Once a specific
+  // type is picked (via the tabs above), or on Annual (which never shows
+  // the type tabs — its events are mostly unique one-offs), it's a plain
+  // flat list like before.
+  const grouped = currentPrayerType === "all" && currentPrayerCategory !== "annual";
+  const filtered = grouped
+    ? byCategoryAndStatus
+    : byCategoryAndStatus.filter(p => currentPrayerType === "all" || (p.name || "").trim() === currentPrayerType);
+
   if (!filtered.length){
     grid.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;grid-column:1/-1;">${t("calNoEvents")}</p>`));
     return;
   }
 
+  if (!grouped){
+    filtered.forEach(p => grid.appendChild(buildPrayerCard(p)));
+    return;
+  }
+
+  const groups = new Map();
   filtered.forEach(p=>{
-    const over = prayerIsOver(p);
-    const ubayakararTaken = prayerRoleTaken(p, "ubayakarar");
-    const annathanamTaken = prayerRoleTaken(p, "annathanam");
-    // Same sponsor lookup the pooja detail popup already uses (prayerRoleRow
-    // below) — showing it here too means a devotee can see who's already
-    // sponsoring a pooja without needing to open it first.
-    const ubayakararSponsor = prayerRoleSponsorDisplay(p, "ubayakarar");
-    const annathanamSponsor = prayerRoleSponsorDisplay(p, "annathanam");
-    // Payment/confirmation status pills — same booking lookup and Paid
-    // logic the popup already uses for the Ubayam Fee row (see
-    // openPrayerModal below), just surfaced here too so a devotee doesn't
-    // have to open the card to see it. Annathanam never collects payment
-    // (the sponsor pays the caterer directly), so it gets a
-    // Confirmed/Not Confirmed status instead of a paid/unpaid one.
-    const ubayakararBooking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).ubayakarar;
-    const ubayakararPaid = ubayakararBooking && (ubayakararBooking.status === "Confirmed" || ubayakararBooking.status === "Paid/Confirmed");
-    const ubayakararPaidPillHtml = ubayakararBooking
-      ? `<span class="prayer-role-pill ${ubayakararPaid ? "paid" : "unpaid"}">${ubayakararPaid ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
-      : "";
-    const annathanamBooking = (PRAYER_SPONSOR_BOOKINGS[p.id] || {}).annathanam;
-    const annathanamConfirmed = annathanamBooking && annathanamBooking.status === "Confirmed";
-    const annathanamStatusPillHtml = annathanamBooking
-      ? `<span class="prayer-role-pill ${annathanamConfirmed ? "paid" : "unpaid"}">${annathanamConfirmed ? t("prayersConfirmedBadge") : t("prayersNotConfirmedBadge")}</span>`
-      : "";
-    const feeText = p.ubayamFee != null ? `RM ${p.ubayamFee.toLocaleString()}` : t("prayersAsArranged");
-    const card = el(`
-      <div class="prayer-card">
-        <div class="prayer-card-date"><b>${dayNum(p.date)}</b><small>${monthAbbr(p.date)}</small></div>
-        <div class="prayer-card-body">
-          <div class="prayer-card-top">
-            <h4>${p.name}</h4>
-            <span class="prayer-status-pill ${over ? "over" : "upcoming"}">${over ? t("prayersStatusOver") : t("prayersStatusUpcoming")}</span>
-          </div>
-          <div class="prayer-card-fee">${feeText}</div>
-          <div class="prayer-card-pills">
-            <div class="prayer-role-block">
-              <span class="prayer-role-pill ${ubayakararTaken ? "taken" : "open"}">${t("prayersUbayakararLabel")}: ${ubayakararTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
-              ${ubayakararSponsor ? `<span class="prayer-role-sponsor">${ubayakararSponsor}</span>` : ""}
-              ${ubayakararPaidPillHtml}
-            </div>
-            <div class="prayer-role-block">
-              <span class="prayer-role-pill ${annathanamTaken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${annathanamTaken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>
-              ${annathanamSponsor ? `<span class="prayer-role-sponsor">${annathanamSponsor}</span>` : ""}
-              ${annathanamStatusPillHtml}
-            </div>
-            ${p.participantsEnabled ? `<span class="prayer-role-pill ${over ? "taken" : "open"}">${t("prayersParticipantLabel")}${over ? ": " + t("prayersClosedBadge") : ""}</span>` : ""}
-          </div>
-        </div>
-      </div>
-    `);
-    card.addEventListener("click", ()=>openPrayerModal(p));
-    grid.appendChild(card);
+    const name = (p.name || "").trim() || t("prayersOthersGroup");
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(p);
+  });
+  [...groups.keys()].sort((a,b)=> a.localeCompare(b)).forEach(name=>{
+    grid.appendChild(el(`<div class="prayer-type-group-heading">${name}</div>`));
+    groups.get(name).forEach(p => grid.appendChild(buildPrayerCard(p)));
   });
 }
 
