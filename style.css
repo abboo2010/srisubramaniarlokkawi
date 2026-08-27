@@ -1069,13 +1069,6 @@ img{display:block;max-width:100%;}
 
 /* ===== Annual Prayers & Registration ===== */
 .prayer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px;}
-/* Groups the "All" view under Monthly/Special Prayers into labeled clusters
-   per pooja name (Bairavar, Shasthi, Pournami, ...) instead of one long
-   date-sorted mix — see renderPrayerGrid() in script.js. Sits inside the
-   same grid, spanning both columns, with a divider above every group after
-   the first so each cluster reads as its own section. */
-.prayer-type-group-heading{grid-column:1/-1;font-family:var(--font-display);font-size:15px;font-weight:600;color:var(--maroon-700);letter-spacing:.02em;margin:4px 0 -2px;padding-top:14px;border-top:1px solid var(--gold-100);}
-.prayer-type-group-heading:first-child{margin-top:0;padding-top:0;border-top:none;}
 .prayer-card{
   display:flex;gap:12px;background:#fff;border-radius:var(--radius-md);
   padding:16px;box-shadow:var(--shadow-card);cursor:pointer;transition:transform .15s ease;

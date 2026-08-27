@@ -805,8 +805,9 @@ function renderPrayerCategoryTabs(){
       currentPrayerCategory = key;
       // Switching category starts a fresh pooja-type selection — a "Shasthi"
       // filter picked while looking at Monthly shouldn't silently carry over
-      // and hide everything if you then tap Special.
-      currentPrayerType = "all";
+      // and hide everything if you then tap Special. renderPrayerTypeTabs()
+      // (called right below) resolves null to the new category's first type.
+      currentPrayerType = null;
       renderPrayerCategoryTabs();
       renderPrayerTypeTabs();
       renderPrayerGrid();
@@ -817,13 +818,19 @@ function renderPrayerCategoryTabs(){
 
 // Pooja-type sub-tabs, shown only under Monthly/Special. Monthly and Special
 // poojas repeat under the same name every cycle (Bairavar, Shasthi, Pournami,
-// and "more to come" per the treasurer) — without this, a year of Monthly
-// alone would be dozens of same-named cards mixed together in one date-sorted
-// list. Tabs are generated automatically from whatever distinct pooja names
-// already exist in that category, not a fixed/hardcoded list, so a brand-new
-// pooja type gets its own tab the moment it's added in /admin-prayers.html —
-// no code change or redeploy needed to keep this current.
-let currentPrayerType = "all";
+// and "more to come" per the treasurer) — tapping Monthly shows those names
+// as tabs, one of them already selected, and the grid shows only that one
+// type's poojas — exactly the same drill-down shape as the Annual/Monthly/
+// Special tabs above it, just one level deeper. Tabs are generated
+// automatically from whatever distinct pooja names already exist in that
+// category, not a fixed/hardcoded list, so a brand-new pooja type gets its
+// own tab the moment it's added in /admin-prayers.html — no code change or
+// redeploy needed to keep this current. null means "no specific type
+// selected" — true on Annual (no tabs at all) and on a category with 0 or 1
+// distinct names (nothing to pick between); renderPrayerTypeTabs() below is
+// what turns null into a real selection whenever there's more than one name
+// to choose from.
+let currentPrayerType = null;
 
 function renderPrayerTypeTabs(){
   const wrap = document.getElementById("prayersTypeTabs");
@@ -831,10 +838,11 @@ function renderPrayerTypeTabs(){
   wrap.innerHTML = "";
 
   if (currentPrayerCategory === "annual"){
-    // Annual already has many one-off, mostly-unique event names — grouping
+    // Annual already has many one-off, mostly-unique event names — splitting
     // those into name-tabs wouldn't help (it'd just be a wall of tabs), so
     // this row stays hidden there and Annual keeps its existing flat list.
     wrap.style.display = "none";
+    currentPrayerType = null;
     return;
   }
 
@@ -851,26 +859,28 @@ function renderPrayerTypeTabs(){
   names.sort((a,b)=> a.localeCompare(b));
 
   // Nothing to split yet (no poojas, or only one distinct name in this
-  // category) — an "All" tab next to a single duplicate tab adds noise
-  // without adding any way to actually narrow things down.
+  // category) — a single tab next to nothing else to pick doesn't add any
+  // way to actually narrow things down, so the row stays hidden and the
+  // grid below just shows everything in the category (which, with 0 or 1
+  // names, is the same thing "picking a tab" would show anyway).
   if (names.length <= 1){
     wrap.style.display = "none";
-    if (currentPrayerType !== "all") currentPrayerType = "all";
+    currentPrayerType = null;
     return;
   }
 
-  // If the previously-selected type no longer exists in this category's data
-  // (e.g. it was renamed/removed in the CMS, or content just refreshed),
-  // fall back to "All" rather than silently showing an empty grid.
-  if (currentPrayerType !== "all" && !seen.has(currentPrayerType)){
-    currentPrayerType = "all";
+  // Landing on Monthly/Special (or the previously-picked type having
+  // disappeared — renamed/deleted in the admin, or a live-content refresh)
+  // always resolves to a real, specific pooja type — the first one
+  // alphabetically — never to an empty grid or a merged "everything at
+  // once" view. Tapping Monthly shows Bairavar/Shasthi/Pournami as tabs,
+  // with one of them already selected and its own poojas already showing,
+  // exactly like the Annual/Monthly/Special tabs above it work.
+  if (!currentPrayerType || !seen.has(currentPrayerType)){
+    currentPrayerType = names[0];
   }
 
   wrap.style.display = "";
-  const allBtn = el(`<button class="tab-btn${currentPrayerType==="all" ? " active" : ""}" data-key="all">${t("prayersFilterAll")}</button>`);
-  allBtn.addEventListener("click", ()=>{ currentPrayerType = "all"; renderPrayerTypeTabs(); renderPrayerGrid(); });
-  wrap.appendChild(allBtn);
-
   names.forEach(name=>{
     const btn = el(`<button class="tab-btn${name===currentPrayerType ? " active" : ""}" data-key="${name}">${name}</button>`);
     btn.addEventListener("click", ()=>{ currentPrayerType = name; renderPrayerTypeTabs(); renderPrayerGrid(); });
@@ -961,39 +971,21 @@ function renderPrayerGrid(){
     return true;
   });
 
-  // Landing on Monthly/Special with no specific pooja type picked ("All")
-  // is the one case where cards get clustered under a heading per pooja
-  // name (Bairavar, Shasthi, Pournami, ...) instead of one big date-sorted
-  // mix — this is what makes "tap Monthly, see everything, organized by
-  // type" actually readable rather than just a long list. Once a specific
-  // type is picked (via the tabs above), or on Annual (which never shows
-  // the type tabs — its events are mostly unique one-offs), it's a plain
-  // flat list like before.
-  const grouped = currentPrayerType === "all" && currentPrayerCategory !== "annual";
-  const filtered = grouped
-    ? byCategoryAndStatus
-    : byCategoryAndStatus.filter(p => currentPrayerType === "all" || (p.name || "").trim() === currentPrayerType);
+  // currentPrayerType is null on Annual and on any category with 0-1 pooja
+  // names (nothing to narrow down); otherwise it's always a real selected
+  // name (renderPrayerTypeTabs() guarantees that), so this grid only ever
+  // shows one specific pooja's own occurrences at a time under Monthly/
+  // Special — never a merged view of every type at once.
+  const filtered = byCategoryAndStatus.filter(p =>
+    !currentPrayerType || (p.name || "").trim() === currentPrayerType
+  );
 
   if (!filtered.length){
     grid.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;grid-column:1/-1;">${t("calNoEvents")}</p>`));
     return;
   }
 
-  if (!grouped){
-    filtered.forEach(p => grid.appendChild(buildPrayerCard(p)));
-    return;
-  }
-
-  const groups = new Map();
-  filtered.forEach(p=>{
-    const name = (p.name || "").trim() || t("prayersOthersGroup");
-    if (!groups.has(name)) groups.set(name, []);
-    groups.get(name).push(p);
-  });
-  [...groups.keys()].sort((a,b)=> a.localeCompare(b)).forEach(name=>{
-    grid.appendChild(el(`<div class="prayer-type-group-heading">${name}</div>`));
-    groups.get(name).forEach(p => grid.appendChild(buildPrayerCard(p)));
-  });
+  filtered.forEach(p => grid.appendChild(buildPrayerCard(p)));
 }
 
 const prayerOverlay = document.getElementById("prayerOverlay");
