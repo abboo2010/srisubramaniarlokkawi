@@ -23,6 +23,11 @@ create table if not exists prayers (
   ref                  integer,
   date                 date not null,
   name                 text not null,
+  -- Which of the three schedules this pooja belongs to, per the temple
+  -- treasurer's request — 'annual' is the default (and what every pooja
+  -- was, implicitly, before Monthly/Special existed), so nothing already
+  -- in the schedule needs to be touched to keep showing up where it does.
+  category             text not null default 'annual' check (category in ('annual', 'monthly', 'special')),
   ubayam_fee           numeric,
   ubayakarar_sponsor   text,
   ubayakarar_open      boolean not null default true,
@@ -36,8 +41,23 @@ create table if not exists prayers (
   updated_at           timestamptz not null default now()
 );
 create index if not exists prayers_date_idx on prayers (date);
+create index if not exists prayers_category_idx on prayers (category);
 
 alter table prayers enable row level security;
+
+-- Idempotent add for an already-existing prayers table (same pattern as
+-- bookings.payment_method below) — every existing pooja defaults to
+-- 'annual', matching what the whole schedule was before Monthly/Special
+-- categories existed. If you already ran the full schema before this
+-- column existed, run this file again — it's a no-op for everything
+-- except this one addition.
+alter table prayers add column if not exists category text not null default 'annual';
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'prayers_category_check') then
+    alter table prayers add constraint prayers_category_check check (category in ('annual', 'monthly', 'special'));
+  end if;
+end $$;
 
 -- ---------- bookings: every registration submitted through the site ----------
 create table if not exists bookings (

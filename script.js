@@ -784,6 +784,28 @@ function prayerRoleSponsorDisplay(p, role){
 }
 function formatPrayerDate(iso){ return formatEventDate(iso); }
 
+// Category is the temple treasurer's split of the schedule into three
+// separate lists — Annual, Monthly, and Special — layered on top of the
+// existing Upcoming/Completed/All status filter below, not replacing it:
+// picking a category narrows the grid to that schedule, then the status
+// tabs still narrow further within it. Every pooja that predates this
+// feature defaults to "annual" (see prayers-list.js), so nothing already
+// on the site moves or disappears just from this shipping.
+const PRAYER_CATEGORY_KEYS = ["annual", "monthly", "special"];
+const PRAYER_CATEGORY_UIKEY = { annual: "prayersCategoryAnnual", monthly: "prayersCategoryMonthly", special: "prayersCategorySpecial" };
+let currentPrayerCategory = "annual";
+
+function renderPrayerCategoryTabs(){
+  const wrap = document.getElementById("prayersCategoryTabs");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  PRAYER_CATEGORY_KEYS.forEach(key=>{
+    const btn = el(`<button class="tab-btn${key===currentPrayerCategory ? " active" : ""}" data-key="${key}">${t(PRAYER_CATEGORY_UIKEY[key])}</button>`);
+    btn.addEventListener("click", ()=>{ currentPrayerCategory = key; renderPrayerCategoryTabs(); renderPrayerGrid(); });
+    wrap.appendChild(btn);
+  });
+}
+
 const PRAYER_FILTER_KEYS = ["upcoming", "over", "all"];
 const PRAYER_FILTER_UIKEY = { upcoming: "prayersFilterUpcoming", over: "prayersFilterOver", all: "prayersFilterAll" };
 let currentPrayerFilter = "upcoming";
@@ -805,6 +827,7 @@ function renderPrayerGrid(){
   grid.innerHTML = "";
   const list = (typeof ANNUAL_PRAYERS !== "undefined" ? ANNUAL_PRAYERS : []).slice().sort((a,b)=> a.date.localeCompare(b.date));
   const filtered = list.filter(p=>{
+    if ((p.category || "annual") !== currentPrayerCategory) return false;
     const over = prayerIsOver(p);
     if (currentPrayerFilter === "upcoming") return !over;
     if (currentPrayerFilter === "over") return over;
@@ -1151,6 +1174,7 @@ function renderPrayers(){
   document.getElementById("prayersCaterersHeadingText").textContent = t("prayersCaterersHeading");
   document.getElementById("prayersCaterersSubText").textContent = t("prayersCaterersSub");
   document.getElementById("prayerParticipantsHeadingText").textContent = t("prayersParticipantsHeading");
+  renderPrayerCategoryTabs();
   renderPrayerFilterTabs();
   renderPrayerGrid();
   renderCaterers();

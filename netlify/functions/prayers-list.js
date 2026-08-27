@@ -49,6 +49,7 @@ exports.handler = async () => {
       ref: p.ref,
       date: p.date,
       name: p.name,
+      category: p.category || "annual",
       ubayamFee: p.ubayam_fee,
       ubayakararSponsor: p.ubayakarar_sponsor,
       ubayakararOpen: p.ubayakarar_open,

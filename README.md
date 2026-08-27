@@ -117,8 +117,15 @@ A pooja is labelled **Upcoming** or **Completed** automatically, based on today'
 **5. Managing everything — `/admin-prayers.html`**
 - Go to `https://your-site.netlify.app/admin-prayers.html`, log in with `ADMIN_PASSWORD`
 - **Bookings tab:** filter/search every Ubayakarar, Annathanam, and Participant registration; mark one **Confirmed** once payment or the arrangement is verified, or **Cancelled** to automatically free that slot back up for someone else; **Print** or **Export CSV** the current filtered list
-- **Schedule tab:** view, add, edit, or delete any pooja's date, fees, sponsor names, open/closed status, participant settings, and notes — changes take effect on the live site immediately, no redeploy needed. Deleting a pooja is blocked if it already has bookings recorded, to protect the temple's records. The same tab also manages the Annathanam caterer directory. **Print** or **Export CSV** the schedule here too.
+- **Schedule tab:** view, add, edit, or delete any pooja's date, fees, sponsor names, open/closed status, participant settings, notes, and **Category** (Annual / Monthly / Special — see below) — changes take effect on the live site immediately, no redeploy needed. Deleting a pooja is blocked if it already has bookings recorded, to protect the temple's records. The same tab also manages the Annathanam caterer directory. **Print** or **Export CSV** the schedule here too.
 - This page is not linked from the site's main navigation (committee-only, matches the pattern of other admin tooling in this project) — bookmark the URL
+
+**Pooja Categories (Annual / Monthly / Special)** — added per the temple treasurer's request. Every pooja belongs to one of three schedules:
+- **Annual Prayers/Poojas** — the original schedule; every existing pooja is automatically in this category, nothing moves on its own.
+- **Monthly Prayers/Poojas** — for recurring monthly events.
+- **Special Prayers/Poojas** — for one-off special events.
+
+Set a pooja's category from its **Category** dropdown in the Add/Edit Pooja form (Schedule tab) — the same "Ref #, Date, Name" area at the top. On the public site, Prayers & Registration now shows three tabs (Annual / Monthly / Special) above the existing Upcoming/Completed/All filter — visitors pick a schedule first, then narrow by status within it, same as before. If this is a fresh install, `schema.sql` already includes the `category` column — nothing extra to run. If you already had the Annual Prayers tables set up before this update, run `supabase/add-prayer-categories.sql` once in the Supabase SQL Editor (safe to re-run; every existing pooja becomes "Annual" automatically).
 
 **6. Test it**
 - Go to your site → Prayers & Registration → open a pooja that's still open → Register as Ubayakarar → submit with a test name/phone

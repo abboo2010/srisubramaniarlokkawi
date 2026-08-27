@@ -316,6 +316,12 @@
   <div class="tab-panel" id="tab-schedule">
     <div class="toolbar">
       <input type="text" id="scheduleSearchInput" placeholder="Search pooja name…" />
+      <select id="scheduleCategoryFilter">
+        <option value="all">All Categories</option>
+        <option value="annual">Annual Prayers/Poojas</option>
+        <option value="monthly">Monthly Prayers/Poojas</option>
+        <option value="special">Special Prayers/Poojas</option>
+      </select>
       <button id="refreshScheduleBtn">Refresh</button>
       <button id="printScheduleBtn">Print</button>
       <button id="exportScheduleBtn">Export CSV</button>
@@ -335,6 +341,13 @@
         <div class="edit-field"><label>Ref #</label><input id="f_ref" type="number" /></div>
         <div class="edit-field"><label>Date</label><input id="f_date" type="date" /></div>
         <div class="edit-field" style="grid-column:span 2;"><label>Name</label><input id="f_name" /></div>
+        <div class="edit-field"><label>Category</label>
+          <select id="f_category">
+            <option value="annual">Annual Prayers/Poojas</option>
+            <option value="monthly">Monthly Prayers/Poojas</option>
+            <option value="special">Special Prayers/Poojas</option>
+          </select>
+        </div>
         <div class="edit-field"><label>Status Override</label>
           <select id="f_statusOverride">
             <option value="">Automatic (by date)</option>
@@ -376,7 +389,7 @@
         <thead>
           <tr>
             <th class="select-col"><input type="checkbox" id="scheduleSelectAll" title="Select all shown"></th>
-            <th>Date</th><th>Pooja</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
+            <th>Date</th><th>Pooja</th><th>Category</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
             <th>Participants</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
@@ -1286,16 +1299,23 @@
   }
   document.getElementById("refreshScheduleBtn").addEventListener("click", loadSchedule);
   document.getElementById("scheduleSearchInput").addEventListener("input", renderSchedule);
+  document.getElementById("scheduleCategoryFilter").addEventListener("change", renderSchedule);
   document.getElementById("printScheduleBtn").addEventListener("click", () => window.print());
   document.getElementById("exportScheduleBtn").addEventListener("click", () => {
-    const rows = [["Date","Pooja","Ubayam Fee","Ubayakarar Sponsor","Ubayakarar Open","Annathanam Sponsor","Annathanam Open","Public Registration Enabled","Participant Fee","Notes","Status Override"]];
-    filteredSchedule().forEach(p => rows.push([p.date, p.name, p.ubayamFee, p.ubayakararSponsor, p.ubayakararOpen, p.annathanamSponsor, p.annathanamOpen, p.participantsEnabled, p.participantFee, p.notes, p.statusOverride]));
+    const rows = [["Date","Pooja","Category","Ubayam Fee","Ubayakarar Sponsor","Ubayakarar Open","Annathanam Sponsor","Annathanam Open","Public Registration Enabled","Participant Fee","Notes","Status Override"]];
+    filteredSchedule().forEach(p => rows.push([p.date, p.name, categoryLabel(p.category), p.ubayamFee, p.ubayakararSponsor, p.ubayakararOpen, p.annathanamSponsor, p.annathanamOpen, p.participantsEnabled, p.participantFee, p.notes, p.statusOverride]));
     downloadCsv("annual-prayers-events.csv", rows);
   });
 
+  const PRAYER_CATEGORY_LABELS = { annual: "Annual Prayers/Poojas", monthly: "Monthly Prayers/Poojas", special: "Special Prayers/Poojas" };
+  function categoryLabel(cat){ return PRAYER_CATEGORY_LABELS[cat] || PRAYER_CATEGORY_LABELS.annual; }
+
   function filteredSchedule(){
     const search = document.getElementById("scheduleSearchInput").value.trim().toLowerCase();
-    return allPrayers.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).filter(p => !search || p.name.toLowerCase().includes(search));
+    const category = document.getElementById("scheduleCategoryFilter").value;
+    return allPrayers.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""))
+      .filter(p => !search || p.name.toLowerCase().includes(search))
+      .filter(p => category === "all" || (p.category || "annual") === category);
   }
 
   function renderSchedule(){
@@ -1325,6 +1345,7 @@
         <td class="select-col"><input type="checkbox" class="schedule-select" data-id="${p.id}"></td>
         <td>${p.date}</td>
         <td>${p.name}</td>
+        <td>${categoryLabel(p.category)}</td>
         <td>${feeText}</td>
         <td><span class="pill ${p.ubayakararOpen ? "open" : "taken"}">${p.ubayakararOpen ? "Open" : "Taken"}</span>${p.ubayakararSponsor ? "<br>" + p.ubayakararSponsor : ""}</td>
         <td><span class="pill ${p.annathanamOpen ? "open" : "taken"}">${p.annathanamOpen ? "Open" : "Taken"}</span>${p.annathanamSponsor ? "<br>" + p.annathanamSponsor : ""}</td>
@@ -1399,6 +1420,7 @@
     document.getElementById("f_ref").value = ""; // Ref # is this pooja's own official schedule number — never duplicate it
     document.getElementById("f_date").value = p.date;
     document.getElementById("f_name").value = p.name;
+    document.getElementById("f_category").value = p.category || "annual";
     document.getElementById("f_ubayamFee").value = p.ubayamFee != null ? p.ubayamFee : "";
     document.getElementById("f_ubayakararSponsor").value = p.ubayakararSponsor || "";
     document.getElementById("f_ubayakararOpen").checked = !!p.ubayakararOpen;
@@ -1430,6 +1452,7 @@
     document.getElementById("f_ref").value = p && p.ref != null ? p.ref : "";
     document.getElementById("f_date").value = p ? p.date : "";
     document.getElementById("f_name").value = p ? p.name : "";
+    document.getElementById("f_category").value = p ? (p.category || "annual") : "annual";
     document.getElementById("f_ubayamFee").value = p && p.ubayamFee != null ? p.ubayamFee : "";
     document.getElementById("f_ubayakararSponsor").value = p ? (p.ubayakararSponsor || "") : "";
     document.getElementById("f_ubayakararOpen").checked = p ? !!p.ubayakararOpen : true;
@@ -1449,6 +1472,7 @@
       ref: document.getElementById("f_ref").value,
       date: document.getElementById("f_date").value,
       name: document.getElementById("f_name").value.trim(),
+      category: document.getElementById("f_category").value,
       ubayamFee: document.getElementById("f_ubayamFee").value,
       ubayakararSponsor: document.getElementById("f_ubayakararSponsor").value.trim(),
       ubayakararOpen: document.getElementById("f_ubayakararOpen").checked,

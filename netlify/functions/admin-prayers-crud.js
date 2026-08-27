@@ -17,12 +17,15 @@
 // ============================================================
 const { supabaseClient } = require("./_supabase");
 
+const PRAYER_CATEGORIES = ["annual", "monthly", "special"];
+
 function prayerRowFromInput(data) {
   const row = {};
   if (data.id !== undefined) row.id = String(data.id).trim();
   if (data.ref !== undefined) row.ref = data.ref === "" || data.ref === null ? null : Number(data.ref);
   if (data.date !== undefined) row.date = data.date;
   if (data.name !== undefined) row.name = data.name;
+  if (data.category !== undefined) row.category = PRAYER_CATEGORIES.includes(data.category) ? data.category : "annual";
   if (data.ubayamFee !== undefined) row.ubayam_fee = data.ubayamFee === "" || data.ubayamFee === null ? null : Number(data.ubayamFee);
   if (data.ubayakararSponsor !== undefined) row.ubayakarar_sponsor = data.ubayakararSponsor || null;
   if (data.ubayakararOpen !== undefined) row.ubayakarar_open = !!data.ubayakararOpen;
