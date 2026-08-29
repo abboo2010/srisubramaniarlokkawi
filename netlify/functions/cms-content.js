@@ -18,7 +18,8 @@ const { supabaseClient } = require("./_supabase");
 
 const NOT_CONFIGURED = {
   configured: false, heroBanner: null, navTiles: null, about: null, deities: null,
-  poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null, ticker: null
+  poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null, ticker: null,
+  committee: null
 };
 
 exports.handler = async () => {
@@ -28,7 +29,7 @@ exports.handler = async () => {
   }
 
   try {
-    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker] = await Promise.all([
+    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee] = await Promise.all([
       supabase.from("hero_banner").select("*").eq("id", 1).maybeSingle(),
       supabase.from("nav_tiles").select("*").eq("enabled", true).order("sort_order", { ascending: true }),
       supabase.from("about_page").select("*").eq("id", 1).maybeSingle(),
@@ -40,7 +41,8 @@ exports.handler = async () => {
       supabase.from("gallery_folders").select("*").order("sort_order", { ascending: true }),
       supabase.from("gallery").select("*").order("sort_order", { ascending: true }),
       supabase.from("contact_info").select("*").eq("id", 1).maybeSingle(),
-      supabase.from("site_ticker").select("*").eq("id", 1).maybeSingle()
+      supabase.from("site_ticker").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("committee_members").select("*").order("sort_order", { ascending: true })
     ]);
 
     for (const r of [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact]) {
@@ -55,6 +57,23 @@ exports.handler = async () => {
     const tickerOut = tk ? {
       enabled: tk.enabled, message_en: tk.message_en, message_bm: tk.message_bm, message_ta: tk.message_ta
     } : null;
+
+    // committee_members is a newer table too (added alongside the Temple
+    // Committee screen) — handled leniently for the same reason as
+    // site_ticker: must never take down the rest of the site's content
+    // if add-committee.sql hasn't been run yet.
+    const committeeOut = !committee.error ? { president: [], vicePresident: [], officer: [], member: [], auditor: [], trustee: [] } : null;
+    if (committeeOut) {
+      (committee.data || []).forEach(m => {
+        const row = {
+          name: m.name,
+          role_en: m.role_en, role_bm: m.role_bm, role_ta: m.role_ta,
+          subtitle_en: m.subtitle_en, subtitle_bm: m.subtitle_bm, subtitle_ta: m.subtitle_ta,
+          phone: m.phone
+        };
+        if (committeeOut[m.tier]) committeeOut[m.tier].push(row);
+      });
+    }
 
     const h = hero.data;
     const heroBanner = h ? {
@@ -166,7 +185,7 @@ exports.handler = async () => {
       body: JSON.stringify({
         configured: true, heroBanner, navTiles, about: aboutOut, deities: deitiesOut,
         poojaTimings, sevas: sevasOut, announcements: announcementsOut, gallery: galleryOut, contact: contactOut,
-        ticker: tickerOut
+        ticker: tickerOut, committee: committeeOut
       })
     };
   } catch (err) {

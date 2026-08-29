@@ -141,6 +141,55 @@ insert into deities (name_en, name_bm, name_ta, role_en, role_bm, role_ta, descr
 insert into deities (name_en, name_bm, name_ta, role_en, role_bm, role_ta, description_en, description_bm, description_ta, image_url, color, sort_order) values ('Sri Bairavar', 'Sri Bairavar', 'ஸ்ரீ பைரவர்', 'Guardian Deity', 'Dewa Penjaga', 'காவல் தெய்வம்', 'A fierce guardian form of Lord Shiva, worshipped as protector of the temple and its boundaries.', 'Wujud garang Dewa Siva, disembah sebagai penjaga kuil dan sempadannya.', 'சிவபெருமானின் உக்கிர வடிவம், கோயிலையும் அதன் எல்லைகளையும் காக்கும் காவல் தெய்வமாக வழிபடப்படுபவர்.', 'https://lh3.googleusercontent.com/d/1Uy8dRxgf5UJJS8vuqi4F4Geafg_ekaDF=w800', '#3B3B3B', 10) on conflict (name_en) do nothing;
 insert into deities (name_en, name_bm, name_ta, role_en, role_bm, role_ta, description_en, description_bm, description_ta, image_url, color, sort_order) values ('Navagraham', 'Navagraham', 'நவகிரகம்', 'Nine Planetary Deities', 'Sembilan Dewa Planet', 'நவகிரக தெய்வங்கள்', 'The nine celestial deities governing destiny, worshipped together to balance their planetary influences.', 'Sembilan dewa cakerawala yang menentukan takdir, disembah bersama untuk mengimbangi pengaruh planet masing-masing.', 'விதியை நிர்ணயிக்கும் நவகிரக தெய்வங்கள், அவற்றின் கிரக பாதிப்புகளை சமன்செய்ய ஒன்றாக வழிபடப்படுகின்றன.', 'https://lh3.googleusercontent.com/d/1BaEizVgGNr0AktWyM-4Cjr48HBxPWs-T=w800', '#2E6F4E', 11) on conflict (name_en) do nothing;
 
+-- ---------- committee_members (Temple Management Committee, from Ravi's org-chart image) ----------
+-- No unique constraint on name (see cms-schema.sql's comment), so each
+-- row is guarded with "where not exists" instead of "on conflict".
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'president', 'Capt. Shamala Devi Muniandy', 'President', 'Presiden', 'தலைவர்', '', '', '', '012-2487718', 0
+where not exists (select 1 from committee_members where tier = 'president' and name = 'Capt. Shamala Devi Muniandy');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'vicePresident', 'Mr. Balachandran Ramachandran', 'Vice President', 'Naib Presiden', 'துணைத் தலைவர்', '', '', '', '011-31559091', 0
+where not exists (select 1 from committee_members where tier = 'vicePresident' and name = 'Mr. Balachandran Ramachandran');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'officer', 'Mr. Muniswaran Kalimuthu', 'Secretary', 'Setiausaha', 'செயலாளர்', '', '', '', '012-5852978', 0
+where not exists (select 1 from committee_members where tier = 'officer' and name = 'Mr. Muniswaran Kalimuthu');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'officer', 'Mr. Ravivarman Abboo', 'Asst. Secretary', 'Penolong Setiausaha', 'உதவி செயலாளர்', 'IT & Technology', 'IT & Teknologi', 'தகவல் தொழில்நுட்பம்', '010-9482080', 1
+where not exists (select 1 from committee_members where tier = 'officer' and name = 'Mr. Ravivarman Abboo');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'officer', 'Mdm. Kamaleswari Kaliaperumal', 'Treasurer', 'Bendahari', 'பொருளாளர்', '', '', '', '016-3519068', 2
+where not exists (select 1 from committee_members where tier = 'officer' and name = 'Mdm. Kamaleswari Kaliaperumal');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'officer', 'Mdm. Parimalah Krishnan', 'Asst. Treasurer', 'Penolong Bendahari', 'உதவி பொருளாளர்', '', '', '', '016-8054722', 3
+where not exists (select 1 from committee_members where tier = 'officer' and name = 'Mdm. Parimalah Krishnan');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'member', 'Mdm. Jeya Devi Gunaratnam', 'Committee Member', 'Ahli Jawatankuasa', 'குழு உறுப்பினர்', 'Supritendant & Rituals', 'Penyelia & Upacara', 'மேற்பார்வையாளர் & சடங்குகள்', '012-2094421', 0
+where not exists (select 1 from committee_members where tier = 'member' and name = 'Mdm. Jeya Devi Gunaratnam');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'member', 'Mr. Mohan M. Raju', 'Committee Member', 'Ahli Jawatankuasa', 'குழு உறுப்பினர்', 'Maintenance', 'Penyelenggaraan', 'பராமரிப்பு', '016-8390184', 1
+where not exists (select 1 from committee_members where tier = 'member' and name = 'Mr. Mohan M. Raju');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'member', 'Mr. Pavithran Kunhappnair', 'Committee Member', 'Ahli Jawatankuasa', 'குழு உறுப்பினர்', 'Inventory', 'Inventori', 'சரக்கு', '013-8949509', 2
+where not exists (select 1 from committee_members where tier = 'member' and name = 'Mr. Pavithran Kunhappnair');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'member', 'Mr. Navinkumar Sivakumar', 'Committee Member', 'Ahli Jawatankuasa', 'குழு உறுப்பினர்', '', '', '', '019-2457724', 3
+where not exists (select 1 from committee_members where tier = 'member' and name = 'Mr. Navinkumar Sivakumar');
+insert into committee_members (tier, name, role_en, role_bm, role_ta, subtitle_en, subtitle_bm, subtitle_ta, phone, sort_order)
+select 'member', 'Mr. Sivaguru Subramaniam', 'Committee Member', 'Ahli Jawatankuasa', 'குழு உறுப்பினர்', '', '', '', '011-17841871', 4
+where not exists (select 1 from committee_members where tier = 'member' and name = 'Mr. Sivaguru Subramaniam');
+insert into committee_members (tier, name, sort_order)
+select 'auditor', 'Mr. Batumalai Veruthasalam', 0
+where not exists (select 1 from committee_members where tier = 'auditor' and name = 'Mr. Batumalai Veruthasalam');
+insert into committee_members (tier, name, sort_order)
+select 'auditor', 'Major B. Shuras Batumalai (Rtd)', 1
+where not exists (select 1 from committee_members where tier = 'auditor' and name = 'Major B. Shuras Batumalai (Rtd)');
+insert into committee_members (tier, name, sort_order)
+select 'trustee', 'Mr. Gunasekaran Rajangam', 0
+where not exists (select 1 from committee_members where tier = 'trustee' and name = 'Mr. Gunasekaran Rajangam');
+insert into committee_members (tier, name, sort_order)
+select 'trustee', 'Mr. Kalaichelvan Govindaraja', 1
+where not exists (select 1 from committee_members where tier = 'trustee' and name = 'Mr. Kalaichelvan Govindaraja');
+
 -- ---------- pooja_timings (live sheet content, EN/BM/TA merged per row) ----------
 insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '5:30 AM', 0) on conflict (list_type, name_en) do nothing;
 insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Ushakala Pooja', 'Pooja Subuh', 'உஷக்கால பூஜை', '6:00 AM', 1) on conflict (list_type, name_en) do nothing;

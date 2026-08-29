@@ -90,6 +90,16 @@ const ENTITIES = {
     ],
     numFields: ["sortOrder"]
   },
+  committeeMember: {
+    table: "committee_members", singleton: false,
+    fields: [
+      ["tier","tier"],["name","name"],
+      ["roleEn","role_en"],["roleBm","role_bm"],["roleTa","role_ta"],
+      ["subtitleEn","subtitle_en"],["subtitleBm","subtitle_bm"],["subtitleTa","subtitle_ta"],
+      ["phone","phone"],["sortOrder","sort_order"]
+    ],
+    numFields: ["sortOrder"]
+  },
   poojaTiming: {
     table: "pooja_timings", singleton: false,
     fields: [

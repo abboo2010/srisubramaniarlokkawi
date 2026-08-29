@@ -155,6 +155,7 @@
     <button class="active" data-tab="hero">Hero Banner</button>
     <button data-tab="tiles">Home Tiles</button>
     <button data-tab="about">About</button>
+    <button data-tab="committee">Committee</button>
     <button data-tab="deities">Deities</button>
     <button data-tab="timings">Pooja Timings</button>
     <button data-tab="sevas">Sevas</button>
@@ -194,6 +195,14 @@
       <div id="about-form"></div>
       <div class="edit-actions"><button class="save" id="about-save">Save About</button></div>
     </div>
+  </div>
+
+  <!-- ================= TEMPLE COMMITTEE (list) ================= -->
+  <div class="tab-panel" id="tab-committee">
+    <p class="panel-hint">Every person on the Temple Committee screen — President/Vice President, Secretary/Treasurer-style Officers, Committee Members, Internal Auditors, and Trustees. "Tier" decides where they appear on the page; "Sort Order" decides the order within that group. Auditors/Trustees only need a Name — the rest of the fields are for the other tiers.</p>
+    <div class="toolbar"><button id="committee-refresh">Refresh</button><button class="primary" id="committee-add">+ Add Person</button></div>
+    <div id="committee-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="committee-table"><thead></thead><tbody></tbody></table></div>
   </div>
 
   <!-- ================= DEITIES (list) ================= -->
@@ -603,7 +612,7 @@ function makeListTab(cfg){
 
 // ---------- Home Tiles ----------
 const ICON_OPTIONS = ["about","deities","calendar","timings","sevas","prayers","fridayAnnathanam","membership","gallery"];
-const SCREEN_OPTIONS = ["home","about","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
+const SCREEN_OPTIONS = ["home","about","committee","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
 const tilesTab = makeListTab({
   tabId: "tiles", entity: "navTile", singularLabel: "Tile", required: ["tileKey"],
   columns: [ {key:"titleEn",label:"Title (EN)"}, {key:"destination",label:"Goes to"}, {key:"enabled",label:"Enabled",bool:true}, {key:"sortOrder",label:"Order"} ],
@@ -618,6 +627,24 @@ const tilesTab = makeListTab({
     { key:"descTa", label:"Description (Tamil)", type:"text" },
     { key:"destination", label:"Destination Screen", type:"select", options: SCREEN_OPTIONS },
     { key:"enabled", label:"Enabled", type:"checkbox", default:true },
+    { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
+  ]
+});
+
+// ---------- Temple Committee ----------
+const committeeTab = makeListTab({
+  tabId: "committee", entity: "committeeMember", singularLabel: "Person", required: ["name","tier"],
+  columns: [ {key:"tier",label:"Tier"}, {key:"name",label:"Name"}, {key:"roleEn",label:"Role (EN)"}, {key:"phone",label:"Phone"}, {key:"sortOrder",label:"Order"} ],
+  fields: [
+    { key:"tier", label:"Tier", type:"select", options:["president","vicePresident","officer","member","auditor","trustee"] },
+    { key:"name", label:"Name", type:"text" },
+    { key:"roleEn", label:"Role / Title (English)", type:"text" },
+    { key:"roleBm", label:"Role / Title (Malay)", type:"text" },
+    { key:"roleTa", label:"Role / Title (Tamil)", type:"text" },
+    { key:"subtitleEn", label:"Portfolio (English, optional — e.g. \"IT & Technology\")", type:"text" },
+    { key:"subtitleBm", label:"Portfolio (Malay, optional)", type:"text" },
+    { key:"subtitleTa", label:"Portfolio (Tamil, optional)", type:"text" },
+    { key:"phone", label:"Phone (optional)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
 });
@@ -1122,6 +1149,7 @@ function initAllTabs(){
   heroTab.load();
   tilesTab.load();
   aboutTab.load();
+  committeeTab.load();
   deitiesTab.load();
   timingsTab.load();
   sevasTab.load();

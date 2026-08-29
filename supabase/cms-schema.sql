@@ -157,6 +157,36 @@ drop trigger if exists deities_set_updated_at on deities;
 create trigger deities_set_updated_at before update on deities
   for each row execute function set_updated_at();
 
+-- ---------- committee_members ----------
+-- Temple Management Committee org chart. "tier" places a person in the
+-- chart (president/vicePresident sit alone at the top, officer is the
+-- Secretary/Treasurer-style row, member is the Committee Member grid,
+-- auditor/trustee are the two plain numbered lists at the bottom) —
+-- script.js groups by tier for layout. "name" is deliberately a single
+-- field, not per-language, same as members.name: a person's own name
+-- isn't translated. No unique constraint on name — unlike deities/sevas,
+-- two committee members could plausibly share a name, and the Gallery
+-- caption-uniqueness incident earlier in this build is a reminder not
+-- to add one without a real reason.
+create table if not exists committee_members (
+  id            bigint generated always as identity primary key,
+  tier          text not null default 'member' check (tier in ('president','vicePresident','officer','member','auditor','trustee')),
+  name          text not null default '',
+  role_en       text not null default '',
+  role_bm       text not null default '',
+  role_ta       text not null default '',
+  subtitle_en   text not null default '',
+  subtitle_bm   text not null default '',
+  subtitle_ta   text not null default '',
+  phone         text not null default '',
+  sort_order    integer not null default 0,
+  updated_at    timestamptz not null default now()
+);
+alter table committee_members enable row level security;
+drop trigger if exists committee_members_set_updated_at on committee_members;
+create trigger committee_members_set_updated_at before update on committee_members
+  for each row execute function set_updated_at();
+
 -- ---------- pooja_timings ----------
 -- Replaces the old two-sheet PoojaTimings + PoojaNames setup: each row
 -- now carries its own EN/BM/TA name directly instead of looking the

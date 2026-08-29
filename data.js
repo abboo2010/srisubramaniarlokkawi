@@ -12,7 +12,7 @@
 // ---------- UI chrome strings (nav, buttons, labels, headings) ----------
 const UI = {
   en: {
-    navHome: "Home", navAbout: "About Temple", navDeities: "Deities",
+    navHome: "Home", navAbout: "About Temple", navCommittee: "Temple Committee", navDeities: "Deities",
     railBrandLine1: "Sri Subramaniar", railBrandLine2: "Alayam", railBrandLoc: "Lok Kawi, Kota Kinabalu",
     navCalendar: "Event Calendar", navTimings: "Pooja Timings", navGallery: "Gallery",
     navSevas: "Sevas & Donations", navNews: "News & Announcements",
@@ -32,6 +32,9 @@ const UI = {
     aboutHeading: "About the Temple", aboutSub: "History, vision, and daily life at Sri Subramaniar Alayam.",
     aboutHistoryTitle: "Our History", aboutVisionTitle: "Vision", aboutMissionTitle: "Mission",
     aboutActivitiesTitle: "Temple Activities",
+    committeeHeading: "Temple Management Committee", committeeSub: "Meet the committee members serving Sri Subramaniar Alayam.",
+    committeeOfficersLabel: "Officers", committeeMembersLabel: "Committee Members",
+    committeeAuditorsLabel: "Internal Auditors", committeeTrusteesLabel: "Trustees",
     deitiesHeading: "Deities", deitiesSub: "Sri Subramaniar and the shrines within our temple complex.",
     calendarHeading: "Event Calendar", calendarSub: "Upcoming poojas, festivals, and special events.",
     calToday: "Today", calEventsSuffix: "Events", calNoEvents: "No events on record for this month.", readMoreBtn: "More",
@@ -92,7 +95,7 @@ const UI = {
     fridayAnnathanamNoUpcoming: "No Fridays are listed yet — please check back soon."
   },
   bm: {
-    navHome: "Utama", navAbout: "Tentang Kuil", navDeities: "Dewa-Dewi",
+    navHome: "Utama", navAbout: "Tentang Kuil", navCommittee: "Jawatankuasa Kuil", navDeities: "Dewa-Dewi",
     railBrandLine1: "Sri Subramaniar", railBrandLine2: "Alayam", railBrandLoc: "Lok Kawi, Kota Kinabalu",
     navCalendar: "Kalendar Acara", navTimings: "Waktu Pooja", navGallery: "Galeri",
     navSevas: "Seva & Derma", navNews: "Berita & Pengumuman",
@@ -112,6 +115,9 @@ const UI = {
     aboutHeading: "Tentang Kuil", aboutSub: "Sejarah, visi, dan kehidupan seharian di Sri Subramaniar Alayam.",
     aboutHistoryTitle: "Sejarah Kami", aboutVisionTitle: "Visi", aboutMissionTitle: "Misi",
     aboutActivitiesTitle: "Aktiviti Kuil",
+    committeeHeading: "Jawatankuasa Pengurusan Kuil", committeeSub: "Kenali ahli jawatankuasa yang berkhidmat di Sri Subramaniar Alayam.",
+    committeeOfficersLabel: "Pegawai", committeeMembersLabel: "Ahli Jawatankuasa",
+    committeeAuditorsLabel: "Juruaudit Dalaman", committeeTrusteesLabel: "Pemegang Amanah",
     deitiesHeading: "Dewa-Dewi", deitiesSub: "Sri Subramaniar dan dewa-dewi lain di dalam kompleks kuil kami.",
     calendarHeading: "Kalendar Acara", calendarSub: "Pooja, perayaan dan acara khas akan datang.",
     calToday: "Hari Ini", calEventsSuffix: "Acara", calNoEvents: "Tiada acara direkodkan untuk bulan ini.", readMoreBtn: "Lagi",
@@ -172,7 +178,7 @@ const UI = {
     fridayAnnathanamNoUpcoming: "Tiada hari Jumaat disenaraikan lagi — sila semak semula tidak lama lagi."
   },
   ta: {
-    navHome: "முகப்பு", navAbout: "கோயில் பற்றி", navDeities: "தெய்வங்கள்",
+    navHome: "முகப்பு", navAbout: "கோயில் பற்றி", navCommittee: "கோயில் குழு", navDeities: "தெய்வங்கள்",
     railBrandLine1: "ஸ்ரீ சுப்ரமணியர்", railBrandLine2: "ஆலயம்", railBrandLoc: "லோக் காவி, கோத்தா கினபாலு",
     navCalendar: "நிகழ்வு நாட்காட்டி", navTimings: "பூஜை நேரங்கள்", navGallery: "படத்தொகுப்பு",
     navSevas: "சேவை & நன்கொடை", navNews: "செய்திகள் & அறிவிப்புகள்",
@@ -192,6 +198,9 @@ const UI = {
     aboutHeading: "கோயில் பற்றி", aboutSub: "ஸ்ரீ சுப்ரமணியர் ஆலயத்தின் வரலாறு, நோக்கம் மற்றும் அன்றாட வாழ்க்கை.",
     aboutHistoryTitle: "எங்கள் வரலாறு", aboutVisionTitle: "நோக்கம்", aboutMissionTitle: "பணி",
     aboutActivitiesTitle: "கோயில் நடவடிக்கைகள்",
+    committeeHeading: "கோயில் நிர்வாகக் குழு", committeeSub: "ஸ்ரீ சுப்ரமணியர் ஆலயத்தில் பணியாற்றும் குழு உறுப்பினர்களை அறிந்து கொள்ளுங்கள்.",
+    committeeOfficersLabel: "பொறுப்பாளர்கள்", committeeMembersLabel: "குழு உறுப்பினர்கள்",
+    committeeAuditorsLabel: "உள் தணிக்கையாளர்கள்", committeeTrusteesLabel: "அறங்காவலர்கள்",
     deitiesHeading: "தெய்வங்கள்", deitiesSub: "எங்கள் கோயில் வளாகத்தில் உள்ள ஸ்ரீ சுப்ரமணியரும் பிற தெய்வங்களும்.",
     calendarHeading: "நிகழ்வு நாட்காட்டி", calendarSub: "வரவிருக்கும் பூஜைகள், திருவிழாக்கள் மற்றும் சிறப்பு நிகழ்வுகள்.",
     calToday: "இன்று", calEventsSuffix: "நிகழ்வுகள்", calNoEvents: "இந்த மாதத்திற்கு நிகழ்வுகள் எதுவும் பதிவு செய்யப்படவில்லை.", readMoreBtn: "மேலும்",

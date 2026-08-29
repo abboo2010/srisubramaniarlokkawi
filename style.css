@@ -482,12 +482,12 @@ img{display:block;max-width:100%;}
   padding:20px 22px;box-shadow:var(--shadow-card);margin-bottom:16px;
 }
 .card h3{font-family:var(--font-display);font-size:17px;color:var(--maroon-800);margin:0 0 8px;}
-.card p{margin:0 0 8px;font-size:13.5px;line-height:1.65;color:var(--ink-600);}
+.card p{margin:0 0 8px;font-size:13.5px;line-height:1.65;color:var(--ink-600);text-align:justify;text-align-last:left;}
 .card-scroll{display:flex;flex-direction:column;}
 .scroll-box{
   max-height:360px;overflow-y:auto;padding-right:8px;
 }
-.scroll-box p{margin:0 0 12px;font-size:13.5px;line-height:1.7;color:var(--ink-600);}
+.scroll-box p{margin:0 0 12px;font-size:13.5px;line-height:1.7;color:var(--ink-600);text-align:justify;text-align-last:left;}
 .scroll-box p:last-child{margin-bottom:0;}
 .scroll-box::-webkit-scrollbar{width:6px;}
 .scroll-box::-webkit-scrollbar-thumb{background:var(--cream-100);border-radius:6px;}
@@ -511,7 +511,41 @@ img{display:block;max-width:100%;}
 .deity-body{padding:14px 16px 18px;}
 .deity-body h3{font-family:var(--font-display);font-size:16px;margin:0 0 2px;color:var(--ink-900);}
 .deity-role{font-size:11px;color:var(--ember-500);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
-.deity-body p{margin:0;font-size:12.5px;color:var(--ink-600);line-height:1.5;}
+.deity-body p{margin:0;font-size:12.5px;color:var(--ink-600);line-height:1.5;text-align:justify;text-align-last:left;}
+
+/* ---------- Temple Committee ---------- */
+.committee-leadership{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-bottom:16px;
+}
+.committee-lead-card, .committee-officer-card, .committee-member-card{
+  background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-card);
+  display:flex;align-items:center;gap:12px;
+  border-top:3px solid var(--gold-500);
+}
+.committee-lead-card{
+  padding:18px 24px;min-width:230px;flex:0 1 260px;
+  border-top-color:var(--maroon-700);
+}
+.committee-officer-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
+.committee-officer-card{padding:14px 16px;}
+.committee-member-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;}
+.committee-member-card{padding:14px 16px;border-top-color:var(--gold-300);}
+
+.committee-avatar{
+  flex:none;width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(160deg,var(--gold-300),var(--gold-500));
+  color:var(--maroon-800);font-family:var(--font-display);font-size:19px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.committee-lead-card .committee-avatar{width:60px;height:60px;font-size:24px;}
+.committee-person-info{min-width:0;}
+.committee-role{font-size:11px;color:var(--ember-500);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;}
+.committee-name{font-family:var(--font-display);font-size:14.5px;color:var(--ink-900);margin-top:1px;}
+.committee-lead-card .committee-name{font-size:16.5px;}
+.committee-subtitle{font-size:12px;color:var(--ink-600);margin-top:2px;}
+.committee-phone{font-size:12px;color:var(--ink-600);margin-top:3px;letter-spacing:0.02em;}
+
+.committee-plain-list{margin:0;padding-left:20px;color:var(--ink-900);font-size:13.5px;line-height:2;}
 
 /* timings tabs */
 .tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
@@ -669,7 +703,7 @@ img{display:block;max-width:100%;}
 .deity-modal-body{padding:22px 24px 26px;}
 .deity-modal-body h3{font-family:var(--font-display);font-size:22px;color:var(--maroon-800);margin:0 0 4px;}
 .deity-modal-role{font-size:12px;color:var(--ember-500);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px;}
-.deity-modal-body p{font-size:14px;line-height:1.7;color:var(--ink-600);margin:0;}
+.deity-modal-body p{font-size:14px;line-height:1.7;color:var(--ink-600);margin:0;text-align:justify;text-align-last:left;}
 
 /* ---------- Gallery photo lightbox ---------- */
 .gallery-overlay{
@@ -760,7 +794,7 @@ img{display:block;max-width:100%;}
 }
 .announce-modal-close svg{width:16px;height:16px;}
 .announce-modal h3{font-family:var(--font-display);font-size:19px;color:var(--maroon-800);margin:0 0 12px;padding-right:24px;line-height:1.35;}
-.announce-modal p{font-size:14px;line-height:1.7;color:var(--ink-600);margin:0;}
+.announce-modal p{font-size:14px;line-height:1.7;color:var(--ink-600);margin:0;text-align:justify;text-align-last:left;}
 
 @media (max-width:860px){
   .deity-modal{width:100%;}

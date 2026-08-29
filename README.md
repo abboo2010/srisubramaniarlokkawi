@@ -39,7 +39,7 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 
 **4. Open it**
 - Go to `https://your-site.netlify.app/cms.html`, log in with `ADMIN_PASSWORD`
-- Ten tabs: **Hero Banner**, **Home Tiles**, **About**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**
+- Tabs: **Hero Banner**, **Home Tiles**, **About**, **Committee**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**, **Ticker**, **Push Notifications**
 - Photo fields (Hero background, Deity photos, Gallery photos) resize/compress in your browser and upload straight to Supabase Storage — no separate image hosting needed
 - **Membership tab** replaces the old private Google Sheet entirely: add/edit/delete members one at a time, or use **Bulk Import** to paste CSV (`Name,NRIC,Membership No.,Membership Type,Status` — Status column is optional, defaults to Active) — this is also how to migrate your existing Members sheet: open it, File → Download → CSV, open that file in a text editor, paste the contents in
 - Each member has a **Status** dropdown: `Active` (green dot), `Not Active` (red dot), or `Pending for Annual renewal` (red dot, per how it was specified) — shown next to the member's name in the CMS table, and on the public Membership Status result
@@ -48,6 +48,21 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 **5. Test it**
 - Edit the Hero Banner eyebrow text → Save → reload the live site → the change should appear immediately
 - Membership Status (public page) → enter a Membership No. you added in the Membership tab → should show that member's details and status
+
+## Temple Committee — one-time setup
+
+A new **"Temple Committee"** nav item sits right under **About Temple** on the public site, showing the President/Vice President, Officers (Secretary/Treasurer-style roles), Committee Members, Internal Auditors, and Trustees — editable from `/cms.html`'s new **Committee** tab.
+
+**1. Add the new database table (and load the real committee list)**
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-committee.sql` → **Run** — this both creates the table and seeds it with the committee list from your org-chart image (names, roles, portfolios, phone numbers). Safe to re-run — it won't create duplicates.
+- If setting up Supabase fresh (running `cms-schema.sql` + `cms-seed.sql` for the first time rather than as an existing install), those two files already include the `committee_members` table and the same seed data, so `add-committee.sql` isn't needed in that case.
+
+**2. Nothing else to configure** — no new environment variables, reuses the same `ADMIN_PASSWORD`.
+
+**3. Test it**
+- Open the site → **Temple Committee** (below About Temple) → should show the org chart with everyone from the image
+- In `/cms.html`'s **Committee** tab, edit someone's phone number → Save → reload the live site → the change should appear immediately
+- Malay/Tamil role and portfolio titles are Claude's own translation, not reviewed by a Tamil/Malay speaker on the committee — edit them any time from the same tab if the committee wants different wording
 
 ## Push Notifications — one-time setup
 

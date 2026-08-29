@@ -38,6 +38,40 @@ const TICKER = {
   message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
 };
 
+// Bundled default for the Temple Committee screen. Declared HERE, not in
+// content-data.js, for the exact same reason as TICKER above — this is
+// only the offline fallback; the CMS-edited version (from the new
+// committee_members table) always takes priority once it loads.
+let COMMITTEE = {
+  president: [
+    { name: "Capt. Shamala Devi Muniandy", role_en: "President", role_bm: "Presiden", role_ta: "தலைவர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "012-2487718" }
+  ],
+  vicePresident: [
+    { name: "Mr. Balachandran Ramachandran", role_en: "Vice President", role_bm: "Naib Presiden", role_ta: "துணைத் தலைவர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "011-31559091" }
+  ],
+  officer: [
+    { name: "Mr. Muniswaran Kalimuthu", role_en: "Secretary", role_bm: "Setiausaha", role_ta: "செயலாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "012-5852978" },
+    { name: "Mr. Ravivarman Abboo", role_en: "Asst. Secretary", role_bm: "Penolong Setiausaha", role_ta: "உதவி செயலாளர்", subtitle_en: "IT & Technology", subtitle_bm: "IT & Teknologi", subtitle_ta: "தகவல் தொழில்நுட்பம்", phone: "010-9482080" },
+    { name: "Mdm. Kamaleswari Kaliaperumal", role_en: "Treasurer", role_bm: "Bendahari", role_ta: "பொருளாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "016-3519068" },
+    { name: "Mdm. Parimalah Krishnan", role_en: "Asst. Treasurer", role_bm: "Penolong Bendahari", role_ta: "உதவி பொருளாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "016-8054722" }
+  ],
+  member: [
+    { name: "Mdm. Jeya Devi Gunaratnam", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Supritendant & Rituals", subtitle_bm: "Penyelia & Upacara", subtitle_ta: "மேற்பார்வையாளர் & சடங்குகள்", phone: "012-2094421" },
+    { name: "Mr. Mohan M. Raju", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Maintenance", subtitle_bm: "Penyelenggaraan", subtitle_ta: "பராமரிப்பு", phone: "016-8390184" },
+    { name: "Mr. Pavithran Kunhappnair", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Inventory", subtitle_bm: "Inventori", subtitle_ta: "சரக்கு", phone: "013-8949509" },
+    { name: "Mr. Navinkumar Sivakumar", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "019-2457724" },
+    { name: "Mr. Sivaguru Subramaniam", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "011-17841871" }
+  ],
+  auditor: [
+    { name: "Mr. Batumalai Veruthasalam" },
+    { name: "Major B. Shuras Batumalai (Rtd)" }
+  ],
+  trustee: [
+    { name: "Mr. Gunasekaran Rajangam" },
+    { name: "Mr. Kalaichelvan Govindaraja" }
+  ]
+};
+
 function eventTitle(ev){
   if (currentLang === "ta" && ev.title_ta) return ev.title_ta;
   if (currentLang === "bm" && ev.title_bm) return ev.title_bm;
@@ -84,7 +118,7 @@ const screens = document.querySelectorAll(".screen");
 const railBtns = document.querySelectorAll(".rail-btn");
 const crumb = document.getElementById("crumb");
 const CRUMB_KEY = {
-  home:"navHome", about:"navAbout", deities:"navDeities", calendar:"navCalendar",
+  home:"navHome", about:"navAbout", committee:"navCommittee", deities:"navDeities", calendar:"navCalendar",
   timings:"navTimings", gallery:"navGallery", sevas:"navSevas", prayers:"navPrayers",
   fridayAnnathanam:"navFridayAnnathanam", news:"navNews",
   membership:"navMembership", contact:"navContact"
@@ -200,6 +234,13 @@ function renderStaticText(){
   document.getElementById("aboutVisionTitleText").textContent = t("aboutVisionTitle");
   document.getElementById("aboutMissionTitleText").textContent = t("aboutMissionTitle");
   document.getElementById("aboutActivitiesTitleText").textContent = t("aboutActivitiesTitle");
+
+  document.getElementById("committeeHeadingText").textContent = t("committeeHeading");
+  document.getElementById("committeeSubText").textContent = t("committeeSub");
+  document.getElementById("committeeOfficersLabelText").textContent = t("committeeOfficersLabel");
+  document.getElementById("committeeMembersLabelText").textContent = t("committeeMembersLabel");
+  document.getElementById("committeeAuditorsLabelText").textContent = t("committeeAuditorsLabel");
+  document.getElementById("committeeTrusteesLabelText").textContent = t("committeeTrusteesLabel");
 
   document.getElementById("deitiesHeadingText").textContent = t("deitiesHeading");
   document.getElementById("deitiesSubText").textContent = t("deitiesSub");
@@ -334,6 +375,56 @@ function renderAbout(){
   (ABOUT["activities_" + currentLang] || ABOUT.activities_en).forEach(item =>
     actWrap.appendChild(el(`<span class="pill-tag">${(item && item.activity) || item}</span>`))
   );
+}
+
+// ============================================================
+// TEMPLE COMMITTEE
+// ============================================================
+// A person card used for President/Vice President/Officers/Members —
+// a gold initials-circle stands in for a photo (none were supplied),
+// name, role, and an optional portfolio subtitle/phone.
+function committeePersonCard(m, cardClass){
+  const initial = (m.name || "?").trim().charAt(0).toUpperCase();
+  const subtitle = tf(m, "subtitle");
+  return `
+    <div class="${cardClass}">
+      <div class="committee-avatar">${initial}</div>
+      <div class="committee-person-info">
+        <div class="committee-role">${tf(m,"role")}</div>
+        <div class="committee-name">${m.name}</div>
+        ${subtitle ? `<div class="committee-subtitle">${subtitle}</div>` : ""}
+        ${m.phone ? `<div class="committee-phone">${m.phone}</div>` : ""}
+      </div>
+    </div>
+  `;
+}
+function committeeListRow(m){
+  return `<li>${m.name}</li>`;
+}
+function renderCommittee(){
+  const leadWrap = document.getElementById("committeeLeadership");
+  leadWrap.innerHTML =
+    COMMITTEE.president.map(m => committeePersonCard(m, "committee-lead-card")).join("") +
+    COMMITTEE.vicePresident.map(m => committeePersonCard(m, "committee-lead-card")).join("");
+
+  document.getElementById("committeeOfficers").innerHTML =
+    COMMITTEE.officer.map(m => committeePersonCard(m, "committee-officer-card")).join("");
+
+  document.getElementById("committeeMembers").innerHTML =
+    COMMITTEE.member.map(m => committeePersonCard(m, "committee-member-card")).join("");
+
+  const auditorsWrap = document.getElementById("committeeAuditors");
+  const trusteesWrap = document.getElementById("committeeTrustees");
+  auditorsWrap.innerHTML = COMMITTEE.auditor.map(committeeListRow).join("");
+  trusteesWrap.innerHTML = COMMITTEE.trustee.map(committeeListRow).join("");
+
+  // If a section ends up with nobody in it (e.g. a fresh CMS setup with
+  // no Auditors added yet), hide the whole card instead of showing an
+  // empty heading with a blank list underneath.
+  document.getElementById("committeeAuditorsCard").style.display = COMMITTEE.auditor.length ? "" : "none";
+  document.getElementById("committeeTrusteesCard").style.display = COMMITTEE.trustee.length ? "" : "none";
+  document.getElementById("committeeOfficersRow").style.display = COMMITTEE.officer.length ? "" : "none";
+  document.getElementById("committeeMemberGrid").style.display = COMMITTEE.member.length ? "" : "none";
 }
 
 // ============================================================
@@ -1575,6 +1666,7 @@ function renderAll(){
   safeRender("homeEvents", renderHomeEvents);
   safeRender("homeAnnounce", renderHomeAnnounce);
   safeRender("about", renderAbout);
+  safeRender("committee", renderCommittee);
   safeRender("deities", renderDeities);
   safeRender("calendarWeekdays", renderCalendarWeekdays);
   safeRender("calendarGrid", renderCalendarGrid);
@@ -1631,7 +1723,7 @@ function driveImageUrl(link){
   return link;
 }
 
-const VALID_SCREENS = ["home","about","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
+const VALID_SCREENS = ["home","about","committee","deities","calendar","timings","gallery","sevas","prayers","fridayAnnathanam","news","membership","contact"];
 
 // Applies one section of the live CMS payload, isolated in its own
 // try/catch. A problem with any single field (a field that's missing,
@@ -1750,6 +1842,16 @@ function loadLiveContent(){
         if (data.ticker.message_en) TICKER.message_en = data.ticker.message_en;
         TICKER.message_bm = data.ticker.message_bm || "";
         TICKER.message_ta = data.ticker.message_ta || "";
+      });
+
+      safeApply("committee", () => {
+        // null means the committee_members table doesn't exist yet
+        // (add-committee.sql not run) or Supabase is unreachable —
+        // keep the bundled COMMITTEE default in that case. Once the
+        // table exists, its content (even if some tiers are empty)
+        // is treated as the source of truth, same as about/contact.
+        if (!data.committee) return;
+        COMMITTEE = data.committee;
       });
 
       renderAll();

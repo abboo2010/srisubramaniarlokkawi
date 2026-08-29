@@ -69,6 +69,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 21 V9 L12 3 L20 9 V21 M9 21 V14 H15 V21" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span data-i18n="navAbout">About Temple</span>
       </button>
+      <button class="rail-btn" data-screen="committee">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="5.2" r="2.2"/><path d="M12 7.4 V11" stroke-linecap="round"/><path d="M6.2 15 H17.8" stroke-linecap="round"/><path d="M6.2 11.5 V15 M17.8 11.5 V15" stroke-linecap="round"/><circle cx="6.2" cy="17.6" r="2.2"/><circle cx="17.8" cy="17.6" r="2.2"/></svg>
+        <span data-i18n="navCommittee">Temple Committee</span>
+      </button>
       <button class="rail-btn" data-screen="deities">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M6 21 C6 16 8.5 13.5 12 13.5 C15.5 13.5 18 16 18 21" stroke-linecap="round"/></svg>
         <span data-i18n="navDeities">Deities</span>
@@ -216,6 +220,38 @@
         <div class="card">
           <h3 id="aboutActivitiesTitleText">Temple Activities</h3>
           <div id="aboutActivities"></div>
+        </div>
+      </section>
+
+      <!-- ===== TEMPLE COMMITTEE ===== -->
+      <section class="screen" id="screen-committee">
+        <div class="section-head">
+          <div class="tiers"><span></span><span></span><span></span><span></span><span></span></div>
+          <h2 id="committeeHeadingText">Temple Management Committee</h2>
+          <p id="committeeSubText">Meet the committee members serving Sri Subramaniar Alayam.</p>
+        </div>
+
+        <div class="committee-leadership" id="committeeLeadership"></div>
+
+        <div class="card" id="committeeOfficersRow">
+          <h3 id="committeeOfficersLabelText">Officers</h3>
+          <div class="committee-officer-row" id="committeeOfficers"></div>
+        </div>
+
+        <div class="card" id="committeeMemberGrid">
+          <h3 id="committeeMembersLabelText">Committee Members</h3>
+          <div class="committee-member-grid" id="committeeMembers"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card" id="committeeAuditorsCard">
+            <h3 id="committeeAuditorsLabelText">Internal Auditors</h3>
+            <ol class="committee-plain-list" id="committeeAuditors"></ol>
+          </div>
+          <div class="card" id="committeeTrusteesCard">
+            <h3 id="committeeTrusteesLabelText">Trustees</h3>
+            <ol class="committee-plain-list" id="committeeTrustees"></ol>
+          </div>
         </div>
       </section>
 
