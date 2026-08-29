@@ -102,7 +102,7 @@ const ICONS = {
   fridayAnnathanam: `<path d="M5 11 C5 16 8 20 12 20 C16 20 19 16 19 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11 H20" stroke-linecap="round"/><path d="M9 11 V6.5 C9 5 10.5 4 12 4" stroke-linecap="round"/><circle cx="12" cy="3.3" r="0.9" fill="currentColor" stroke="none"/>`,
   membership: `<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M5.3 16.3 C5.3 14.8 6.7 13.7 8.5 13.7 C10.3 13.7 11.7 14.8 11.7 16.3" stroke-linecap="round"/><path d="M13.8 10.3 H18.3 M13.8 13.3 H16.8" stroke-linecap="round"/>`,
   gallery: `<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17.5 L9.5 12.5 L13 15.5 L16.5 12 L20.5 16" stroke-linecap="round" stroke-linejoin="round"/>`,
-  committee: `<circle cx="12" cy="5.2" r="2.2"/><path d="M12 7.4 V11" stroke-linecap="round"/><path d="M6.2 15 H17.8" stroke-linecap="round"/><path d="M6.2 11.5 V15 M17.8 11.5 V15" stroke-linecap="round"/><circle cx="6.2" cy="17.6" r="2.2"/><circle cx="17.8" cy="17.6" r="2.2"/>`
+  committee: `<circle cx="12" cy="7.3" r="2.6"/><path d="M6.5 20 C6.5 16.3 8.9 14.3 12 14.3 C15.1 14.3 17.5 16.3 17.5 20" stroke-linecap="round"/><circle cx="5" cy="9.5" r="2"/><path d="M1.6 19 C1.6 16.3 3 14.7 5 14.7 C5.7 14.7 6.4 14.9 6.9 15.3" stroke-linecap="round"/><circle cx="19" cy="9.5" r="2"/><path d="M22.4 19 C22.4 16.3 21 14.7 19 14.7 C18.3 14.7 17.6 14.9 17.1 15.3" stroke-linecap="round"/>`
 };
 
 const PANEL_COLORS = ["#711821", "#8f202b", "#c1531f", "#3e7c52", "#2b1b12", "#8e4a9e", "#3e7c8c", "#b5651d"];
