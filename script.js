@@ -1455,6 +1455,13 @@ function buildFridayAnnathanamCard(w){
   const pillHtml = skipped
     ? `<span class="prayer-role-pill taken">${t("fridayAnnathanamSkippedBadge")}</span>`
     : `<span class="prayer-role-pill ${taken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${taken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>`;
+  // Paid/Not Paid — same pill + strings the Prayers & Registration
+  // screen already uses for an Ubayakarar sponsorship's payment status
+  // (see buildPrayerCard() above). Only shown once a sponsor has taken
+  // the slot; an open or skipped week has no payment to report on.
+  const paidPillHtml = taken
+    ? `<span class="prayer-role-pill ${w.paid ? "paid" : "unpaid"}">${w.paid ? t("prayersPaidBadge") : t("prayersNotPaidBadge")}</span>`
+    : "";
   const card = el(`
     <div class="prayer-card">
       <div class="prayer-card-date"><b>${dayNum(w.date)}</b><small>${monthAbbr(w.date)}</small></div>
@@ -1468,6 +1475,7 @@ function buildFridayAnnathanamCard(w){
           <div class="prayer-role-block">
             ${pillHtml}
             ${w.sponsorName ? `<span class="prayer-role-sponsor">${w.sponsorName}</span>` : ""}
+            ${paidPillHtml}
           </div>
         </div>
       </div>

@@ -14,10 +14,12 @@
 // prayers-list.js already follows for its participants list (name +
 // headcount only, never phone). The committee reads phone numbers
 // from the password-gated admin-friday-annathanam-crud.js "list"
-// action instead, not this public endpoint. paid_date is also left
-// out of the public response — a sponsor's own payment date isn't
-// the public's business, and the site never needs it to render
-// Open/Sponsored/Skipped.
+// action instead, not this public endpoint. The raw paid_date itself
+// is also left out — a sponsor's own payment date isn't the public's
+// business — but a plain paid/not-paid boolean IS included (as
+// `paid`), the same level of detail the Prayers & Registration
+// screen already shows for an Ubayakarar sponsorship's Paid/Not Paid
+// pill, without exposing the actual date.
 // ============================================================
 const { supabaseClient } = require("./_supabase");
 
@@ -42,9 +44,10 @@ exports.handler = async () => {
       date: r.date,
       fee: r.fee,
       sponsorName: r.sponsor_name,
+      paid: !!r.paid_date,
       skipReason: r.skip_reason
-      // sponsor_phone, paid_date, and notes are intentionally left out —
-      // see the file header for why.
+      // sponsor_phone, the raw paid_date, and notes are intentionally
+      // left out — see the file header for why.
     }));
 
     return {
