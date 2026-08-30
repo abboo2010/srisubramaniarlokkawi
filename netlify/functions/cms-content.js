@@ -66,7 +66,7 @@ exports.handler = async () => {
     if (committeeOut) {
       (committee.data || []).forEach(m => {
         const row = {
-          name: m.name,
+          name_en: m.name_en, name_bm: m.name_en, name_ta: m.name_ta,
           role_en: m.role_en, role_bm: m.role_bm, role_ta: m.role_ta,
           subtitle_en: m.subtitle_en, subtitle_bm: m.subtitle_bm, subtitle_ta: m.subtitle_ta,
           phone: m.phone

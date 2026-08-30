@@ -162,16 +162,25 @@ create trigger deities_set_updated_at before update on deities
 -- chart (president/vicePresident sit alone at the top, officer is the
 -- Secretary/Treasurer-style row, member is the Committee Member grid,
 -- auditor/trustee are the two plain numbered lists at the bottom) —
--- script.js groups by tier for layout. "name" is deliberately a single
--- field, not per-language, same as members.name: a person's own name
--- isn't translated. No unique constraint on name — unlike deities/sevas,
--- two committee members could plausibly share a name, and the Gallery
--- caption-uniqueness incident earlier in this build is a reminder not
--- to add one without a real reason.
+-- script.js groups by tier for layout. "name_en"/"name_ta" hold the
+-- person's name in Latin and Tamil script — this DOES follow the same
+-- per-language pattern as deities/sevas/pooja_timings after all (a
+-- first attempt left this as a single untranslated "name" field, on
+-- the theory that a person's own name isn't translated the way
+-- members.name isn't — but this app's own Deities section already
+-- shows deity names in Tamil script per language, and Ravi asked for
+-- the same for committee members; there is no separate name_bm column
+-- since Malay reuses the same Latin spelling as English — cms-content.js
+-- mirrors name_en into name_bm for the public payload). No unique
+-- constraint on name_en — unlike deities/sevas, two committee members
+-- could plausibly share a name, and the Gallery caption-uniqueness
+-- incident earlier in this build is a reminder not to add one without
+-- a real reason.
 create table if not exists committee_members (
   id            bigint generated always as identity primary key,
   tier          text not null default 'member' check (tier in ('president','vicePresident','officer','member','auditor','trustee')),
-  name          text not null default '',
+  name_en       text not null default '',
+  name_ta       text not null default '',
   role_en       text not null default '',
   role_bm       text not null default '',
   role_ta       text not null default '',

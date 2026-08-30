@@ -44,31 +44,31 @@ const TICKER = {
 // committee_members table) always takes priority once it loads.
 let COMMITTEE = {
   president: [
-    { name: "Capt. Shamala Devi Muniandy", role_en: "President", role_bm: "Presiden", role_ta: "தலைவர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "012-2487718" }
+    { name_en: "Capt. Shamala Devi Muniandy", name_ta: "கேப்டன் ஷமளா தேவி முனியாண்டி", role_en: "President", role_bm: "Presiden", role_ta: "தலைவர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "012-2487718" }
   ],
   vicePresident: [
-    { name: "Mr. Balachandran Ramachandran", role_en: "Vice President", role_bm: "Naib Presiden", role_ta: "துணைத் தலைவர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "011-31559091" }
+    { name_en: "Mr. Balachandran Ramachandran", name_ta: "திரு. பாலச்சந்திரன் ராமச்சந்திரன்", role_en: "Vice President", role_bm: "Naib Presiden", role_ta: "துணைத் தலைவர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "011-31559091" }
   ],
   officer: [
-    { name: "Mr. Muniswaran Kalimuthu", role_en: "Secretary", role_bm: "Setiausaha", role_ta: "செயலாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "012-5852978" },
-    { name: "Mr. Ravivarman Abboo", role_en: "Asst. Secretary", role_bm: "Penolong Setiausaha", role_ta: "உதவி செயலாளர்", subtitle_en: "IT & Technology", subtitle_bm: "IT & Teknologi", subtitle_ta: "தகவல் தொழில்நுட்பம்", phone: "010-9482080" },
-    { name: "Mdm. Kamaleswari Kaliaperumal", role_en: "Treasurer", role_bm: "Bendahari", role_ta: "பொருளாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "016-3519068" },
-    { name: "Mdm. Parimalah Krishnan", role_en: "Asst. Treasurer", role_bm: "Penolong Bendahari", role_ta: "உதவி பொருளாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "016-8054722" }
+    { name_en: "Mr. Muniswaran Kalimuthu", name_ta: "திரு. முனீஸ்வரன் காளிமுத்து", role_en: "Secretary", role_bm: "Setiausaha", role_ta: "செயலாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "012-5852978" },
+    { name_en: "Mr. Ravivarman Abboo", name_ta: "திரு. ரவிவர்மன் அப்பு", role_en: "Asst. Secretary", role_bm: "Penolong Setiausaha", role_ta: "உதவி செயலாளர்", subtitle_en: "IT & Technology", subtitle_bm: "IT & Teknologi", subtitle_ta: "தகவல் தொழில்நுட்பம்", phone: "010-9482080" },
+    { name_en: "Mdm. Kamaleswari Kaliaperumal", name_ta: "திருமதி. கமலேஸ்வரி காளியப்பெருமாள்", role_en: "Treasurer", role_bm: "Bendahari", role_ta: "பொருளாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "016-3519068" },
+    { name_en: "Mdm. Parimalah Krishnan", name_ta: "திருமதி. பரிமளா கிருஷ்ணன்", role_en: "Asst. Treasurer", role_bm: "Penolong Bendahari", role_ta: "உதவி பொருளாளர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "016-8054722" }
   ],
   member: [
-    { name: "Mdm. Jeya Devi Gunaratnam", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Supritendant & Rituals", subtitle_bm: "Penyelia & Upacara", subtitle_ta: "மேற்பார்வையாளர் & சடங்குகள்", phone: "012-2094421" },
-    { name: "Mr. Mohan M. Raju", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Maintenance", subtitle_bm: "Penyelenggaraan", subtitle_ta: "பராமரிப்பு", phone: "016-8390184" },
-    { name: "Mr. Pavithran Kunhappnair", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Inventory", subtitle_bm: "Inventori", subtitle_ta: "சரக்கு", phone: "013-8949509" },
-    { name: "Mr. Navinkumar Sivakumar", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "019-2457724" },
-    { name: "Mr. Sivaguru Subramaniam", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "011-17841871" }
+    { name_en: "Mdm. Jeya Devi Gunaratnam", name_ta: "திருமதி. ஜெயா தேவி குணரத்தினம்", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Supritendant & Rituals", subtitle_bm: "Penyelia & Upacara", subtitle_ta: "மேற்பார்வையாளர் & சடங்குகள்", phone: "012-2094421" },
+    { name_en: "Mr. Mohan M. Raju", name_ta: "திரு. மோகன் எம். ராஜு", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Maintenance", subtitle_bm: "Penyelenggaraan", subtitle_ta: "பராமரிப்பு", phone: "016-8390184" },
+    { name_en: "Mr. Pavithran Kunhappnair", name_ta: "திரு. பவித்திரன் குன்ஹப்நாயர்", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "Inventory", subtitle_bm: "Inventori", subtitle_ta: "சரக்கு", phone: "013-8949509" },
+    { name_en: "Mr. Navinkumar Sivakumar", name_ta: "திரு. நவீன்குமார் சிவகுமார்", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "019-2457724" },
+    { name_en: "Mr. Sivaguru Subramaniam", name_ta: "திரு. சிவகுரு சுப்ரமணியம்", role_en: "Committee Member", role_bm: "Ahli Jawatankuasa", role_ta: "குழு உறுப்பினர்", subtitle_en: "", subtitle_bm: "", subtitle_ta: "", phone: "011-17841871" }
   ],
   auditor: [
-    { name: "Mr. Batumalai Veruthasalam" },
-    { name: "Major B. Shuras Batumalai (Rtd)" }
+    { name_en: "Mr. Batumalai Veruthasalam", name_ta: "திரு. பத்துமலை வேருதசலம்" },
+    { name_en: "Major B. Shuras Batumalai (Rtd)", name_ta: "மேஜர் பி. ஷூரஸ் பத்துமலை (ஓய்வு)" }
   ],
   trustee: [
-    { name: "Mr. Gunasekaran Rajangam" },
-    { name: "Mr. Kalaichelvan Govindaraja" }
+    { name_en: "Mr. Gunasekaran Rajangam", name_ta: "திரு. குணசேகரன் ராஜாங்கம்" },
+    { name_en: "Mr. Kalaichelvan Govindaraja", name_ta: "திரு. கலைச்செல்வன் கோவிந்தராஜா" }
   ]
 };
 
@@ -385,14 +385,15 @@ function renderAbout(){
 // a gold initials-circle stands in for a photo (none were supplied),
 // name, role, and an optional portfolio subtitle/phone.
 function committeePersonCard(m, cardClass){
-  const initial = (m.name || "?").trim().charAt(0).toUpperCase();
+  const name = tf(m, "name");
+  const initial = (name || "?").trim().charAt(0).toUpperCase();
   const subtitle = tf(m, "subtitle");
   return `
     <div class="${cardClass}">
       <div class="committee-avatar">${initial}</div>
       <div class="committee-person-info">
         <div class="committee-role">${tf(m,"role")}</div>
-        <div class="committee-name">${m.name}</div>
+        <div class="committee-name">${name}</div>
         ${subtitle ? `<div class="committee-subtitle">${subtitle}</div>` : ""}
         ${m.phone ? `<div class="committee-phone">${m.phone}</div>` : ""}
       </div>
@@ -400,7 +401,7 @@ function committeePersonCard(m, cardClass){
   `;
 }
 function committeeListRow(m){
-  return `<li>${m.name}</li>`;
+  return `<li>${tf(m, "name")}</li>`;
 }
 function renderCommittee(){
   const leadWrap = document.getElementById("committeeLeadership");

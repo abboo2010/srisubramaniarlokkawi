@@ -57,12 +57,15 @@ A new **"Temple Committee"** nav item sits right under **About Temple** on the p
 - Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-committee.sql` → **Run** — this both creates the table and seeds it with the committee list from your org-chart image (names, roles, portfolios, phone numbers). Safe to re-run — it won't create duplicates.
 - If setting up Supabase fresh (running `cms-schema.sql` + `cms-seed.sql` for the first time rather than as an existing install), those two files already include the `committee_members` table and the same seed data, so `add-committee.sql` isn't needed in that case.
 
+**1b. If you already ran `add-committee.sql` before 2026-08-30** — run `supabase/add-committee-name-translations.sql` once too. Names originally weren't translated (so they stayed in English/Latin script even when the site was switched to Tamil); this adds a proper Tamil-script name for each of the 15 committee members, matching how Deity names already work. Safe to re-run, never overwrites a name you've since edited in the CMS.
+
 **2. Nothing else to configure** — no new environment variables, reuses the same `ADMIN_PASSWORD`.
 
 **3. Test it**
 - Open the site → **Temple Committee** (below About Temple) → should show the org chart with everyone from the image
+- Switch the language to Tamil → every name should now switch to Tamil script too, not just the role/portfolio labels
 - In `/cms.html`'s **Committee** tab, edit someone's phone number → Save → reload the live site → the change should appear immediately
-- Malay/Tamil role and portfolio titles are Claude's own translation, not reviewed by a Tamil/Malay speaker on the committee — edit them any time from the same tab if the committee wants different wording
+- Malay uses the same Name (English/Malay) field as English — Malay/Tamil role and portfolio titles, and the Tamil names, are Claude's own translation/transliteration, not reviewed by a Tamil/Malay speaker on the committee — edit them any time from the same tab if the committee wants different wording
 
 ## Push Notifications — one-time setup
 

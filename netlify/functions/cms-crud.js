@@ -93,7 +93,7 @@ const ENTITIES = {
   committeeMember: {
     table: "committee_members", singleton: false,
     fields: [
-      ["tier","tier"],["name","name"],
+      ["tier","tier"],["nameEn","name_en"],["nameTa","name_ta"],
       ["roleEn","role_en"],["roleBm","role_bm"],["roleTa","role_ta"],
       ["subtitleEn","subtitle_en"],["subtitleBm","subtitle_bm"],["subtitleTa","subtitle_ta"],
       ["phone","phone"],["sortOrder","sort_order"]

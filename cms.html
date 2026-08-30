@@ -633,11 +633,12 @@ const tilesTab = makeListTab({
 
 // ---------- Temple Committee ----------
 const committeeTab = makeListTab({
-  tabId: "committee", entity: "committeeMember", singularLabel: "Person", required: ["name","tier"],
-  columns: [ {key:"tier",label:"Tier"}, {key:"name",label:"Name"}, {key:"roleEn",label:"Role (EN)"}, {key:"phone",label:"Phone"}, {key:"sortOrder",label:"Order"} ],
+  tabId: "committee", entity: "committeeMember", singularLabel: "Person", required: ["nameEn","tier"],
+  columns: [ {key:"tier",label:"Tier"}, {key:"nameEn",label:"Name (EN)"}, {key:"roleEn",label:"Role (EN)"}, {key:"phone",label:"Phone"}, {key:"sortOrder",label:"Order"} ],
   fields: [
     { key:"tier", label:"Tier", type:"select", options:["president","vicePresident","officer","member","auditor","trustee"] },
-    { key:"name", label:"Name", type:"text" },
+    { key:"nameEn", label:"Name (English / Malay)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" },
     { key:"roleEn", label:"Role / Title (English)", type:"text" },
     { key:"roleBm", label:"Role / Title (Malay)", type:"text" },
     { key:"roleTa", label:"Role / Title (Tamil)", type:"text" },
