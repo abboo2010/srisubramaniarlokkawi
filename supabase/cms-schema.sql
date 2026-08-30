@@ -90,6 +90,53 @@ drop trigger if exists nav_tiles_set_updated_at on nav_tiles;
 create trigger nav_tiles_set_updated_at before update on nav_tiles
   for each row execute function set_updated_at();
 
+-- ---------- page_headings: the title + subtitle shown at the top of
+-- each screen (e.g. "Temple Management Committee" / "Meet the
+-- committee members serving..."). One fixed row per screen, keyed by
+-- screen_key — not admin-creatable/deletable, only editable, since
+-- the set of screens is fixed by the app itself. heading_bm/ta and
+-- sub_bm/ta fall back to the English text on the public site when
+-- left blank, same as every other _en/_bm/_ta triplet. If a screen's
+-- row is ever missing (table not yet migrated, or a row deleted),
+-- the site simply falls back to its bundled default heading in
+-- data.js — nothing breaks. ----------
+create table if not exists page_headings (
+  id          bigint generated always as identity primary key,
+  screen_key  text unique not null,
+  heading_en  text not null default '',
+  heading_bm  text not null default '',
+  heading_ta  text not null default '',
+  sub_en      text not null default '',
+  sub_bm      text not null default '',
+  sub_ta      text not null default '',
+  updated_at  timestamptz not null default now()
+);
+alter table page_headings enable row level security;
+drop trigger if exists page_headings_set_updated_at on page_headings;
+create trigger page_headings_set_updated_at before update on page_headings
+  for each row execute function set_updated_at();
+
+-- ---------- menu_labels: the text next to each icon in the side
+-- menu (e.g. "Temple Committee", "Pooja Timings"). One fixed row per
+-- screen, keyed by screen_key — not admin-creatable/deletable, only
+-- editable, same pattern as page_headings above (and includes "home",
+-- which page_headings does not, since the Home screen has no title/
+-- subtitle of its own). label_bm/ta fall back to the English text on
+-- the public site when left blank. If a screen's row is ever missing,
+-- the site falls back to its bundled default label in data.js. ----------
+create table if not exists menu_labels (
+  id          bigint generated always as identity primary key,
+  screen_key  text unique not null,
+  label_en    text not null default '',
+  label_bm    text not null default '',
+  label_ta    text not null default '',
+  updated_at  timestamptz not null default now()
+);
+alter table menu_labels enable row level security;
+drop trigger if exists menu_labels_set_updated_at on menu_labels;
+create trigger menu_labels_set_updated_at before update on menu_labels
+  for each row execute function set_updated_at();
+
 -- ---------- site_ticker: the scrolling notice bar above the rail/
 -- topbar on every screen (one row, id is always 1). message_bm/ta
 -- fall back to message_en on the public site when left blank, same

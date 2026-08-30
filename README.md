@@ -67,6 +67,26 @@ A new **"Temple Committee"** nav item sits right under **About Temple** on the p
 - In `/cms.html`'s **Committee** tab, edit someone's phone number → Save → reload the live site → the change should appear immediately
 - Malay uses the same Name (English/Malay) field as English — Malay/Tamil role and portfolio titles, and the Tamil names, are Claude's own translation/transliteration, not reviewed by a Tamil/Malay speaker on the committee — edit them any time from the same tab if the committee wants different wording
 
+## Page Headings & Menu Labels — one-time setup
+
+Two new tabs in `/cms.html` — **Page Headings** and **Menu Labels** — make the site's chrome text editable without a code change:
+
+- **Page Headings**: the title + subtitle shown at the top of each screen (e.g. "Temple Management Committee" / "Meet the committee members serving..."). One row per screen.
+- **Menu Labels**: the text next to each icon in the side menu (e.g. "Temple Committee", "Pooja Timings"). One row per menu item, including Home.
+
+Both are fixed lists — every row already exists (seeded below), so you only ever click **Edit**, never Add or Delete. Malay/Tamil fields fall back to the English text on the live site if left blank.
+
+**1. Add the two new database tables (and seed today's live text)**
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-page-headings-and-menu-labels.sql` → **Run** — this creates both tables and seeds every row with the exact text the site already shows, so running it changes nothing until you actually edit something. Safe to re-run — it never overwrites an edit you've already made.
+- If setting up Supabase fresh (running `cms-schema.sql` + `cms-seed.sql` for the first time), those two files already include both tables and the same seed data, so this migration isn't needed in that case.
+
+**2. Nothing else to configure** — no new environment variables, reuses the same `ADMIN_PASSWORD`.
+
+**3. Test it**
+- In `/cms.html` → **Page Headings** tab, edit any screen's Heading/Subtitle in English, Malay, or Tamil → Save → reload the live site (switch language too) → the change should appear immediately
+- In `/cms.html` → **Menu Labels** tab, do the same for a side-menu item's wording
+- If a heading or menu item ever looks wrong on the live site (including the current Malay/Tamil wording, which is Claude's own translation and hasn't been reviewed by a Malay/Tamil speaker on the committee), this is now where to fix it — no code delivery needed.
+
 ## Push Notifications — one-time setup
 
 Visitors can tap the bell icon in the top bar (next to EN/BM/Tamil) to turn on notifications for that device. From the **Push Notifications** tab in `/cms.html`, type a title and message and press Send — every device currently subscribed gets it right away. This is a free browser feature (the "Web Push" standard) — it doesn't need a paid Supabase or Netlify plan, and there's no per-notification cost or limit from either of them.

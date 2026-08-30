@@ -19,7 +19,7 @@ const { supabaseClient } = require("./_supabase");
 const NOT_CONFIGURED = {
   configured: false, heroBanner: null, navTiles: null, about: null, deities: null,
   poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null, ticker: null,
-  committee: null
+  committee: null, pageHeadings: null, menuLabels: null
 };
 
 exports.handler = async () => {
@@ -29,7 +29,7 @@ exports.handler = async () => {
   }
 
   try {
-    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee] = await Promise.all([
+    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee, pageHeadings, menuLabels] = await Promise.all([
       supabase.from("hero_banner").select("*").eq("id", 1).maybeSingle(),
       supabase.from("nav_tiles").select("*").eq("enabled", true).order("sort_order", { ascending: true }),
       supabase.from("about_page").select("*").eq("id", 1).maybeSingle(),
@@ -42,7 +42,9 @@ exports.handler = async () => {
       supabase.from("gallery").select("*").order("sort_order", { ascending: true }),
       supabase.from("contact_info").select("*").eq("id", 1).maybeSingle(),
       supabase.from("site_ticker").select("*").eq("id", 1).maybeSingle(),
-      supabase.from("committee_members").select("*").order("sort_order", { ascending: true })
+      supabase.from("committee_members").select("*").order("sort_order", { ascending: true }),
+      supabase.from("page_headings").select("*"),
+      supabase.from("menu_labels").select("*")
     ]);
 
     for (const r of [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact]) {
@@ -168,6 +170,28 @@ exports.handler = async () => {
       folders: foldersByCategory[c.id] || []
     }));
 
+    // page_headings is a newer table too — handled leniently for the
+    // same reason as site_ticker/committee_members: must never take
+    // down the rest of the site's content if add-page-headings.sql
+    // hasn't been run yet. Returned as a flat array; script.js matches
+    // each row to its screen by screen_key.
+    const pageHeadingsOut = !pageHeadings.error
+      ? (pageHeadings.data || []).map(r => ({
+          screen_key: r.screen_key,
+          heading_en: r.heading_en, heading_bm: r.heading_bm, heading_ta: r.heading_ta,
+          sub_en: r.sub_en, sub_bm: r.sub_bm, sub_ta: r.sub_ta
+        }))
+      : null;
+
+    // menu_labels is a newer table too — handled leniently for the
+    // same reason as page_headings just above.
+    const menuLabelsOut = !menuLabels.error
+      ? (menuLabels.data || []).map(r => ({
+          screen_key: r.screen_key,
+          label_en: r.label_en, label_bm: r.label_bm, label_ta: r.label_ta
+        }))
+      : null;
+
     const c = contact.data;
     const contactOut = c ? {
       orgName: c.org_name, registrationNo: c.registration_no, phone: c.phone, email: c.email,
@@ -185,7 +209,7 @@ exports.handler = async () => {
       body: JSON.stringify({
         configured: true, heroBanner, navTiles, about: aboutOut, deities: deitiesOut,
         poojaTimings, sevas: sevasOut, announcements: announcementsOut, gallery: galleryOut, contact: contactOut,
-        ticker: tickerOut, committee: committeeOut
+        ticker: tickerOut, committee: committeeOut, pageHeadings: pageHeadingsOut, menuLabels: menuLabelsOut
       })
     };
   } catch (err) {

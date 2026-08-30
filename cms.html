@@ -145,7 +145,7 @@
     <div class="app-header-text">
       <div class="app-title-line1">Sri Subramaniar Alayam, Lok Kawi</div>
       <div class="app-title-line2">Site CMS</div>
-      <p class="sub">Edit the Hero Banner, Home Tiles, About, Deities, Pooja Timings, Sevas, Announcements, Gallery, Membership, and Contact Us — changes go live immediately, no redeploy needed. For Prayers &amp; Registration or Friday Annathanam, use the <a href="admin-prayers.html">Annual Prayers admin</a> instead.</p>
+      <p class="sub">Edit the Hero Banner, Home Tiles, About, Deities, Pooja Timings, Sevas, Announcements, Gallery, Membership, Contact Us, and each screen's title/side-menu text — changes go live immediately, no redeploy needed. For Prayers &amp; Registration or Friday Annathanam, use the <a href="admin-prayers.html">Annual Prayers admin</a> instead.</p>
     </div>
   </div>
 
@@ -166,6 +166,8 @@
     <button data-tab="members">Membership</button>
     <button data-tab="contact">Contact Us</button>
     <button data-tab="ticker">Ticker</button>
+    <button data-tab="pageHeadings">Page Headings</button>
+    <button data-tab="menuLabels">Menu Labels</button>
     <button data-tab="push">Push Notifications</button>
   </div>
 
@@ -315,6 +317,22 @@
       <div id="ticker-form"></div>
       <div class="edit-actions"><button class="save" id="ticker-save">Save Ticker</button></div>
     </div>
+  </div>
+
+  <!-- ================= PAGE HEADINGS (fixed list) ================= -->
+  <div class="tab-panel" id="tab-pageHeadings">
+    <p class="panel-hint">The title and subtitle shown at the top of each screen (e.g. "Temple Management Committee" / "Meet the committee members serving..."). One row per screen — click Edit to change any screen's wording in English, Malay, or Tamil. Leaving Malay/Tamil blank falls back to the English text on the live site.</p>
+    <div class="toolbar"><button id="pageHeadings-refresh">Refresh</button></div>
+    <div id="pageHeadings-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="pageHeadings-table"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ================= MENU LABELS (fixed list) ================= -->
+  <div class="tab-panel" id="tab-menuLabels">
+    <p class="panel-hint">The text next to each icon in the side menu (e.g. "Temple Committee", "Pooja Timings"). One row per menu item — click Edit to change its wording in English, Malay, or Tamil. Leaving Malay/Tamil blank falls back to the English text on the live site.</p>
+    <div class="toolbar"><button id="menuLabels-refresh">Refresh</button></div>
+    <div id="menuLabels-panel" class="edit-panel"></div>
+    <div class="table-wrap"><table id="menuLabels-table"><thead></thead><tbody></tbody></table></div>
   </div>
 
   <!-- ================= PUSH NOTIFICATIONS ================= -->
@@ -476,7 +494,7 @@ function fieldHtml(f, row){
       <div class="upload-note">Uploads automatically when you choose a file. Large photos are resized in your browser first.${f.thumbKey ? " A smaller thumbnail is generated and uploaded alongside it automatically." : ""}</div>
     </div>`;
   }
-  return `<div class="edit-field${wide}"><label>${f.label}</label><input type="${f.type === "number" ? "number" : "text"}" id="fld-${f.key}" value="${escAttr(val)}" /></div>`;
+  return `<div class="edit-field${wide}"><label>${f.label}</label><input type="${f.type === "number" ? "number" : "text"}" id="fld-${f.key}" value="${escAttr(val)}"${f.readonly ? " readonly" : ""} /></div>`;
 }
 
 function wireImageField(f, folder){
@@ -532,11 +550,11 @@ function makeListTab(cfg){
       const tr = h(`<tr>${cells.map(c => `<td>${c}</td>`).join("")}
         <td class="row-actions">
           <button class="edit">Edit</button>
-          <button class="delete">Delete</button>
+          ${cfg.noDelete ? "" : '<button class="delete">Delete</button>'}
         </td>
       </tr>`);
       tr.querySelector(".edit").addEventListener("click", () => openForm(row));
-      tr.querySelector(".delete").addEventListener("click", () => doDelete(row));
+      if (!cfg.noDelete) tr.querySelector(".delete").addEventListener("click", () => doDelete(row));
       tbody.appendChild(tr);
     });
   }
@@ -605,7 +623,11 @@ function makeListTab(cfg){
   }
 
   document.getElementById(cfg.tabId + "-refresh").addEventListener("click", load);
-  document.getElementById(cfg.tabId + "-add").addEventListener("click", () => openForm(null));
+  // "-add" button is omitted from the HTML for fixed-row tabs (e.g.
+  // Page Headings, Menu Labels) where every row already exists from
+  // the seed/migration and admins only edit, never create/delete.
+  const addBtn = document.getElementById(cfg.tabId + "-add");
+  if (addBtn) addBtn.addEventListener("click", () => openForm(null));
 
   return { load, get rows(){ return state.rows; } };
 }
@@ -978,6 +1000,55 @@ const tickerTab = makeSingletonTab({
   ]
 });
 
+// ---------- Page Headings & Menu Labels ----------
+// Both are "fixed list" tabs: every row already exists (seeded by
+// add-page-headings-and-menu-labels.sql), so these only support Edit —
+// no Add/Delete buttons (see the "-add" guard and cfg.noDelete in
+// makeListTab above). The Screen field is shown but not editable
+// (screenKey is the natural key the public site matches rows against).
+const SCREEN_FRIENDLY_NAMES = {
+  home: "Home", about: "About Temple", committee: "Temple Committee", deities: "Deities",
+  calendar: "Event Calendar", timings: "Pooja Timings", gallery: "Gallery",
+  sevas: "Sevas & Donations", prayers: "Prayers & Registration",
+  fridayAnnathanam: "Friday Annathanam", news: "News & Announcements",
+  membership: "Membership Status", contact: "Contact Us"
+};
+const screenFriendlyName = (key) => SCREEN_FRIENDLY_NAMES[key] || key;
+
+const pageHeadingsTab = makeListTab({
+  tabId: "pageHeadings", entity: "pageHeading", singularLabel: "Page Heading", required: [], noDelete: true,
+  columns: [
+    { key:"screenKey", label:"Screen", compute: r => screenFriendlyName(r.screenKey) },
+    { key:"headingEn", label:"Heading (EN)" },
+    { key:"subEn", label:"Subtitle (EN)" }
+  ],
+  fields: [
+    { key:"screenKey", label:"Screen", type:"text", readonly:true },
+    { key:"headingEn", label:"Heading (English)", type:"text" },
+    { key:"headingBm", label:"Heading (Malay) — leave blank to reuse the English text", type:"text" },
+    { key:"headingTa", label:"Heading (Tamil) — leave blank to reuse the English text", type:"text" },
+    { key:"subEn", label:"Subtitle (English)", type:"text", wide:true },
+    { key:"subBm", label:"Subtitle (Malay) — leave blank to reuse the English text", type:"text", wide:true },
+    { key:"subTa", label:"Subtitle (Tamil) — leave blank to reuse the English text", type:"text", wide:true }
+  ]
+});
+
+const menuLabelsTab = makeListTab({
+  tabId: "menuLabels", entity: "menuLabel", singularLabel: "Menu Label", required: [], noDelete: true,
+  columns: [
+    { key:"screenKey", label:"Screen", compute: r => screenFriendlyName(r.screenKey) },
+    { key:"labelEn", label:"Label (EN)" },
+    { key:"labelBm", label:"Label (BM)" },
+    { key:"labelTa", label:"Label (Tamil)" }
+  ],
+  fields: [
+    { key:"screenKey", label:"Screen", type:"text", readonly:true },
+    { key:"labelEn", label:"Label (English)", type:"text" },
+    { key:"labelBm", label:"Label (Malay) — leave blank to reuse the English text", type:"text" },
+    { key:"labelTa", label:"Label (Tamil) — leave blank to reuse the English text", type:"text" }
+  ]
+});
+
 // ============================================================
 // Members — dedicated (not the generic list engine): search,
 // export, and a bulk-import box on top of the usual add/edit/delete.
@@ -1161,6 +1232,8 @@ function initAllTabs(){
   loadMembers();
   contactTab.load();
   tickerTab.load();
+  pageHeadingsTab.load();
+  menuLabelsTab.load();
   loadPushSubscriberCount();
 }
 </script>

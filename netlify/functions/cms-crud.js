@@ -70,6 +70,21 @@ const ENTITIES = {
       ["donationAccountName","donation_account_name"],["donationBank","donation_bank"],["donationAccountNumber","donation_account_number"]
     ]
   },
+  pageHeading: {
+    table: "page_headings", singleton: false, orderBy: "id",
+    fields: [
+      ["screenKey","screen_key"],
+      ["headingEn","heading_en"],["headingBm","heading_bm"],["headingTa","heading_ta"],
+      ["subEn","sub_en"],["subBm","sub_bm"],["subTa","sub_ta"]
+    ]
+  },
+  menuLabel: {
+    table: "menu_labels", singleton: false, orderBy: "id",
+    fields: [
+      ["screenKey","screen_key"],
+      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"]
+    ]
+  },
   navTile: {
     table: "nav_tiles", singleton: false,
     fields: [
@@ -204,7 +219,7 @@ exports.handler = async (event) => {
         if (error) throw error;
         return { statusCode: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }, body: JSON.stringify({ row: data ? wireFromRow(config, data) : null }) };
       }
-      const { data, error } = await supabase.from(config.table).select("*").order("sort_order", { ascending: true });
+      const { data, error } = await supabase.from(config.table).select("*").order(config.orderBy || "sort_order", { ascending: true });
       if (error) throw error;
       return { statusCode: 200, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }, body: JSON.stringify({ rows: (data || []).map(r => wireFromRow(config, r)) }) };
     } catch (err) {

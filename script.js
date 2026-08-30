@@ -1856,6 +1856,55 @@ function loadLiveContent(){
         COMMITTEE = data.committee;
       });
 
+      safeApply("pageHeadings", () => {
+        // null means the page_headings table doesn't exist yet
+        // (add-page-headings.sql not run) or Supabase is unreachable —
+        // every screen just keeps showing its bundled heading/subtitle
+        // from data.js in that case, same as before this feature
+        // existed. Reuses the exact same UI[lang][key] strings every
+        // screen's own render already reads via t() — no per-screen
+        // render function needed, same trick heroBanner uses above.
+        if (!data.pageHeadings) return;
+        data.pageHeadings.forEach(row => {
+          const key = row.screen_key;
+          if (!key) return;
+          const headingKey = key + "Heading", subKey = key + "Sub";
+          if (UI.en[headingKey] === undefined) return; // unknown screen_key — ignore defensively
+          if (row.heading_en) {
+            UI.en[headingKey] = row.heading_en;
+            UI.bm[headingKey] = row.heading_bm || row.heading_en;
+            UI.ta[headingKey] = row.heading_ta || row.heading_en;
+          }
+          if (row.sub_en) {
+            UI.en[subKey] = row.sub_en;
+            UI.bm[subKey] = row.sub_bm || row.sub_en;
+            UI.ta[subKey] = row.sub_ta || row.sub_en;
+          }
+        });
+      });
+
+      safeApply("menuLabels", () => {
+        // null means the menu_labels table doesn't exist yet
+        // (add-page-headings-and-menu-labels.sql not run) or Supabase
+        // is unreachable — every side-menu item just keeps showing its
+        // bundled label from data.js in that case. Same trick as
+        // pageHeadings above: mutates UI[lang]["nav"+Key] directly, and
+        // the existing [data-i18n] loop in renderStaticText() picks it
+        // up automatically — no per-item render code needed.
+        if (!data.menuLabels) return;
+        data.menuLabels.forEach(row => {
+          const key = row.screen_key;
+          if (!key) return;
+          const navKey = "nav" + key.charAt(0).toUpperCase() + key.slice(1);
+          if (UI.en[navKey] === undefined) return; // unknown screen_key — ignore defensively
+          if (row.label_en) {
+            UI.en[navKey] = row.label_en;
+            UI.bm[navKey] = row.label_bm || row.label_en;
+            UI.ta[navKey] = row.label_ta || row.label_en;
+          }
+        });
+      });
+
       renderAll();
     })
     .catch(err => {
