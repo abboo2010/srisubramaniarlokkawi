@@ -2,10 +2,10 @@
  
 One responsive site — same code, same deploy — that works as a fixed touchscreen kiosk, a browsable website, and an installable PWA on phones/tablets. Content is edited live through two password-protected admin pages, no code editing, no GitHub account, and no redeploy needed for day-to-day updates:
 
-- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, Contact Us, Notice Ticker, and Push Notifications
+- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, Contact Us, Notice Ticker, Push Notifications, and Admin Users
 - **`/admin-prayers.html`** — Prayers & Registration and Friday Annathanam
 
-Both read from and write to the same Supabase (Postgres) database, and both are gated by the same `ADMIN_PASSWORD`. Neither page is linked from the site's main navigation — bookmark the URLs.
+Both read from and write to the same Supabase (Postgres) database. Each committee member logs in with their own **username and password** rather than one shared password — see "Individual Admin Logins" below. Neither page is linked from the site's main navigation — bookmark the URLs.
 
 > **History note:** earlier versions of this project were built around a Decap CMS at `/admin/` that committed changes to `/content/*.json` on GitHub, and — before that — around a public Google Sheet the site fetched directly in the browser. Neither is used any more. The Decap CMS was documented but never actually deployed; the Google Sheet integration has been fully replaced by `/cms.html` below. `/content/*.json` and the bundled `content-data.js` still exist and are still what `build.js` generates on every deploy, but they now serve only as an **offline fallback** shown if Supabase is ever unreachable — see "How content flows".
 
@@ -17,6 +17,35 @@ index.html  ←  netlify/functions/cms-content.js, prayers-list.js, etc.  ←─
    (falls back to the bundled content-data.js only if Supabase is unreachable)
 ```
 Edits take effect on the live site immediately — there's no rebuild/redeploy step for content changes. `content-data.js` is still regenerated from `/content/*.json` on every deploy (via `build.js`, see `netlify.toml`), but that's now just the offline-fallback path; the CMS pages never write to those JSON files.
+
+## Individual Admin Logins — one-time setup
+
+`/cms.html` and `/admin-prayers.html` used to share one password (`ADMIN_PASSWORD`) — anyone with it could do anything on either page, and there was no way to tell committee members apart or take away just one person's access. Now every committee member logs in with their own **username and password**, and you (as the **master account**) control exactly what each person can reach:
+
+- **Content** (`/cms.html`) and **Prayers & Bookings** (`/admin-prayers.html`) are independent — grant either, both, or neither.
+- A **master account** (like yours) can always reach everything, plus a new **Admin Users** tab (in `/cms.html`) to add committee members, change what they can access, reset a forgotten password, or remove a login — the system won't let you accidentally remove the last master account, so you can never lock yourself out.
+- Turning off someone's access (or the whole account) takes effect immediately — they're logged out on their very next click, not whenever they'd otherwise be logged out.
+
+**1. Add the new database table**
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-admin-users.sql` → **Run**. No data to seed — the very first login creates your master account automatically (step 3 below).
+- If setting up Supabase fresh (running `schema.sql` for the first time), it already includes this table, so this migration isn't needed in that case.
+
+**2. Add one new environment variable in Netlify**
+- `ADMIN_JWT_SECRET` — a long random string used to sign login sessions (anything long and random works — e.g. generate one at https://www.uuidgenerator.net/ twice and paste them together, or run `openssl rand -hex 32` if you have a terminal handy). Keep `ADMIN_PASSWORD` too — it's still needed for your very first login below, and it's harmless to leave it in place after that.
+- Trigger a redeploy so the new/updated functions pick up the variable.
+
+**3. Your first login (one-time)**
+- Go to either `/cms.html` or `/admin-prayers.html`. The login screen now asks for a **username** as well as a password.
+- Type any username you want (e.g. `ravi`) and your existing `ADMIN_PASSWORD` as the password, then log in.
+- This one-time-only login creates your account as the **master** account, with full access to everything — nothing else to do. Every login after this first one must be a real username + password from the Admin Users tab; `ADMIN_PASSWORD` is never checked again.
+
+**4. Add the committee**
+- In `/cms.html`, open the new **Admin Users** tab (only visible to a master account) → **+ Add Admin User** → pick a username and password for them, and tick Content / Prayers & Bookings / Master as appropriate → Save. Give them the username + password directly (in person, or however you'd normally share a password) — there's no email step.
+
+**5. Test it**
+- Log out (close the tab or clear it) and log back in with your master username/password — should work as before.
+- Create a test committee login with just Content access → log in with it on `/admin-prayers.html` → should be refused with a clear message, but should work fine on `/cms.html`.
+- From the Admin Users tab, try removing master status from your own (only) master account — should be refused, since the site can never be left with zero masters.
 
 ## Site CMS (`/cms.html`) — one-time setup
 
@@ -34,11 +63,11 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 
 **3. Add/confirm environment variables in Netlify**
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — same values as Annual Prayers, from **Project Settings → API**
-- `ADMIN_PASSWORD` — same one used for `/admin-prayers.html`
+- `ADMIN_PASSWORD` and `ADMIN_JWT_SECRET` — see "Individual Admin Logins" above; `ADMIN_PASSWORD` is only used for your very first login
 - Trigger a redeploy so the new functions (`cms-content.js`, `cms-crud.js`, `cms-upload-image.js`, `cms-members.js`, and the rewritten `check-membership.js`) pick up the variables
 
 **4. Open it**
-- Go to `https://your-site.netlify.app/cms.html`, log in with `ADMIN_PASSWORD`
+- Go to `https://your-site.netlify.app/cms.html` and log in (see "Individual Admin Logins" above for your first login)
 - Tabs: **Hero Banner**, **Home Tiles**, **About**, **Committee**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**, **Ticker**, **Push Notifications**
 - Photo fields (Hero background, Deity photos, Gallery photos) resize/compress in your browser and upload straight to Supabase Storage — no separate image hosting needed
 - **Membership tab** replaces the old private Google Sheet entirely: add/edit/delete members one at a time, or use **Bulk Import** to paste CSV (`Name,NRIC,Membership No.,Membership Type,Status` — Status column is optional, defaults to Active) — this is also how to migrate your existing Members sheet: open it, File → Download → CSV, open that file in a text editor, paste the contents in
@@ -148,12 +177,12 @@ A pooja is labelled **Upcoming** or **Completed** automatically, based on today'
 - Netlify dashboard → your site → **Project configuration → Environment variables → Add a variable**:
   - `SUPABASE_URL` — the Project URL from step 3
   - `SUPABASE_SERVICE_ROLE_KEY` — the `service_role` key from step 3
-  - `ADMIN_PASSWORD` — a password of your choice for the committee's admin page (see below) — reuse the existing one if you already set this for another feature
+  - `ADMIN_PASSWORD` and `ADMIN_JWT_SECRET` — see "Individual Admin Logins" near the top of this README; `ADMIN_PASSWORD` is only used for your very first login, reuse the existing one if you already set this for another feature
 - Trigger a redeploy (Netlify → Deploys → Trigger deploy) so the functions pick up the new variables
 - Note: `PRAYERS_SHEET_ID` / `PRAYERS_SHEET_TAB` and the old Bookings Google Sheet are no longer used by this feature and can be left alone or removed
 
 **5. Managing everything — `/admin-prayers.html`**
-- Go to `https://your-site.netlify.app/admin-prayers.html`, log in with `ADMIN_PASSWORD`
+- Go to `https://your-site.netlify.app/admin-prayers.html` and log in (see "Individual Admin Logins" near the top of this README for your first login)
 - **Bookings tab:** filter/search every Ubayakarar, Annathanam, and Participant registration; mark one **Confirmed** once payment or the arrangement is verified, or **Cancelled** to automatically free that slot back up for someone else; **Print** or **Export CSV** the current filtered list
 - **Schedule tab:** view, add, edit, or delete any pooja's date, fees, sponsor names, open/closed status, participant settings, notes, and **Category** (Annual / Monthly / Special — see below) — changes take effect on the live site immediately, no redeploy needed. Deleting a pooja is blocked if it already has bookings recorded, to protect the temple's records. The same tab also manages the Annathanam caterer directory. **Print** or **Export CSV** the schedule here too.
 - This page is not linked from the site's main navigation (committee-only, matches the pattern of other admin tooling in this project) — bookmark the URL

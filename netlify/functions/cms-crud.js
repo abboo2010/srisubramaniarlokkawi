@@ -14,10 +14,15 @@
 // announcement / galleryItem) support create / update / delete like
 // admin-prayers-crud.js's prayer/caterer entities.
 //
-// Required environment variables: same as admin-prayer-bookings.js
-// (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD).
+// Gated by an individual admin login with Content (/cms.html) access
+// — see netlify/functions/_admin-auth.js — rather than the old shared
+// ADMIN_PASSWORD.
+//
+// Required environment variables: SUPABASE_URL,
+// SUPABASE_SERVICE_ROLE_KEY, ADMIN_JWT_SECRET (see _admin-auth.js).
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 // entity -> { table, singleton, fields: [ [wireKey, columnName], ... ] }
 // "fields" is the whitelist — anything not listed here is ignored,
@@ -197,9 +202,13 @@ function wireFromRow(config, dbRow) {
 }
 
 exports.handler = async (event) => {
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
+  const supabase = supabaseClient();
+  if (!supabase) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "cms" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   // ---------- GET: raw admin listing for one entity, used to populate
@@ -209,9 +218,6 @@ exports.handler = async (event) => {
     const entityName = (event.queryStringParameters && event.queryStringParameters.entity || "").trim();
     const config = ENTITIES[entityName];
     if (!config) return { statusCode: 400, body: JSON.stringify({ error: "Invalid entity." }) };
-
-    const supabase = supabaseClient();
-    if (!supabase) return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
 
     try {
       if (config.singleton) {
@@ -249,11 +255,6 @@ exports.handler = async (event) => {
   }
   if (config.singleton && action !== "update") {
     return { statusCode: 400, body: JSON.stringify({ error: "This section only supports update." }) };
-  }
-
-  const supabase = supabaseClient();
-  if (!supabase) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
   }
 
   try {

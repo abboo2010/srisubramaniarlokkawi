@@ -17,10 +17,15 @@
 // resizes/compresses photos in the browser before sending them, so
 // in normal use this limit is rarely hit.
 //
-// Required environment variables: same as admin-prayer-bookings.js
-// (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD).
+// Gated by an individual admin login with Content (/cms.html) access
+// — see netlify/functions/_admin-auth.js — rather than the old shared
+// ADMIN_PASSWORD.
+//
+// Required environment variables: SUPABASE_URL,
+// SUPABASE_SERVICE_ROLE_KEY, ADMIN_JWT_SECRET (see _admin-auth.js).
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 const ALLOWED_FOLDERS = ["hero", "gallery", "deities"];
 const MAX_BYTES = 4 * 1024 * 1024;
@@ -35,9 +40,13 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed." }) };
   }
 
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
+  const supabase = supabaseClient();
+  if (!supabase) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "cms" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   let body;
@@ -57,11 +66,6 @@ exports.handler = async (event) => {
   const buffer = Buffer.from(match[2], "base64");
   if (buffer.length > MAX_BYTES) {
     return { statusCode: 400, body: JSON.stringify({ error: "Image is too large (max ~4MB). Please resize and try again." }) };
-  }
-
-  const supabase = supabaseClient();
-  if (!supabase) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
   }
 
   const path = `${folder}/${Date.now()}-${safeFilename(body.filename)}`;

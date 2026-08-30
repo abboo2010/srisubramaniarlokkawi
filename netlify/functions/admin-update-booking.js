@@ -7,9 +7,14 @@
 // Annathanam booking — also reopens that slot on the prayers row,
 // so the site immediately shows it as available again.
 //
+// Gated by an individual admin login with Prayers & Bookings
+// (/admin-prayers.html) access — see netlify/functions/_admin-auth.js —
+// rather than the old shared ADMIN_PASSWORD.
+//
 // Required environment variables: same as admin-prayer-bookings.js.
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 const VALID_STATUSES = ["Confirmed", "Paid/Confirmed", "Cancelled", "Pending Payment", "Reserved"];
 
@@ -18,9 +23,13 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed." }) };
   }
 
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
+  const supabase = supabaseClient();
+  if (!supabase) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "prayers" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   let body;
@@ -33,11 +42,6 @@ exports.handler = async (event) => {
   const newStatus = (body.status || "").trim();
   if (!bookingId || !VALID_STATUSES.includes(newStatus)) {
     return { statusCode: 400, body: JSON.stringify({ error: "Missing or invalid fields." }) };
-  }
-
-  const supabase = supabaseClient();
-  if (!supabase) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
   }
 
   try {

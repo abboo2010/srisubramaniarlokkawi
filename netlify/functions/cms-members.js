@@ -9,8 +9,8 @@
 // only ever returns a single matched record, never the full list —
 // this function is never exposed to that screen.
 //
-// GET  (header X-Admin-Password) -> { members: [...] } (full list)
-// POST (header X-Admin-Password, body { action, data }) ->
+// GET  (Bearer token) -> { members: [...] } (full list)
+// POST (Bearer token, body { action, data }) ->
 //   action "create"     data: { name, nric, membershipNo, membershipType, status }
 //   action "update"     data: { id, name, nric, membershipNo, membershipType, status }
 //   action "delete"     data: { id }
@@ -26,10 +26,15 @@
 // the supabase/cms-members-status-migration.sql migration to have
 // been run (adds the "status" column to the members table).
 //
-// Required environment variables: same as admin-prayer-bookings.js
-// (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD).
+// Gated by an individual admin login with Content (/cms.html) access
+// — see netlify/functions/_admin-auth.js — rather than the old shared
+// ADMIN_PASSWORD.
+//
+// Required environment variables: SUPABASE_URL,
+// SUPABASE_SERVICE_ROLE_KEY, ADMIN_JWT_SECRET (see _admin-auth.js).
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 const NRIC_PATTERN = /^\d{6}-\d{2}-\d{4}$/;
 const STATUS_VALUES = ["Active", "Not Active", "Pending for Annual renewal"];
@@ -45,14 +50,13 @@ function memberRow(data) {
 }
 
 exports.handler = async (event) => {
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
-  }
-
   const supabase = supabaseClient();
   if (!supabase) {
     return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "cms" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   if (event.httpMethod === "GET") {

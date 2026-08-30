@@ -16,29 +16,33 @@
 // — HTTP 404/410 from the push service) is removed automatically, so
 // the subscriber count on the CMS stays accurate over time.
 //
+// Gated by an individual admin login with Content (/cms.html) access
+// — see netlify/functions/_admin-auth.js — rather than the old shared
+// ADMIN_PASSWORD.
+//
 // Required environment variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
-// ADMIN_PASSWORD (all already set for the rest of the CMS), plus three
-// new ones for this feature: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
+// ADMIN_JWT_SECRET (all already set for the rest of the CMS), plus
+// three new ones for this feature: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY,
 // VAPID_SUBJECT (a "mailto:someone@example.com" contact address the
 // push services may use to reach you if something's wrong — it is
 // never shown to visitors).
 // ============================================================
 const webpush = require("web-push");
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST" && event.httpMethod !== "GET") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed." }) };
   }
 
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
-  }
-
   const supabase = supabaseClient();
   if (!supabase) {
     return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "cms" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   // GET is used by the CMS just to show "X devices subscribed" — no send.

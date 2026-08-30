@@ -59,6 +59,8 @@
   #loginBox input{width:100%; padding:11px 13px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-size:14px; margin-bottom:12px;}
   #loginBox button{width:100%; padding:12px; border:none; border-radius:var(--radius-sm); background:var(--ember-500); color:#fff; font-weight:700; font-size:14px; cursor:pointer;}
   #loginError{color:#a4232f; font-size:13px; margin-top:10px; display:none;}
+  .login-links{margin-top:16px; font-size:12.5px;}
+  .login-links a{color:var(--ember-500); text-decoration:none; font-weight:600;}
 
   #appBox{display:none;}
   .tab-switch{display:flex; gap:8px; margin-bottom:18px;}
@@ -213,9 +215,11 @@
   <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
   <h1>Annual Prayers — Admin</h1>
   <p class="sub">Sri Subramaniar Alayam, Lok Kawi</p>
-  <input type="password" id="passwordInput" placeholder="Admin password" autocomplete="current-password" />
+  <input type="text" id="usernameInput" placeholder="Username" autocomplete="username" />
+  <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
   <button id="loginBtn">Log In</button>
   <p id="loginError">Incorrect password.</p>
+  <p class="login-links"><a href="cms.html">Go to Site CMS →</a></p>
 </div>
 
 <div class="wrap" id="appBox">
@@ -526,7 +530,10 @@
 <div id="participantsPrintView"></div>
 
 <script>
-  let adminPassword = "";
+  let adminToken = "";
+  let isMaster = false;
+  let accessCms = false;
+  let accessPrayers = false;
   let allBookings = [];
   let allPrayers = [];
   let allCaterers = [];
@@ -537,25 +544,51 @@
 
   const loginBox = document.getElementById("loginBox");
   const appBox = document.getElementById("appBox");
+  const usernameInput = document.getElementById("usernameInput");
   const passwordInput = document.getElementById("passwordInput");
   const loginError = document.getElementById("loginError");
 
   document.getElementById("loginBtn").addEventListener("click", login);
+  usernameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
   passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
 
+  function authHeaders(){ return { "Authorization": "Bearer " + adminToken }; }
+
   async function login(){
-    const pw = passwordInput.value.trim();
-    if (!pw) return;
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    if (!username || !password) return;
     loginError.style.display = "none";
     try {
-      const res = await fetch("/.netlify/functions/admin-prayer-bookings", { headers: { "X-Admin-Password": pw } });
+      const loginRes = await fetch("/.netlify/functions/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const loginBody = await loginRes.json().catch(() => ({}));
+      if (!loginRes.ok){
+        loginError.textContent = loginBody.error || "Incorrect username or password.";
+        loginError.style.display = "block";
+        return;
+      }
+      if (!loginBody.isMaster && !loginBody.accessPrayers){
+        loginError.textContent = "This account doesn't have access to Prayers & Bookings. Contact your master admin.";
+        loginError.style.display = "block";
+        return;
+      }
+      adminToken = loginBody.token;
+      isMaster = !!loginBody.isMaster;
+      accessCms = !!loginBody.accessCms;
+      accessPrayers = !!loginBody.accessPrayers;
+
+      const res = await fetch("/.netlify/functions/admin-prayer-bookings", { headers: authHeaders() });
       if (!res.ok){ loginError.style.display = "block"; return; }
       const data = await res.json();
-      adminPassword = pw;
       allBookings = data.bookings || [];
       loginBox.style.display = "none";
       appBox.style.display = "block";
       document.body.classList.add("dashboard-view"); // swap the login photo background for the plain dashboard one
+      passwordInput.value = "";
       renderBookings();
       loadSchedule();
       loadFridayAnnathanam();
@@ -563,6 +596,19 @@
       loginError.textContent = "Could not reach the server. Please try again.";
       loginError.style.display = "block";
     }
+  }
+
+  // If a request comes back 401 (token expired, or the account was just
+  // disabled/changed by a master), drop back to the login screen instead
+  // of leaving the page stuck on failed requests.
+  function handleAuthExpired(){
+    adminToken = ""; isMaster = false; accessCms = false; accessPrayers = false;
+    appBox.style.display = "none";
+    document.body.classList.remove("dashboard-view");
+    loginBox.style.display = "block";
+    loginError.textContent = "Your session has expired. Please log in again.";
+    loginError.style.display = "block";
+    passwordInput.value = "";
   }
 
   function showStatus(msg, kind){
@@ -599,7 +645,8 @@
   // ================= BOOKINGS =================
   async function refreshBookings(){
     try {
-      const res = await fetch("/.netlify/functions/admin-prayer-bookings", { headers: { "X-Admin-Password": adminPassword } });
+      const res = await fetch("/.netlify/functions/admin-prayer-bookings", { headers: authHeaders() });
+      if (res.status === 401){ handleAuthExpired(); return; }
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       allBookings = data.bookings || [];
@@ -848,7 +895,7 @@
     try {
       const res = await fetch("/.netlify/functions/admin-edit-booking", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           bookingId,
           name: booking.name,
@@ -859,6 +906,7 @@
           paymentMethod: booking.paymentMethod || ""
         })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       booking.status = "Paid/Confirmed";
@@ -880,7 +928,7 @@
     try {
       const res = await fetch("/.netlify/functions/admin-edit-booking", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           bookingId, name,
           phone: booking ? booking.phone : "",
@@ -890,6 +938,7 @@
           paymentMethod
         })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       editingParticipantBookingId = null;
@@ -907,9 +956,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-delete-booking", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ bookingId })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
       allBookings = allBookings.filter(x => x.bookingId !== bookingId);
@@ -928,9 +978,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-add-bulk-participants", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ prayerId: currentParticipantsPrayerId, entries, status, paymentMethod })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       document.getElementById("pm_names").value = "";
@@ -1047,9 +1098,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-update-booking", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ bookingId, status })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const data = await res.json();
       if (!res.ok){ showStatus(data.error || "Update failed.", "error"); return; }
       const booking = allBookings.find(b => b.bookingId === bookingId);
@@ -1233,9 +1285,10 @@
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(payload)
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       showStatus(isEdit ? "Booking updated." : `Booking saved — reference ${result.bookingId}.`, "ok");
@@ -1257,9 +1310,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-delete-booking", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ bookingId })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
       allBookings = allBookings.filter(x => x.bookingId !== bookingId);
@@ -1561,9 +1615,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-prayers-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ entity: "prayer", action: editingPrayerId ? "update" : "create", data })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       showStatus("Pooja saved.", "ok");
@@ -1583,9 +1638,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-prayers-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ entity: "prayer", action: "delete", data: { id } })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Delete failed — it may still have bookings recorded.", "error"); return; }
       showStatus("Pooja deleted.", "ok");
@@ -1640,9 +1696,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-prayers-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ entity: "caterer", action: editingCatererId ? "update" : "create", data })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       catererEditPanel.classList.remove("show");
@@ -1658,9 +1715,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-prayers-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ entity: "caterer", action: "delete", data: { id } })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
       showStatus("Caterer removed.", "ok");
@@ -1680,9 +1738,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-friday-annathanam-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ action: "list" })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       allFridayAnnathanam = data.weeks || [];
@@ -1824,9 +1883,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-friday-annathanam-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ action: "set", data })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Save failed.", "error"); return; }
       faEditPanel.classList.remove("show");
@@ -1842,9 +1902,10 @@
     try {
       const res = await fetch("/.netlify/functions/admin-friday-annathanam-crud", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ action: "delete", data: { date } })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Delete failed.", "error"); return; }
       showStatus("Friday removed.", "ok");

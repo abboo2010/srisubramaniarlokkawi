@@ -10,9 +10,14 @@
 // enforces for public devotee registrations, since the admin is the
 // source of truth here, not a race between two devotees.
 //
+// Gated by an individual admin login with Prayers & Bookings
+// (/admin-prayers.html) access — see _admin-auth.js — rather than the
+// old shared ADMIN_PASSWORD.
+//
 // Required environment variables: same as admin-prayer-bookings.js.
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 const VALID_ROLES = ["ubayakarar", "annathanam", "participant"];
 const VALID_STATUSES = ["Pending Payment", "Reserved", "Confirmed", "Paid/Confirmed", "Cancelled"];
@@ -23,9 +28,13 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed." }) };
   }
 
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
+  const supabase = supabaseClient();
+  if (!supabase) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "prayers" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   let body;
@@ -52,11 +61,6 @@ exports.handler = async (event) => {
   }
   if (paymentMethod && !VALID_PAYMENT_METHODS.includes(paymentMethod)) {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid payment method." }) };
-  }
-
-  const supabase = supabaseClient();
-  if (!supabase) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
   }
 
   try {

@@ -133,7 +133,8 @@
   <img src="assets/temple-logo.png" alt="Sri Subramaniar Alayam logo" class="admin-logo" />
   <h1>Site CMS</h1>
   <p class="sub">Sri Subramaniar Alayam, Lok Kawi</p>
-  <input type="password" id="passwordInput" placeholder="Admin password" autocomplete="current-password" />
+  <input type="text" id="usernameInput" placeholder="Username" autocomplete="username" />
+  <input type="password" id="passwordInput" placeholder="Password" autocomplete="current-password" />
   <button id="loginBtn">Log In</button>
   <p id="loginError">Incorrect password.</p>
   <p class="login-links"><a href="admin-prayers.html">Go to Annual Prayers admin →</a></p>
@@ -169,6 +170,7 @@
     <button data-tab="pageHeadings">Page Headings</button>
     <button data-tab="menuLabels">Menu Labels</button>
     <button data-tab="push">Push Notifications</button>
+    <button data-tab="adminUsers" id="adminUsersTabBtn" style="display:none;">Admin Users</button>
   </div>
 
   <!-- ================= HERO BANNER (singleton) ================= -->
@@ -348,34 +350,85 @@
       <div class="edit-actions"><button class="save" id="push-send">Send Notification</button></div>
     </div>
   </div>
+
+  <!-- ================= ADMIN USERS (master only) ================= -->
+  <div class="tab-panel" id="tab-adminUsers">
+    <div class="section-card">
+      <h2>Admin Users</h2>
+      <p class="panel-hint">Create a login for a committee member and choose exactly what they can access — Content (this CMS), Prayers &amp; Bookings, or both. Only a master account (like yours) can see this tab or manage other logins.</p>
+      <div class="toolbar"><button id="admin-users-refresh">Refresh</button><button class="primary" id="admin-users-add">+ Add Admin User</button></div>
+      <div id="admin-users-panel" class="edit-panel"></div>
+      <div class="table-wrap"><table id="admin-users-table"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
 </div>
 
 <script>
-let adminPassword = "";
+let adminToken = "";
+let isMaster = false;
+let accessCms = false;
+let accessPrayers = false;
 const loginBox = document.getElementById("loginBox");
 const appBox = document.getElementById("appBox");
+const usernameInput = document.getElementById("usernameInput");
 const passwordInput = document.getElementById("passwordInput");
 const loginError = document.getElementById("loginError");
 
 document.getElementById("loginBtn").addEventListener("click", login);
+usernameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
 passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
 
+function authHeaders(){ return { "Authorization": "Bearer " + adminToken }; }
+
 async function login(){
-  const pw = passwordInput.value.trim();
-  if (!pw) return;
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+  if (!username || !password) return;
   loginError.style.display = "none";
   try {
-    const res = await fetch("/.netlify/functions/cms-crud?entity=contact", { headers: { "X-Admin-Password": pw } });
-    if (!res.ok){ loginError.style.display = "block"; return; }
-    adminPassword = pw;
+    const res = await fetch("/.netlify/functions/admin-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok){
+      loginError.textContent = body.error || "Incorrect username or password.";
+      loginError.style.display = "block";
+      return;
+    }
+    if (!body.isMaster && !body.accessCms){
+      loginError.textContent = "This account doesn't have access to the Site CMS. Contact your master admin.";
+      loginError.style.display = "block";
+      return;
+    }
+    adminToken = body.token;
+    isMaster = !!body.isMaster;
+    accessCms = !!body.accessCms;
+    accessPrayers = !!body.accessPrayers;
+    document.getElementById("adminUsersTabBtn").style.display = isMaster ? "" : "none";
     loginBox.style.display = "none";
     appBox.style.display = "block";
     document.body.classList.add("dashboard-view");
+    passwordInput.value = "";
     initAllTabs();
   } catch (err){
     loginError.textContent = "Could not reach the server. Please try again.";
     loginError.style.display = "block";
   }
+}
+
+// If a request comes back 401 (token expired, or the account was just
+// disabled/changed by a master), drop back to the login screen instead
+// of leaving the page stuck on failed requests.
+function handleAuthExpired(){
+  adminToken = ""; isMaster = false; accessCms = false; accessPrayers = false;
+  appBox.style.display = "none";
+  document.body.classList.remove("dashboard-view");
+  loginBox.style.display = "block";
+  loginError.textContent = "Your session has expired. Please log in again.";
+  loginError.style.display = "block";
+  passwordInput.value = "";
 }
 
 function showStatus(msg, kind){
@@ -400,16 +453,18 @@ document.querySelectorAll(".tab-switch button").forEach(btn => {
 });
 
 async function apiGet(entity){
-  const res = await fetch("/.netlify/functions/cms-crud?entity=" + encodeURIComponent(entity), { headers: { "X-Admin-Password": adminPassword } });
+  const res = await fetch("/.netlify/functions/cms-crud?entity=" + encodeURIComponent(entity), { headers: authHeaders() });
+  if (res.status === 401){ handleAuthExpired(); throw new Error("Session expired."); }
   if (!res.ok) throw new Error("HTTP " + res.status);
   return res.json();
 }
 async function apiSave(entity, action, data){
   const res = await fetch("/.netlify/functions/cms-crud", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ entity, action, data })
   });
+  if (res.status === 401){ handleAuthExpired(); throw new Error("Session expired."); }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
   return body;
@@ -444,9 +499,10 @@ async function uploadImage(file, folder, maxDim, quality){
   const dataUrl = await resizeImageFile(file, maxDim || 1600, quality || 0.82);
   const res = await fetch("/.netlify/functions/cms-upload-image", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ folder, filename: file.name, dataUrl })
   });
+  if (res.status === 401){ handleAuthExpired(); throw new Error("Session expired."); }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || "Upload failed.");
   return body.url;
@@ -1114,16 +1170,18 @@ async function deleteMember(m){
 }
 async function apiMembersSave(action, data){
   const res = await fetch("/.netlify/functions/cms-members", {
-    method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+    method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ action, data })
   });
+  if (res.status === 401){ handleAuthExpired(); throw new Error("Session expired."); }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
   return body;
 }
 async function loadMembers(){
   try {
-    const res = await fetch("/.netlify/functions/cms-members", { headers: { "X-Admin-Password": adminPassword } });
+    const res = await fetch("/.netlify/functions/cms-members", { headers: authHeaders() });
+    if (res.status === 401){ handleAuthExpired(); return; }
     if (!res.ok) throw new Error("HTTP " + res.status);
     const body = await res.json();
     membersState.rows = body.members || [];
@@ -1181,7 +1239,8 @@ const pushSendBtn = document.getElementById("push-send");
 async function loadPushSubscriberCount(){
   if (!pushSubscriberCountEl) return;
   try {
-    const res = await fetch("/.netlify/functions/cms-push-send", { headers: { "X-Admin-Password": adminPassword } });
+    const res = await fetch("/.netlify/functions/cms-push-send", { headers: authHeaders() });
+    if (res.status === 401){ handleAuthExpired(); return; }
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
     pushSubscriberCountEl.textContent = `${body.count} device(s) currently subscribed.`;
@@ -1200,9 +1259,10 @@ if (pushSendBtn){
     try {
       const res = await fetch("/.netlify/functions/cms-push-send", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Password": adminPassword },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({ title, body: message })
       });
+      if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(result.error || ("HTTP " + res.status));
       showStatus(`Sent to ${result.sent} device(s)${result.failed ? `, ${result.failed} failed` : ""}.`, result.sent ? "ok" : "error");
@@ -1216,6 +1276,117 @@ if (pushSendBtn){
     }
   });
 }
+
+// ============================================================
+// ADMIN USERS (master accounts only) — netlify/functions/admin-users-crud.js
+// ============================================================
+const adminUsersState = { rows: [] };
+async function apiAdminUsers(){
+  const res = await fetch("/.netlify/functions/admin-users-crud?action=list", { headers: authHeaders() });
+  if (res.status === 401){ handleAuthExpired(); throw new Error("Session expired."); }
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+async function apiAdminUsersSave(payload){
+  const res = await fetch("/.netlify/functions/admin-users-crud", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(payload)
+  });
+  if (res.status === 401){ handleAuthExpired(); throw new Error("Session expired."); }
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || ("HTTP " + res.status));
+  return body;
+}
+async function loadAdminUsers(){
+  if (!isMaster) return;
+  try {
+    const body = await apiAdminUsers();
+    adminUsersState.rows = body.users || [];
+    renderAdminUsersTable();
+  } catch (err){ showStatus(err.message || "Could not load admin users.", "error"); }
+}
+function fmtLastLogin(ts){ return ts ? new Date(ts).toLocaleString() : "Never"; }
+function renderAdminUsersTable(){
+  const tbody = document.querySelector("#admin-users-table tbody");
+  document.querySelector("#admin-users-table thead").innerHTML =
+    "<tr><th>Username</th><th>Master</th><th>Content</th><th>Prayers &amp; Bookings</th><th>Active</th><th>Last Login</th><th>Actions</th></tr>";
+  tbody.innerHTML = "";
+  if (!adminUsersState.rows.length){ tbody.innerHTML = `<tr><td colspan="7"><div class="empty-note">No admin users yet.</div></td></tr>`; return; }
+  adminUsersState.rows.forEach(u => {
+    const tr = h(`<tr>
+      <td>${escHtml(u.username)}</td>
+      <td><span class="pill ${u.is_master ? "on" : "off"}">${u.is_master ? "Master" : "—"}</span></td>
+      <td><span class="pill ${u.access_cms ? "on" : "off"}">${u.access_cms ? "Yes" : "No"}</span></td>
+      <td><span class="pill ${u.access_prayers ? "on" : "off"}">${u.access_prayers ? "Yes" : "No"}</span></td>
+      <td><span class="status-dot ${u.active ? "dot-green" : "dot-red"}"></span>${u.active ? "Active" : "Disabled"}</td>
+      <td>${escHtml(fmtLastLogin(u.last_login_at))}</td>
+      <td class="row-actions"><button class="edit">Edit</button><button class="reset">Reset Password</button><button class="delete">Delete</button></td>
+    </tr>`);
+    tr.querySelector(".edit").addEventListener("click", () => openAdminUserForm(u));
+    tr.querySelector(".reset").addEventListener("click", () => resetAdminUserPassword(u));
+    tr.querySelector(".delete").addEventListener("click", () => deleteAdminUser(u));
+    tbody.appendChild(tr);
+  });
+}
+function openAdminUserForm(u){
+  const panelEl = document.getElementById("admin-users-panel");
+  panelEl.classList.add("show");
+  panelEl.innerHTML = `
+    <h2>${u ? "Edit Access — " + escHtml(u.username) : "Add Admin User"}</h2>
+    <div class="edit-grid">
+      ${u ? "" : `
+      <div class="edit-field"><label>Username</label><input type="text" id="au-username" placeholder="e.g. treasurer, secretary2" /></div>
+      <div class="edit-field"><label>Password</label><input type="password" id="au-password" placeholder="At least 6 characters" autocomplete="new-password" /></div>
+      `}
+      <div class="edit-field"><label><input type="checkbox" id="au-cms" ${!u || u.access_cms ? "checked" : ""} /> Content (/cms.html)</label></div>
+      <div class="edit-field"><label><input type="checkbox" id="au-prayers" ${!u || u.access_prayers ? "checked" : ""} /> Prayers &amp; Bookings (/admin-prayers.html)</label></div>
+      <div class="edit-field"><label><input type="checkbox" id="au-master" ${u && u.is_master ? "checked" : ""} /> Master (can manage other admin logins; also grants full access)</label></div>
+      ${u ? `<div class="edit-field"><label><input type="checkbox" id="au-active" ${u.active ? "checked" : ""} /> Active (unchecked disables this login immediately)</label></div>` : ""}
+    </div>
+    <p class="panel-hint">A master account can never be reduced to zero — the system will refuse to remove master status, disable, or delete the only active master.</p>
+    <div class="edit-actions"><button class="save">Save</button><button class="cancel">Cancel</button></div>
+  `;
+  panelEl.querySelector(".cancel").addEventListener("click", () => { panelEl.classList.remove("show"); panelEl.innerHTML = ""; });
+  panelEl.querySelector(".save").addEventListener("click", async () => {
+    const accessCmsVal = document.getElementById("au-cms").checked;
+    const accessPrayersVal = document.getElementById("au-prayers").checked;
+    const isMasterVal = document.getElementById("au-master").checked;
+    try {
+      if (u){
+        const activeVal = document.getElementById("au-active").checked;
+        await apiAdminUsersSave({ action: "update", id: u.id, accessCms: accessCmsVal, accessPrayers: accessPrayersVal, isMaster: isMasterVal, active: activeVal });
+      } else {
+        const username = document.getElementById("au-username").value.trim();
+        const password = document.getElementById("au-password").value;
+        if (!username || !password){ showStatus("Username and password are required.", "error"); return; }
+        await apiAdminUsersSave({ action: "create", username, password, accessCms: accessCmsVal, accessPrayers: accessPrayersVal, isMaster: isMasterVal });
+      }
+      showStatus("Saved.", "ok");
+      panelEl.classList.remove("show"); panelEl.innerHTML = "";
+      await loadAdminUsers();
+    } catch (err){ showStatus(err.message || "Save failed.", "error"); }
+  });
+}
+async function resetAdminUserPassword(u){
+  const newPassword = prompt(`New password for "${u.username}" (at least 6 characters):`);
+  if (newPassword === null) return;
+  if (newPassword.length < 6){ showStatus("Password must be at least 6 characters.", "error"); return; }
+  try {
+    await apiAdminUsersSave({ action: "resetPassword", id: u.id, newPassword });
+    showStatus(`Password reset for ${u.username}.`, "ok");
+  } catch (err){ showStatus(err.message || "Reset failed.", "error"); }
+}
+async function deleteAdminUser(u){
+  if (!confirm(`Delete the admin login "${u.username}"? This can't be undone.`)) return;
+  try {
+    await apiAdminUsersSave({ action: "delete", id: u.id });
+    showStatus("Deleted.", "ok");
+    await loadAdminUsers();
+  } catch (err){ showStatus(err.message || "Delete failed.", "error"); }
+}
+document.getElementById("admin-users-refresh").addEventListener("click", loadAdminUsers);
+document.getElementById("admin-users-add").addEventListener("click", () => openAdminUserForm(null));
 
 function initAllTabs(){
   heroTab.load();
@@ -1235,6 +1406,7 @@ function initAllTabs(){
   pageHeadingsTab.load();
   menuLabelsTab.load();
   loadPushSubscriberCount();
+  loadAdminUsers();
 }
 </script>
 </body>

@@ -2,26 +2,26 @@
 // admin-prayer-bookings.js — Netlify Function (password-gated)
 //
 // Returns the FULL bookings table (including phone numbers and
-// remarks) for the committee's admin page. Gated by a shared
-// password rather than individual logins — good enough for a small
-// committee, not a substitute for real per-user auth.
+// remarks) for the committee's admin page. Gated by an individual
+// admin login with Prayers & Bookings (/admin-prayers.html) access —
+// see netlify/functions/_admin-auth.js — rather than the old shared
+// ADMIN_PASSWORD.
 //
 // Required environment variables (in addition to SUPABASE_URL /
-// SUPABASE_SERVICE_ROLE_KEY, see _supabase.js):
-//   ADMIN_PASSWORD — shared password checked against the
-//                    X-Admin-Password header sent by admin-prayers.html
+// SUPABASE_SERVICE_ROLE_KEY, see _supabase.js): ADMIN_JWT_SECRET
+// (see _admin-auth.js).
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 exports.handler = async (event) => {
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
-  }
-
   const supabase = supabaseClient();
   if (!supabase) {
     return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "prayers" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   try {

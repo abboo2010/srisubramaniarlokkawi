@@ -14,20 +14,29 @@
 // open/date checks, same "admin is the source of truth" reasoning
 // as the rest of this project's admin functions.
 //
+// Gated by an individual admin login with Prayers & Bookings
+// (/admin-prayers.html) access — see
+// netlify/functions/_admin-auth.js — rather than the old shared
+// ADMIN_PASSWORD.
+//
 // Required environment variables: SUPABASE_URL,
-// SUPABASE_SERVICE_ROLE_KEY, ADMIN_PASSWORD (same as
-// admin-prayer-bookings.js).
+// SUPABASE_SERVICE_ROLE_KEY, ADMIN_JWT_SECRET (see _admin-auth.js).
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed." }) };
   }
 
-  const suppliedPassword = event.headers["x-admin-password"] || event.headers["X-Admin-Password"] || "";
-  if (!process.env.ADMIN_PASSWORD || suppliedPassword !== process.env.ADMIN_PASSWORD) {
-    return { statusCode: 401, body: JSON.stringify({ error: "Incorrect password." }) };
+  const supabase = supabaseClient();
+  if (!supabase) {
+    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
+  }
+  const auth = await requireAdmin(supabase, event, { need: "prayers" });
+  if (!auth.ok) {
+    return { statusCode: auth.statusCode, body: JSON.stringify({ error: auth.error }) };
   }
 
   let body;
@@ -42,11 +51,6 @@ exports.handler = async (event) => {
 
   if (!["list", "set", "delete"].includes(action)) {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid action." }) };
-  }
-
-  const supabase = supabaseClient();
-  if (!supabase) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Database is not configured yet." }) };
   }
 
   try {
