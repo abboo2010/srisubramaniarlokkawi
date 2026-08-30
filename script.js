@@ -1424,48 +1424,90 @@ function fridayAnnathanamStatus(w){
   return "open";
 }
 
-function renderFridayAnnathanam(){
-  const wrap = document.getElementById("fridayAnnathanamList");
+// Friday Annathanam is shown as the same card-grid format as the Annual
+// Prayers & Registration screen (.prayer-grid / .prayer-card, reused as-is
+// — no new CSS needed) instead of a plain scrolling list, plus a matching
+// Upcoming/Completed/All filter row (reusing the exact same filter keys
+// and UI strings prayersFilterUpcoming/Over/All already use). Unlike
+// Prayers, Friday Annathanam only ever has ONE sponsorable role (there's
+// no separate Ubayakarar), so each card shows a single role pill instead
+// of the two-role-block layout buildPrayerCard() uses.
+const FRIDAY_FILTER_KEYS = ["upcoming", "over", "all"];
+let currentFridayFilter = "upcoming";
+
+function renderFridayAnnathanamFilterTabs(){
+  const wrap = document.getElementById("fridayAnnathanamFilterTabs");
   if (!wrap) return;
-  document.getElementById("fridayAnnathanamHeadingText").textContent = t("fridayAnnathanamHeading");
-  document.getElementById("fridayAnnathanamSubText").textContent = t("fridayAnnathanamSub");
   wrap.innerHTML = "";
+  FRIDAY_FILTER_KEYS.forEach(key=>{
+    const btn = el(`<button class="tab-btn${key===currentFridayFilter ? " active" : ""}" data-key="${key}">${t(PRAYER_FILTER_UIKEY[key])}</button>`);
+    btn.addEventListener("click", ()=>{ currentFridayFilter = key; renderFridayAnnathanamFilterTabs(); renderFridayAnnathanamGrid(); });
+    wrap.appendChild(btn);
+  });
+}
 
-  // Only today-forward Fridays are shown — a past Friday isn't orderable
-  // any more (register-friday-annathanam.js's DATE_OVER check would
-  // reject it anyway), so there's no reason to clutter the public list
-  // with it. The admin tab is where the full history stays visible.
-  const upcoming = FRIDAY_ANNATHANAM_WEEKS
-    .filter(w => w.date >= todayIso)
-    .sort((a,b)=>a.date.localeCompare(b.date));
+function buildFridayAnnathanamCard(w){
+  const over = w.date < todayIso; // a past Friday can't be sponsored any more — register-friday-annathanam.js's own DATE_OVER check would reject it anyway
+  const status = fridayAnnathanamStatus(w);
+  const skipped = status === "skipped";
+  const taken = status === "sponsored";
+  const feeText = w.fee != null ? `RM ${w.fee.toLocaleString()}` : t("prayersAsArranged");
+  const pillHtml = skipped
+    ? `<span class="prayer-role-pill taken">${t("fridayAnnathanamSkippedBadge")}</span>`
+    : `<span class="prayer-role-pill ${taken ? "taken" : "open"}">${t("prayersAnnathanamLabel")}: ${taken ? t("prayersTakenBadge") : t("prayersOpenBadge")}</span>`;
+  const card = el(`
+    <div class="prayer-card">
+      <div class="prayer-card-date"><b>${dayNum(w.date)}</b><small>${monthAbbr(w.date)}</small></div>
+      <div class="prayer-card-body">
+        <div class="prayer-card-top">
+          <h4>${t("navFridayAnnathanam")}</h4>
+          <span class="prayer-status-pill ${over ? "over" : "upcoming"}">${over ? t("prayersStatusOver") : t("prayersStatusUpcoming")}</span>
+        </div>
+        <div class="prayer-card-fee">${feeText}</div>
+        <div class="prayer-card-pills">
+          <div class="prayer-role-block">
+            ${pillHtml}
+            ${w.sponsorName ? `<span class="prayer-role-sponsor">${w.sponsorName}</span>` : ""}
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  if (status === "open" && !over){
+    const btn = el(`<button class="prayer-btn-ghost" style="flex-basis:100%;margin-top:10px;padding:8px 14px;font-size:12px;">${t("fridayAnnathanamSponsorBtn")}</button>`);
+    btn.addEventListener("click", (e)=>{ e.stopPropagation(); openFridayAnnathanamForm(w); });
+    card.querySelector(".prayer-card-body").appendChild(btn);
+  }
+  return card;
+}
 
-  if (!upcoming.length){
-    wrap.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;">${t("fridayAnnathanamNoUpcoming")}</p>`));
+function renderFridayAnnathanamGrid(){
+  const grid = document.getElementById("fridayAnnathanamGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  const list = FRIDAY_ANNATHANAM_WEEKS.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const filtered = list.filter(w=>{
+    const over = w.date < todayIso;
+    if (currentFridayFilter === "upcoming") return !over;
+    if (currentFridayFilter === "over") return over;
+    return true;
+  });
+
+  if (!filtered.length){
+    grid.appendChild(el(`<p style="font-size:13px;color:var(--ink-600);margin:0;grid-column:1/-1;">${t("fridayAnnathanamNoUpcoming")}</p>`));
     return;
   }
 
-  upcoming.forEach(w => {
-    const status = fridayAnnathanamStatus(w);
-    const pillClass = status === "open" ? "open" : "taken";
-    const badgeKey = status === "open" ? "fridayAnnathanamOpenBadge" : status === "sponsored" ? "fridayAnnathanamSponsoredBadge" : "fridayAnnathanamSkippedBadge";
-    // Same compact day-number/month-abbreviation date badge used on the
-    // Prayers & Registration pooja cards (.prayer-card-date), instead of
-    // a plain text date — keeps the date style consistent across both
-    // screens.
-    const row = el(`
-      <div class="prayer-modal-row">
-        <div class="prayer-card-date"><b>${dayNum(w.date)}</b><small>${monthAbbr(w.date)}</small></div>
-        <span class="prayer-role-pill ${pillClass}">${t(badgeKey)}</span>
-        ${w.sponsorName ? `<span class="prayer-modal-row-sponsor">${w.sponsorName}</span>` : ""}
-      </div>
-    `);
-    if (status === "open"){
-      const btn = el(`<button class="prayer-btn-ghost" style="flex-basis:100%;margin-top:6px;padding:8px 14px;font-size:12px;">${t("fridayAnnathanamSponsorBtn")}</button>`);
-      btn.addEventListener("click", ()=>openFridayAnnathanamForm(w));
-      row.appendChild(btn);
-    }
-    wrap.appendChild(row);
-  });
+  filtered.forEach(w => grid.appendChild(buildFridayAnnathanamCard(w)));
+}
+
+function renderFridayAnnathanam(){
+  if (!document.getElementById("fridayAnnathanamGrid")) return;
+  document.getElementById("fridayAnnathanamHeadingText").textContent = t("fridayAnnathanamHeading");
+  document.getElementById("fridayAnnathanamSubText").textContent = t("fridayAnnathanamSub");
+  renderFridayAnnathanamFilterTabs();
+  renderFridayAnnathanamGrid();
 }
 
 const fridayAnnathanamOverlay = document.getElementById("fridayAnnathanamOverlay");
