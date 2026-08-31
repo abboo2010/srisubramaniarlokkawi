@@ -796,6 +796,16 @@ img{display:block;max-width:100%;}
 .announce-modal h3{font-family:var(--font-display);font-size:19px;color:var(--maroon-800);margin:0 0 12px;padding-right:24px;line-height:1.35;}
 .announce-modal p{font-size:14px;line-height:1.7;color:var(--ink-600);margin:0;text-align:justify;text-align-last:left;}
 
+/* Home Popup: optional photo + optional "go to a page" button, layered
+   onto the same announce-modal shell used by the Announcements popup. */
+.home-popup-image{
+  display:block;width:100%;max-height:200px;object-fit:cover;
+  border-radius:10px;margin:0 0 16px;
+}
+.home-popup-image-linked{cursor:pointer;}
+.home-popup-link-btn{display:block;width:100%;margin-top:18px;text-align:center;}
+.home-popup-modal p{margin-bottom:2px;}
+
 @media (max-width:860px){
   .deity-modal{width:100%;}
   .deity-modal-figure{height:40vh;}
@@ -1083,6 +1093,12 @@ img{display:block;max-width:100%;}
   padding:11px 22px;font-weight:800;font-size:13.5px;letter-spacing:.02em;cursor:pointer;
 }
 .membership-print-btn:hover{filter:brightness(1.1);}
+
+/* Honeypot field for the Prayers / Friday Annathanam registration forms —
+   present in the DOM (so a naive bot that auto-fills every visible-looking
+   input still finds it) but positioned off-screen and out of the tab
+   order, so no real devotee can see it or tab into it. */
+.hp-field{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;}
 
 /* ===== Print: Membership Status result only ===== */
 @media print{

@@ -68,7 +68,13 @@ exports.handler = async () => {
     const popupOut = pu ? {
       enabled: pu.enabled,
       title_en: pu.title_en, title_bm: pu.title_bm, title_ta: pu.title_ta,
-      message_en: pu.message_en, message_bm: pu.message_bm, message_ta: pu.message_ta
+      message_en: pu.message_en, message_bm: pu.message_bm, message_ta: pu.message_ta,
+      // image_url/link_target/link_label_* were added to site_popup by
+      // add-site-popup-image-link.sql — if that migration hasn't been
+      // run yet, these columns simply aren't on the row and come back
+      // undefined here, which script.js already treats as "not set".
+      image_url: pu.image_url, link_target: pu.link_target,
+      link_label_en: pu.link_label_en, link_label_bm: pu.link_label_bm, link_label_ta: pu.link_label_ta
     } : null;
 
     // committee_members is a newer table too (added alongside the Temple

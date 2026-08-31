@@ -53,7 +53,13 @@ const TICKER = {
 const POPUP = {
   enabled: false,
   title_en: "", title_bm: "", title_ta: "",
-  message_en: "", message_bm: "", message_ta: ""
+  message_en: "", message_bm: "", message_ta: "",
+  image_url: "",
+  link_target: "",
+  // Claude's own translation, not reviewed by a Tamil/Malay speaker on
+  // the committee — freely editable any time from the CMS's Home Popup
+  // tab, same caveat as every other bundled default text in this file.
+  link_label_en: "View", link_label_bm: "Lihat", link_label_ta: "பார்க்க"
 };
 
 // Bundled default for the Temple Committee screen. Declared HERE, not in
@@ -1764,25 +1770,55 @@ function renderTicker(){
 let homePopupVisitStarted = false;
 let homePopupShown = false;
 const homePopupOverlay = document.getElementById("homePopupOverlay");
+const homePopupImage = document.getElementById("homePopupImage");
+const homePopupLinkBtn = document.getElementById("homePopupLinkBtn");
 
 function homePopupOnVisitStart(){
   homePopupVisitStarted = true;
   maybeShowHomePopup();
 }
 
+// Shared by the link button and the (optional) clickable image — both
+// navigate to whatever screen the CMS's Link field is set to, closing
+// the popup first so the visitor lands on a clean screen underneath.
+function homePopupNavigate(){
+  closeHomePopup();
+  if (VALID_SCREENS.includes(POPUP.link_target)) goTo(POPUP.link_target);
+}
+
 function maybeShowHomePopup(){
   if (!homePopupVisitStarted || homePopupShown || !POPUP.enabled) return;
   const title = tf(POPUP, "title");
   const message = tf(POPUP, "message");
-  if (!title && !message) return; // nothing to show even if enabled
+  const image = POPUP.image_url || "";
+  if (!title && !message && !image) return; // nothing to show even if enabled
+
   document.getElementById("homePopupTitle").textContent = title;
   document.getElementById("homePopupMessage").textContent = message;
+
+  if (image){
+    homePopupImage.src = image;
+    homePopupImage.hidden = false;
+  } else {
+    homePopupImage.hidden = true;
+    homePopupImage.removeAttribute("src");
+  }
+
+  // A link only takes effect when it points at a real, known screen —
+  // guards against a stale/renamed screen key left over in the CMS.
+  const hasLink = VALID_SCREENS.includes(POPUP.link_target);
+  homePopupLinkBtn.hidden = !hasLink;
+  homePopupImage.classList.toggle("home-popup-image-linked", hasLink && !!image);
+  if (hasLink) homePopupLinkBtn.textContent = tf(POPUP, "link_label") || "View";
+
   homePopupOverlay.classList.add("show");
   homePopupShown = true;
 }
 function closeHomePopup(){ homePopupOverlay.classList.remove("show"); }
 document.getElementById("homePopupClose").addEventListener("click", closeHomePopup);
 homePopupOverlay.addEventListener("click", (ev) => { if (ev.target === homePopupOverlay) closeHomePopup(); });
+homePopupLinkBtn.addEventListener("click", homePopupNavigate);
+homePopupImage.addEventListener("click", () => { if (VALID_SCREENS.includes(POPUP.link_target)) homePopupNavigate(); });
 
 function renderAll(){
   safeRender("staticText", renderStaticText);
@@ -1982,6 +2018,15 @@ function loadLiveContent(){
         POPUP.message_en = data.popup.message_en || "";
         POPUP.message_bm = data.popup.message_bm || "";
         POPUP.message_ta = data.popup.message_ta || "";
+        POPUP.image_url = data.popup.image_url || "";
+        POPUP.link_target = data.popup.link_target || "";
+        // A blank link_label from the CMS still falls back to "View"
+        // at render time in maybeShowHomePopup(), so the button never
+        // shows empty text just because Ravi set a Link but hasn't
+        // typed a custom button label yet.
+        POPUP.link_label_en = data.popup.link_label_en || "";
+        POPUP.link_label_bm = data.popup.link_label_bm || "";
+        POPUP.link_label_ta = data.popup.link_label_ta || "";
         // Covers the race where a visitor clicked Enter before this
         // fetch resolved — see the HOME POPUP section above.
         maybeShowHomePopup();

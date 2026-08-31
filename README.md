@@ -118,11 +118,12 @@ Both are fixed lists — every row already exists (seeded below), so you only ev
 
 ## Home Popup — one-time setup
 
-A popup can now show once to each visitor right when they enter the site (after tapping **Enter** on the splash screen) — a welcome message, a one-off notice, an event reminder, whatever's needed. They close it with the **×** button or by tapping outside it, and it then stays closed for the rest of that visit. Fully editable from `/cms.html`'s new **Home Popup** tab — starts **off** and empty, so nothing appears on the site until you turn it on.
+A popup can now show once to each visitor right when they enter the site (after tapping **Enter** on the splash screen) — a welcome message, a one-off notice, an event reminder, a festival poster, whatever's needed. It can include a photo and a button that jumps straight to any page on the site (Sevas, Gallery, Prayers & Registration, etc.). They close it with the **×** button, by tapping outside it, or by tapping the photo/button (which also navigates them where the link points). It then stays closed for the rest of that visit. Fully editable from `/cms.html`'s new **Home Popup** tab — starts **off** and empty, so nothing appears on the site until you turn it on.
 
 **1. Add the new database table**
-- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-site-popup.sql` → **Run** — creates the table, seeded off with blank text. Safe to re-run — never overwrites anything you've since edited in the CMS.
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-site-popup.sql` → **Run** — creates the table (title/message/photo/link, all optional except the on/off switch), seeded off and blank. Safe to re-run — never overwrites anything you've since edited in the CMS.
 - If setting up Supabase fresh (running `cms-schema.sql` for the first time), it already includes this table, so this migration isn't needed in that case.
+- **Already ran an earlier version of `add-site-popup.sql`** (before the Photo/Link fields existed)? Run `supabase/add-site-popup-image-link.sql` once instead — it just adds the two new columns to your existing table, without touching anything you've already written.
 
 **2. Nothing else to configure** — no new environment variables, reuses the same login.
 
@@ -130,6 +131,8 @@ A popup can now show once to each visitor right when they enter the site (after 
 - In `/cms.html` → **Home Popup** tab, tick **Enabled**, write a Message (Title is optional), Save
 - Reload the live site (or open it in a new private/incognito window) → tap **Enter** on the splash screen → the popup should appear
 - Close it (× button or tap outside) → keep browsing → the popup should not reappear until you reload/reopen the site
+- Optional: upload a **Popup Photo** (same auto-resize-in-browser upload as Hero Banner/Deities/Gallery — pick a file, it uploads itself) and pick a page under **Goes To** (e.g. "Sevas & Donations") — the popup then shows a button (customizable text, defaults to "View") that jumps straight there, and tapping the photo does the same
+- Leave **Goes To** on "— No link —" for a plain informational popup with no button
 - Untick **Enabled** and Save any time to turn it off again without losing what you wrote
 
 ## Push Notifications — one-time setup

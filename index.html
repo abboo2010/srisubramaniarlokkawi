@@ -524,12 +524,14 @@
 
 <!-- ============ HOME POPUP (shown once per visit, editable from /cms.html) ============ -->
 <div class="announce-overlay" id="homePopupOverlay">
-  <div class="announce-modal">
+  <div class="announce-modal home-popup-modal">
     <button class="announce-modal-close" id="homePopupClose" aria-label="Close">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
     </button>
+    <img class="home-popup-image" id="homePopupImage" alt="" hidden />
     <h3 id="homePopupTitle"></h3>
     <p id="homePopupMessage"></p>
+    <button class="hero-cta hero-cta-primary home-popup-link-btn" id="homePopupLinkBtn" hidden></button>
   </div>
 </div>
 

@@ -1088,8 +1088,22 @@ const popupTab = makeSingletonTab({
       { key:"popupMessageEn", label:"Message (English)", type:"textarea", wide:true },
       { key:"popupMessageBm", label:"Message (Malay) — leave blank to reuse the English text", type:"textarea", wide:true },
       { key:"popupMessageTa", label:"Message (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }
+    ]},
+    { title:"Photo (optional)", fields: [
+      { key:"popupImageUrl", label:"Popup Photo", type:"image" }
+    ]},
+    { title:"Link (optional)", fields: [
+      // options is a function (evaluated when the tab renders, not
+      // when this config is defined) because SCREEN_FRIENDLY_NAMES is
+      // declared further down in this file — see that section for why.
+      { key:"popupLinkTarget", label:"Goes To", type:"select",
+        options: () => [{ value:"", label:"— No link (popup won't be tappable) —" }, ...SCREEN_OPTIONS.map(s => ({ value:s, label: screenFriendlyName(s) }))] },
+      { key:"popupLinkLabelEn", label:"Button Text (English) — leave blank for \"View\"", type:"text" },
+      { key:"popupLinkLabelBm", label:"Button Text (Malay) — leave blank to reuse the English text", type:"text" },
+      { key:"popupLinkLabelTa", label:"Button Text (Tamil) — leave blank to reuse the English text", type:"text" }
     ]}
-  ]
+  ],
+  imageFolder: "popup"
 });
 
 // ---------- Page Headings & Menu Labels ----------

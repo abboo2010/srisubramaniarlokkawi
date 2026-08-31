@@ -66,7 +66,10 @@ const ENTITIES = {
     fields: [
       ["popupEnabled","enabled"],
       ["popupTitleEn","title_en"],["popupTitleBm","title_bm"],["popupTitleTa","title_ta"],
-      ["popupMessageEn","message_en"],["popupMessageBm","message_bm"],["popupMessageTa","message_ta"]
+      ["popupMessageEn","message_en"],["popupMessageBm","message_bm"],["popupMessageTa","message_ta"],
+      ["popupImageUrl","image_url"],
+      ["popupLinkTarget","link_target"],
+      ["popupLinkLabelEn","link_label_en"],["popupLinkLabelBm","link_label_bm"],["popupLinkLabelTa","link_label_ta"]
     ],
     boolFields: ["popupEnabled"]
   },

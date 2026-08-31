@@ -158,17 +158,28 @@ create trigger site_ticker_set_updated_at before update on site_ticker
 -- ---------- site_popup: welcome/notice popup shown once per visit on
 -- the home page (one row, id is always 1). Disabled by default; title
 -- is optional (message alone is fine), same _en/_bm/_ta fallback rule
--- as every other trilingual field. ----------
+-- as every other trilingual field. image_url is an optional photo
+-- shown at the top of the popup. link_target is an optional screen
+-- key (e.g. "sevas", "gallery") the popup's button navigates to when
+-- tapped — validated client-side against the same VALID_SCREENS list
+-- used by the Hero Banner's own button links, not constrained here,
+-- same as hero_banner.upcoming_events_link/pooja_timings_link below.
+-- link_label_en/bm/ta is the button's own text, editable per popup. ----------
 create table if not exists site_popup (
-  id           smallint primary key default 1,
-  enabled      boolean not null default false,
-  title_en     text not null default '',
-  title_bm     text not null default '',
-  title_ta     text not null default '',
-  message_en   text not null default '',
-  message_bm   text not null default '',
-  message_ta   text not null default '',
-  updated_at   timestamptz not null default now(),
+  id             smallint primary key default 1,
+  enabled        boolean not null default false,
+  title_en       text not null default '',
+  title_bm       text not null default '',
+  title_ta       text not null default '',
+  message_en     text not null default '',
+  message_bm     text not null default '',
+  message_ta     text not null default '',
+  image_url      text not null default '',
+  link_target    text not null default '',
+  link_label_en  text not null default '',
+  link_label_bm  text not null default '',
+  link_label_ta  text not null default '',
+  updated_at     timestamptz not null default now(),
   constraint site_popup_singleton check (id = 1)
 );
 alter table site_popup enable row level security;
