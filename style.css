@@ -804,6 +804,16 @@ img{display:block;max-width:100%;}
 }
 .home-popup-image-linked{cursor:pointer;}
 .home-popup-link-btn{display:block;width:100%;margin-top:18px;text-align:center;}
+/* Both elements are shown/hidden via the "hidden" HTML attribute from
+   script.js (homePopupImage.hidden = ...; homePopupLinkBtn.hidden = ...).
+   The browser's default [hidden]{display:none} rule only wins when nothing
+   else sets display — the two "display:block" rules just above have equal
+   CSS specificity and come from author CSS, so they silently override it,
+   leaving a hidden image/button rendered anyway (an empty visible button
+   bar, or a broken-image box, whenever there's no link/no photo). These
+   two rules restore the correct hidden behavior. */
+.home-popup-image[hidden],
+.home-popup-link-btn[hidden]{display:none;}
 .home-popup-modal p{margin-bottom:2px;}
 
 @media (max-width:860px){
