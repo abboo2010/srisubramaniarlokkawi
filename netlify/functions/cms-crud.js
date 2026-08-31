@@ -55,6 +55,21 @@ const ENTITIES = {
     ],
     boolFields: ["enabled"]
   },
+  popup: {
+    table: "site_popup", singleton: true,
+    // wireKeys are prefixed "popup..." rather than the plain
+    // "enabled"/"titleEn"/"messageEn" used by some other singleton
+    // entities here, purely to keep this CMS form's field DOM ids
+    // (fld-popup...) from colliding with the Ticker tab's own
+    // fld-enabled/fld-messageEn — both singleton tabs' forms stay
+    // permanently rendered in the page at once, see cms.html's popupTab.
+    fields: [
+      ["popupEnabled","enabled"],
+      ["popupTitleEn","title_en"],["popupTitleBm","title_bm"],["popupTitleTa","title_ta"],
+      ["popupMessageEn","message_en"],["popupMessageBm","message_bm"],["popupMessageTa","message_ta"]
+    ],
+    boolFields: ["popupEnabled"]
+  },
   about: {
     table: "about_page", singleton: true,
     fields: [

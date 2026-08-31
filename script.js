@@ -17,6 +17,13 @@
     splash.classList.add("splash-hide");
     if (typeof resetIdleTimer === "function") resetIdleTimer();
     setTimeout(() => { splash.style.display = "none"; }, 650);
+    // Entering the site is "arriving at the home page" for the Home
+    // Popup's once-per-visit trigger (see the HOME POPUP section
+    // further down) — guarded since this early block runs before the
+    // rest of the file, but the click itself can only happen after
+    // the whole script has finished loading, so the function always
+    // exists by the time a visitor actually clicks Enter.
+    if (typeof homePopupOnVisitStart === "function") homePopupOnVisitStart();
   });
 })();
 
@@ -36,6 +43,17 @@ const TICKER = {
   message_en: "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
   message_bm: "⚠️ LAMAN WEB DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk tujuan ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Sila jangan anggap ia sebagai rasmi atau muktamad.",
   message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
+};
+
+// Bundled default for the Home Popup (editable from /cms.html's Home
+// Popup tab). Declared HERE, not in content-data.js, for the exact same
+// reason as TICKER above. Starts disabled on purpose — nothing should
+// pop up for visitors until Ravi actually writes a message and turns
+// it on from the CMS.
+const POPUP = {
+  enabled: false,
+  title_en: "", title_bm: "", title_ta: "",
+  message_en: "", message_bm: "", message_ta: ""
 };
 
 // Bundled default for the Temple Committee screen. Declared HERE, not in
@@ -1225,6 +1243,7 @@ function showPrayerForm(p, role){
   document.getElementById("prayerFormPhone").value = "";
   document.getElementById("prayerFormParticipantCount").value = "1";
   document.getElementById("prayerFormNotes").value = "";
+  document.getElementById("prayerFormWebsite").value = "";
   document.getElementById("prayerFormError").style.display = "none";
   document.getElementById("prayerFormParticipantCountWrap").style.display = role === "participant" ? "block" : "none";
 }
@@ -1244,6 +1263,16 @@ async function submitPrayerForm(){
   const participantCount = parseInt(document.getElementById("prayerFormParticipantCount").value, 10) || 1;
   const notes = document.getElementById("prayerFormNotes").value.trim();
   const errorEl = document.getElementById("prayerFormError");
+
+  // Honeypot — a hidden field a real devotee never sees or fills (see
+  // .hp-field in style.css). If it has a value, something auto-filled
+  // it, so quietly treat this the same as an incomplete form rather
+  // than sending the request at all.
+  if (document.getElementById("prayerFormWebsite").value.trim()){
+    errorEl.textContent = t("prayersErrorGeneric");
+    errorEl.style.display = "block";
+    return;
+  }
 
   if (!name || !phone){
     errorEl.textContent = t("prayersErrorGeneric");
@@ -1531,6 +1560,7 @@ function openFridayAnnathanamForm(w){
   document.getElementById("fridayAnnathanamFormCancelBtn").textContent = t("prayersFormCancel");
   document.getElementById("fridayAnnathanamFormName").value = "";
   document.getElementById("fridayAnnathanamFormPhone").value = "";
+  document.getElementById("fridayAnnathanamFormWebsite").value = "";
   document.getElementById("fridayAnnathanamFormError").style.display = "none";
   fridayAnnathanamOverlay.classList.add("show");
 }
@@ -1552,6 +1582,13 @@ async function submitFridayAnnathanamForm(){
   const name = document.getElementById("fridayAnnathanamFormName").value.trim();
   const phone = document.getElementById("fridayAnnathanamFormPhone").value.trim();
   const errorEl = document.getElementById("fridayAnnathanamFormError");
+
+  // Honeypot — see the matching comment in submitPrayerForm() above.
+  if (document.getElementById("fridayAnnathanamFormWebsite").value.trim()){
+    errorEl.textContent = t("prayersErrorGeneric");
+    errorEl.style.display = "block";
+    return;
+  }
 
   if (!name || !phone){
     errorEl.textContent = t("prayersErrorGeneric");
@@ -1709,6 +1746,43 @@ function renderTicker(){
   document.getElementById("siteTickerItem1").textContent = msg;
   document.getElementById("siteTickerItem2").textContent = msg;
 }
+
+// ============================================================
+// HOME POPUP (editable from /cms.html's Home Popup tab)
+//
+// Shows once per visit, right when a visitor enters the site (the
+// splash "Enter" button click — see setUpSplashScreenEarly() above),
+// not every time they navigate back to Home. Two triggers feed into
+// the same maybeShowHomePopup() check because of a timing race: a
+// visitor can click Enter before the live CMS content has finished
+// loading, so homePopupOnVisitStart() (called on Enter) and the
+// "popup" safeApply block in loadLiveContent() (called once live
+// data arrives) both attempt the show — whichever happens second is
+// the one that actually opens it, guarded by homePopupShown so it
+// only ever opens once.
+// ============================================================
+let homePopupVisitStarted = false;
+let homePopupShown = false;
+const homePopupOverlay = document.getElementById("homePopupOverlay");
+
+function homePopupOnVisitStart(){
+  homePopupVisitStarted = true;
+  maybeShowHomePopup();
+}
+
+function maybeShowHomePopup(){
+  if (!homePopupVisitStarted || homePopupShown || !POPUP.enabled) return;
+  const title = tf(POPUP, "title");
+  const message = tf(POPUP, "message");
+  if (!title && !message) return; // nothing to show even if enabled
+  document.getElementById("homePopupTitle").textContent = title;
+  document.getElementById("homePopupMessage").textContent = message;
+  homePopupOverlay.classList.add("show");
+  homePopupShown = true;
+}
+function closeHomePopup(){ homePopupOverlay.classList.remove("show"); }
+document.getElementById("homePopupClose").addEventListener("click", closeHomePopup);
+homePopupOverlay.addEventListener("click", (ev) => { if (ev.target === homePopupOverlay) closeHomePopup(); });
 
 function renderAll(){
   safeRender("staticText", renderStaticText);
@@ -1894,6 +1968,23 @@ function loadLiveContent(){
         if (data.ticker.message_en) TICKER.message_en = data.ticker.message_en;
         TICKER.message_bm = data.ticker.message_bm || "";
         TICKER.message_ta = data.ticker.message_ta || "";
+      });
+
+      safeApply("popup", () => {
+        // null means the site_popup table doesn't exist yet
+        // (add-site-popup.sql not run) or Supabase is unreachable —
+        // keep the bundled (disabled) POPUP default in that case.
+        if (!data.popup) return;
+        POPUP.enabled = !!data.popup.enabled;
+        POPUP.title_en = data.popup.title_en || "";
+        POPUP.title_bm = data.popup.title_bm || "";
+        POPUP.title_ta = data.popup.title_ta || "";
+        POPUP.message_en = data.popup.message_en || "";
+        POPUP.message_bm = data.popup.message_bm || "";
+        POPUP.message_ta = data.popup.message_ta || "";
+        // Covers the race where a visitor clicked Enter before this
+        // fetch resolved — see the HOME POPUP section above.
+        maybeShowHomePopup();
       });
 
       safeApply("committee", () => {

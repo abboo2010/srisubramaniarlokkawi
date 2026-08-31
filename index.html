@@ -522,6 +522,17 @@
   </div>
 </div>
 
+<!-- ============ HOME POPUP (shown once per visit, editable from /cms.html) ============ -->
+<div class="announce-overlay" id="homePopupOverlay">
+  <div class="announce-modal">
+    <button class="announce-modal-close" id="homePopupClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5 L19 19 M19 5 L5 19" stroke-linecap="round"/></svg>
+    </button>
+    <h3 id="homePopupTitle"></h3>
+    <p id="homePopupMessage"></p>
+  </div>
+</div>
+
 <!-- ============ ANNUAL PRAYERS MODAL (detail → register form → success) ============ -->
 <div class="prayer-overlay" id="prayerOverlay">
   <div class="prayer-modal">
@@ -555,6 +566,14 @@
       </div>
       <label class="prayer-form-label" id="prayerFormNotesLabel" for="prayerFormNotes">Remarks (optional)</label>
       <textarea id="prayerFormNotes" class="prayer-form-input prayer-form-textarea" rows="2"></textarea>
+      <!-- Honeypot: real devotees never see or fill this (see .hp-field
+           in style.css). A filled value means a bot auto-filled every
+           field on the form — the request is rejected client-side and
+           again server-side in register-prayer.js. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="prayerFormWebsite">Website</label>
+        <input type="text" id="prayerFormWebsite" name="website" tabindex="-1" autocomplete="off" />
+      </div>
       <p class="prayer-form-error" id="prayerFormError" style="display:none;"></p>
       <div class="prayer-form-actions">
         <button class="prayer-btn-ghost" id="prayerFormCancelBtn">Cancel</button>
@@ -591,6 +610,11 @@
       <input type="text" id="fridayAnnathanamFormName" class="prayer-form-input" autocomplete="name" />
       <label class="prayer-form-label" id="fridayAnnathanamFormPhoneLabel" for="fridayAnnathanamFormPhone">Phone / WhatsApp Number</label>
       <input type="tel" id="fridayAnnathanamFormPhone" class="prayer-form-input" autocomplete="tel" />
+      <!-- Honeypot — see the matching comment on the Prayers form above. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="fridayAnnathanamFormWebsite">Website</label>
+        <input type="text" id="fridayAnnathanamFormWebsite" name="website" tabindex="-1" autocomplete="off" />
+      </div>
       <p class="prayer-form-error" id="fridayAnnathanamFormError" style="display:none;"></p>
       <div class="prayer-form-actions">
         <button class="prayer-btn-ghost" id="fridayAnnathanamFormCancelBtn">Cancel</button>

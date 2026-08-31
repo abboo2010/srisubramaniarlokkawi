@@ -2,7 +2,7 @@
  
 One responsive site — same code, same deploy — that works as a fixed touchscreen kiosk, a browsable website, and an installable PWA on phones/tablets. Content is edited live through two password-protected admin pages, no code editing, no GitHub account, and no redeploy needed for day-to-day updates:
 
-- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, Contact Us, Notice Ticker, Push Notifications, and Admin Users
+- **`/cms.html`** — Hero Banner, Home Tiles, About Temple, Deities, Pooja Timings, Sevas & Donations, News & Announcements, Gallery, Membership, Contact Us, Notice Ticker, Home Popup, Push Notifications, and Admin Users
 - **`/admin-prayers.html`** — Prayers & Registration and Friday Annathanam
 
 Both read from and write to the same Supabase (Postgres) database. Each committee member logs in with their own **username and password** rather than one shared password — see "Individual Admin Logins" below. Neither page is linked from the site's main navigation — bookmark the URLs.
@@ -68,7 +68,7 @@ Everything below reuses the same Supabase project and `ADMIN_PASSWORD` as **Annu
 
 **4. Open it**
 - Go to `https://your-site.netlify.app/cms.html` and log in (see "Individual Admin Logins" above for your first login)
-- Tabs: **Hero Banner**, **Home Tiles**, **About**, **Committee**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**, **Ticker**, **Push Notifications**
+- Tabs: **Hero Banner**, **Home Tiles**, **About**, **Committee**, **Deities**, **Pooja Timings**, **Sevas**, **Announcements**, **Gallery**, **Membership**, **Contact Us**, **Ticker**, **Home Popup**, **Push Notifications**
 - Photo fields (Hero background, Deity photos, Gallery photos) resize/compress in your browser and upload straight to Supabase Storage — no separate image hosting needed
 - **Membership tab** replaces the old private Google Sheet entirely: add/edit/delete members one at a time, or use **Bulk Import** to paste CSV (`Name,NRIC,Membership No.,Membership Type,Status` — Status column is optional, defaults to Active) — this is also how to migrate your existing Members sheet: open it, File → Download → CSV, open that file in a text editor, paste the contents in
 - Each member has a **Status** dropdown: `Active` (green dot), `Not Active` (red dot), or `Pending for Annual renewal` (red dot, per how it was specified) — shown next to the member's name in the CMS table, and on the public Membership Status result
@@ -115,6 +115,22 @@ Both are fixed lists — every row already exists (seeded below), so you only ev
 - In `/cms.html` → **Page Headings** tab, edit any screen's Heading/Subtitle in English, Malay, or Tamil → Save → reload the live site (switch language too) → the change should appear immediately
 - In `/cms.html` → **Menu Labels** tab, do the same for a side-menu item's wording
 - If a heading or menu item ever looks wrong on the live site (including the current Malay/Tamil wording, which is Claude's own translation and hasn't been reviewed by a Malay/Tamil speaker on the committee), this is now where to fix it — no code delivery needed.
+
+## Home Popup — one-time setup
+
+A popup can now show once to each visitor right when they enter the site (after tapping **Enter** on the splash screen) — a welcome message, a one-off notice, an event reminder, whatever's needed. They close it with the **×** button or by tapping outside it, and it then stays closed for the rest of that visit. Fully editable from `/cms.html`'s new **Home Popup** tab — starts **off** and empty, so nothing appears on the site until you turn it on.
+
+**1. Add the new database table**
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-site-popup.sql` → **Run** — creates the table, seeded off with blank text. Safe to re-run — never overwrites anything you've since edited in the CMS.
+- If setting up Supabase fresh (running `cms-schema.sql` for the first time), it already includes this table, so this migration isn't needed in that case.
+
+**2. Nothing else to configure** — no new environment variables, reuses the same login.
+
+**3. Test it**
+- In `/cms.html` → **Home Popup** tab, tick **Enabled**, write a Message (Title is optional), Save
+- Reload the live site (or open it in a new private/incognito window) → tap **Enter** on the splash screen → the popup should appear
+- Close it (× button or tap outside) → keep browsing → the popup should not reappear until you reload/reopen the site
+- Untick **Enabled** and Save any time to turn it off again without losing what you wrote
 
 ## Push Notifications — one-time setup
 

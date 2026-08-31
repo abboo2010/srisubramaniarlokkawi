@@ -19,7 +19,7 @@ const { supabaseClient } = require("./_supabase");
 const NOT_CONFIGURED = {
   configured: false, heroBanner: null, navTiles: null, about: null, deities: null,
   poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null, ticker: null,
-  committee: null, pageHeadings: null, menuLabels: null
+  committee: null, pageHeadings: null, menuLabels: null, popup: null
 };
 
 exports.handler = async () => {
@@ -29,7 +29,7 @@ exports.handler = async () => {
   }
 
   try {
-    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee, pageHeadings, menuLabels] = await Promise.all([
+    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee, pageHeadings, menuLabels, popup] = await Promise.all([
       supabase.from("hero_banner").select("*").eq("id", 1).maybeSingle(),
       supabase.from("nav_tiles").select("*").eq("enabled", true).order("sort_order", { ascending: true }),
       supabase.from("about_page").select("*").eq("id", 1).maybeSingle(),
@@ -44,7 +44,8 @@ exports.handler = async () => {
       supabase.from("site_ticker").select("*").eq("id", 1).maybeSingle(),
       supabase.from("committee_members").select("*").order("sort_order", { ascending: true }),
       supabase.from("page_headings").select("*"),
-      supabase.from("menu_labels").select("*")
+      supabase.from("menu_labels").select("*"),
+      supabase.from("site_popup").select("*").eq("id", 1).maybeSingle()
     ]);
 
     for (const r of [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact]) {
@@ -58,6 +59,16 @@ exports.handler = async () => {
     const tk = (!ticker.error && ticker.data) ? ticker.data : null;
     const tickerOut = tk ? {
       enabled: tk.enabled, message_en: tk.message_en, message_bm: tk.message_bm, message_ta: tk.message_ta
+    } : null;
+
+    // site_popup is a newer table too — handled leniently for the same
+    // reason as site_ticker: must never take down the rest of the site's
+    // live content if add-site-popup.sql hasn't been run yet.
+    const pu = (!popup.error && popup.data) ? popup.data : null;
+    const popupOut = pu ? {
+      enabled: pu.enabled,
+      title_en: pu.title_en, title_bm: pu.title_bm, title_ta: pu.title_ta,
+      message_en: pu.message_en, message_bm: pu.message_bm, message_ta: pu.message_ta
     } : null;
 
     // committee_members is a newer table too (added alongside the Temple
@@ -209,7 +220,8 @@ exports.handler = async () => {
       body: JSON.stringify({
         configured: true, heroBanner, navTiles, about: aboutOut, deities: deitiesOut,
         poojaTimings, sevas: sevasOut, announcements: announcementsOut, gallery: galleryOut, contact: contactOut,
-        ticker: tickerOut, committee: committeeOut, pageHeadings: pageHeadingsOut, menuLabels: menuLabelsOut
+        ticker: tickerOut, committee: committeeOut, pageHeadings: pageHeadingsOut, menuLabels: menuLabelsOut,
+        popup: popupOut
       })
     };
   } catch (err) {
