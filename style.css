@@ -817,18 +817,24 @@ img{display:block;max-width:100%;}
 .home-popup-modal p{margin-bottom:2px;}
 
 /* ---------- WhatsApp Widget: floating "Chat with Us" card, every screen ----------
-   Editable from /cms.html's WhatsApp Widget tab. Placed bottom-LEFT (not
-   bottom-right) so it never overlaps the existing .idle-badge, which
-   already lives at bottom:16px;right:16px above. z-index:55 sits just
-   above ordinary page content (.qr-overlay is 50) and below every modal/
-   overlay (.announce-overlay etc. are 60) and the mobile menu/splash
-   screen (.rail-backdrop 140, .rail 150, .splash-screen 200) — so any of
-   those naturally cover it, and it's hidden behind the splash "Enter"
-   gate with no extra JS needed. Shown/hidden purely via .style.display
-   from script.js's renderWaWidget(), never the "hidden" attribute — see
-   the home-popup [hidden] bug fix comment above. */
+   Editable from /cms.html's WhatsApp Widget tab. Placed bottom-RIGHT,
+   stacked directly ABOVE the existing .idle-badge (bottom:16px;right:16px
+   below) rather than beside it — bottom:76px leaves clear room above the
+   idle badge's own ~34px pill height plus a gap, so the two never
+   overlap even when both are visible at once. (An earlier version placed
+   this bottom-LEFT instead, specifically to dodge the idle badge — but
+   the left corner is where the desktop side rail/menu lives, so that
+   overlapped the menu instead. Moved back to the right per Ravi's
+   request.) z-index:55 sits just above ordinary page content (.qr-overlay
+   is 50) and below every modal/overlay (.announce-overlay etc. are 60)
+   and the mobile menu/splash screen (.rail-backdrop 140, .rail 150,
+   .splash-screen 200) — so any of those naturally cover it, and it's
+   hidden behind the splash "Enter" gate with no extra JS needed. Shown/
+   hidden purely via .style.display from script.js's renderWaWidget(),
+   never the "hidden" attribute — see the home-popup [hidden] bug fix
+   comment above. */
 .wa-widget{
-  position:fixed;left:16px;bottom:16px;z-index:55;
+  position:fixed;right:16px;bottom:76px;z-index:55;
   width:270px;max-width:calc(100vw - 32px);
   background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);
   padding:16px 16px 14px;
@@ -853,7 +859,7 @@ img{display:block;max-width:100%;}
 }
 .wa-widget-button svg{width:18px;height:18px;flex-shrink:0;}
 @media (max-width:480px){
-  .wa-widget{left:12px;bottom:12px;width:calc(100vw - 24px);}
+  .wa-widget{right:12px;bottom:70px;width:calc(100vw - 24px);}
 }
 
 @media (max-width:860px){
