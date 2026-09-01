@@ -832,34 +832,45 @@ img{display:block;max-width:100%;}
    hidden behind the splash "Enter" gate with no extra JS needed. Shown/
    hidden purely via .style.display from script.js's renderWaWidget(),
    never the "hidden" attribute — see the home-popup [hidden] bug fix
-   comment above. */
+   comment above.
+
+   Layout: the photo (when set) is a full-width banner across the TOP of
+   the card, rounded to match the card's own corners — not a small
+   avatar next to the text — per Ravi's reference screenshot. .wa-widget
+   has overflow:hidden specifically so the image's straight bottom edge
+   never pokes out past the card's rounded corners; the image and
+   button-margins carry all the spacing instead of one flat padding on
+   the card, so a "no photo set" widget (image stays display:none from
+   script.js) still looks correctly spaced — .wa-widget-body's own
+   top padding covers that gap either way. */
 .wa-widget{
   position:fixed;right:16px;bottom:76px;z-index:55;
   width:270px;max-width:calc(100vw - 32px);
   background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);
-  padding:16px 16px 14px;
+  overflow:hidden;
 }
 .wa-widget-close{
-  position:absolute;top:8px;right:8px;
-  width:26px;height:26px;border-radius:50%;border:none;background:var(--cream-100);
+  position:absolute;top:8px;right:8px;z-index:1;
+  width:26px;height:26px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(0,0,0,.18);
   color:var(--ink-600);display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
 .wa-widget-close svg{width:13px;height:13px;}
-.wa-widget-body{display:flex;align-items:center;gap:12px;padding-right:20px;}
 .wa-widget-image{
-  width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;
+  display:block;width:100%;height:190px;object-fit:cover;object-position:top center;
 }
-.wa-widget-text{min-width:0;}
-.wa-widget-heading{font-family:var(--font-display);font-size:14.5px;color:var(--maroon-800);margin:0 0 2px;line-height:1.3;}
-.wa-widget-description{font-size:12px;color:var(--ink-600);margin:0;line-height:1.5;}
+.wa-widget-body{padding:16px 16px 4px;text-align:center;}
+.wa-widget-heading{font-family:var(--font-display);font-size:15.5px;color:var(--maroon-800);margin:0 0 4px;line-height:1.3;}
+.wa-widget-description{font-size:12.5px;color:var(--ink-600);margin:0;line-height:1.5;}
 .wa-widget-button{
-  margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px;
+  margin:12px 16px 16px;display:flex;align-items:center;justify-content:center;gap:8px;
   background:#25D366;color:#fff;font-weight:700;font-size:13.5px;
   border-radius:999px;padding:10px 14px;text-decoration:none;
 }
 .wa-widget-button svg{width:18px;height:18px;flex-shrink:0;}
 @media (max-width:480px){
   .wa-widget{right:12px;bottom:70px;width:calc(100vw - 24px);}
+  .wa-widget-image{height:160px;}
 }
 
 @media (max-width:860px){
