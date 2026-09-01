@@ -509,7 +509,17 @@ function resizeImageFile(file, maxDim, quality){
         }
         const canvas = document.createElement("canvas");
         canvas.width = width; canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        const ctx = canvas.getContext("2d");
+        // JPEG has no transparency channel. A blank canvas starts fully
+        // transparent, and browsers flatten that missing alpha to opaque
+        // BLACK when exporting to JPEG — so a PNG with a transparent
+        // background (a logo, a cutout photo) would otherwise come out with
+        // a black background instead of staying see-through. Filling the
+        // canvas white first means transparent areas flatten to white
+        // instead, which reads correctly against this site's light theme.
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
       img.src = reader.result;
