@@ -2,13 +2,13 @@
 // cms-upload-image.js — Netlify Function (password-gated)
 //
 // Uploads one image (Hero Banner background, a Gallery photo, a
-// Deity photo, or a Home Popup photo) to the public "temple-media"
-// Supabase Storage bucket and returns its public URL, which the CMS
-// then saves onto the relevant row via cms-crud.js. Runs entirely
-// server-side with the service_role key — the browser never gets
-// storage write access.
+// Deity photo, a Home Popup photo, or a WhatsApp Widget photo) to the
+// public "temple-media" Supabase Storage bucket and returns its public
+// URL, which the CMS then saves onto the relevant row via cms-crud.js.
+// Runs entirely server-side with the service_role key — the browser
+// never gets storage write access.
 //
-// Request body: { folder: "hero" | "gallery" | "deities" | "popup",
+// Request body: { folder: "hero" | "gallery" | "deities" | "popup" | "whatsapp",
 //                  filename: "my-photo.jpg",
 //                  dataUrl: "data:image/jpeg;base64,...." }
 //
@@ -28,7 +28,7 @@
 const { supabaseClient } = require("./_supabase");
 const { requireAdmin } = require("./_admin-auth");
 
-const ALLOWED_FOLDERS = ["hero", "gallery", "deities", "popup"];
+const ALLOWED_FOLDERS = ["hero", "gallery", "deities", "popup", "whatsapp"];
 const MAX_BYTES = 4 * 1024 * 1024;
 
 function safeFilename(name) {

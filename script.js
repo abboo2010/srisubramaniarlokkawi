@@ -62,6 +62,26 @@ const POPUP = {
   link_label_en: "View", link_label_bm: "Lihat", link_label_ta: "பார்க்க"
 };
 
+// Bundled default for the floating WhatsApp Widget (editable from
+// /cms.html's WhatsApp Widget tab). Declared HERE, not in
+// content-data.js, for the exact same reason as TICKER above. Starts
+// disabled on purpose — the widget also requires a non-blank
+// phone_number before it will show at all (see maybeShowWaWidget()),
+// so an accidental "enabled" with nothing configured never produces a
+// dead/do-nothing button for a visitor.
+const WA_WIDGET = {
+  enabled: false,
+  image_url: "",
+  heading_en: "", heading_bm: "", heading_ta: "",
+  description_en: "", description_bm: "", description_ta: "",
+  phone_number: "",
+  message_en: "", message_bm: "", message_ta: "",
+  // Claude's own translation, not reviewed by a Tamil/Malay speaker on
+  // the committee — freely editable any time from the CMS's WhatsApp
+  // Widget tab, same caveat as every other bundled default text here.
+  button_label_en: "Chat with Us", button_label_bm: "Chat Dengan Kami", button_label_ta: "எங்களுடன் அரட்டையடிக்க"
+};
+
 // Bundled default for the Temple Committee screen. Declared HERE, not in
 // content-data.js, for the exact same reason as TICKER above — this is
 // only the offline fallback; the CMS-edited version (from the new
@@ -1820,9 +1840,72 @@ homePopupOverlay.addEventListener("click", (ev) => { if (ev.target === homePopup
 homePopupLinkBtn.addEventListener("click", homePopupNavigate);
 homePopupImage.addEventListener("click", () => { if (VALID_SCREENS.includes(POPUP.link_target)) homePopupNavigate(); });
 
+// ============================================================
+// WHATSAPP WIDGET (editable from /cms.html's WhatsApp Widget tab)
+//
+// A small floating "Chat with Us" card shown in the corner of every
+// screen (not just Home), so — unlike the once-per-visit Home
+// Popup — it's simply re-rendered every time renderAll() runs, the
+// same as the notice ticker just above. Uses plain .style.display
+// toggling throughout, never the "hidden" attribute, on purpose: see
+// the CSS [hidden] bug fixed elsewhere in this codebase (an author
+// display: rule with no [hidden] guard silently overrides the
+// browser's default). Only actually shows once BOTH enabled is true
+// AND a phone number is configured — an enabled widget with nothing
+// to call would just be a dead button. Dismissing it (the small close
+// button) hides it for the rest of this visit only; it comes back on
+// the next page load, same as any other persistent site chrome.
+// ============================================================
+let waWidgetDismissed = false;
+function renderWaWidget(){
+  const card = document.getElementById("waWidgetCard");
+  const phone = (WA_WIDGET.phone_number || "").replace(/[^0-9]/g, "");
+  if (waWidgetDismissed || !WA_WIDGET.enabled || !phone){ card.style.display = "none"; return; }
+
+  const heading = tf(WA_WIDGET, "heading");
+  const description = tf(WA_WIDGET, "description");
+  const message = tf(WA_WIDGET, "message");
+  // A blank button_label from the CMS still falls back to "Chat with
+  // Us" here, so the button never shows empty text just because Ravi
+  // hasn't typed a custom label yet — same trick as the Home Popup's
+  // link_label fallback to "View" above.
+  const buttonLabel = tf(WA_WIDGET, "button_label") || "Chat with Us";
+
+  const headingEl = document.getElementById("waWidgetHeading");
+  headingEl.textContent = heading;
+  headingEl.style.display = heading ? "" : "none";
+
+  const descEl = document.getElementById("waWidgetDescription");
+  descEl.textContent = description;
+  descEl.style.display = description ? "" : "none";
+
+  const img = document.getElementById("waWidgetImage");
+  if (WA_WIDGET.image_url){
+    img.src = WA_WIDGET.image_url;
+    img.style.display = "";
+  } else {
+    img.style.display = "none";
+    img.removeAttribute("src");
+  }
+
+  const btn = document.getElementById("waWidgetButton");
+  // Sets only the label span's text, not the whole <a>'s textContent —
+  // the button also contains a WhatsApp icon <svg> as a sibling, which
+  // textContent on the anchor itself would silently wipe out.
+  document.getElementById("waWidgetButtonLabel").textContent = buttonLabel;
+  btn.href = "https://wa.me/" + phone + (message ? "?text=" + encodeURIComponent(message) : "");
+
+  card.style.display = "";
+}
+document.getElementById("waWidgetClose").addEventListener("click", () => {
+  waWidgetDismissed = true;
+  renderWaWidget();
+});
+
 function renderAll(){
   safeRender("staticText", renderStaticText);
   safeRender("ticker", renderTicker);
+  safeRender("waWidget", renderWaWidget);
   safeRender("homeTiles", renderHomeTiles);
   safeRender("homeTimings", renderHomeTimings);
   safeRender("homeEvents", renderHomeEvents);
@@ -2030,6 +2113,28 @@ function loadLiveContent(){
         // Covers the race where a visitor clicked Enter before this
         // fetch resolved — see the HOME POPUP section above.
         maybeShowHomePopup();
+      });
+
+      safeApply("waWidget", () => {
+        // null means the whatsapp_widget table doesn't exist yet
+        // (add-whatsapp-widget.sql not run) or Supabase is unreachable —
+        // keep the bundled (disabled) WA_WIDGET default in that case.
+        if (!data.waWidget) return;
+        WA_WIDGET.enabled = !!data.waWidget.enabled;
+        WA_WIDGET.image_url = data.waWidget.image_url || "";
+        WA_WIDGET.heading_en = data.waWidget.heading_en || "";
+        WA_WIDGET.heading_bm = data.waWidget.heading_bm || "";
+        WA_WIDGET.heading_ta = data.waWidget.heading_ta || "";
+        WA_WIDGET.description_en = data.waWidget.description_en || "";
+        WA_WIDGET.description_bm = data.waWidget.description_bm || "";
+        WA_WIDGET.description_ta = data.waWidget.description_ta || "";
+        WA_WIDGET.phone_number = data.waWidget.phone_number || "";
+        WA_WIDGET.message_en = data.waWidget.message_en || "";
+        WA_WIDGET.message_bm = data.waWidget.message_bm || "";
+        WA_WIDGET.message_ta = data.waWidget.message_ta || "";
+        WA_WIDGET.button_label_en = data.waWidget.button_label_en || "";
+        WA_WIDGET.button_label_bm = data.waWidget.button_label_bm || "";
+        WA_WIDGET.button_label_ta = data.waWidget.button_label_ta || "";
       });
 
       safeApply("committee", () => {

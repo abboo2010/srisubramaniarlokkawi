@@ -187,6 +187,43 @@ drop trigger if exists site_popup_set_updated_at on site_popup;
 create trigger site_popup_set_updated_at before update on site_popup
   for each row execute function set_updated_at();
 
+-- ---------- whatsapp_widget: the floating "Chat with Us" card shown in
+-- the corner of every screen (one row, id is always 1). Disabled by
+-- default. image_url/heading/description are optional — the card can
+-- show with just a button if left blank. phone_number is digits-only
+-- with country code (e.g. "60123456789", same format as
+-- contact_info.whatsapp_number), used to build the wa.me link the
+-- button opens; message_en/bm/ta is an optional pre-filled greeting
+-- passed along in that link. button_label_en/bm/ta falls back to
+-- "Chat with Us" on the public site when left blank, same fallback
+-- rule as every other trilingual field. The widget only actually shows
+-- once BOTH enabled is true AND phone_number is non-blank — an enabled
+-- widget with no number configured yet would have nothing to do. ----------
+create table if not exists whatsapp_widget (
+  id                  smallint primary key default 1,
+  enabled             boolean not null default false,
+  image_url           text not null default '',
+  heading_en          text not null default '',
+  heading_bm          text not null default '',
+  heading_ta          text not null default '',
+  description_en      text not null default '',
+  description_bm      text not null default '',
+  description_ta      text not null default '',
+  phone_number        text not null default '',
+  message_en          text not null default '',
+  message_bm          text not null default '',
+  message_ta          text not null default '',
+  button_label_en     text not null default '',
+  button_label_bm     text not null default '',
+  button_label_ta     text not null default '',
+  updated_at          timestamptz not null default now(),
+  constraint whatsapp_widget_singleton check (id = 1)
+);
+alter table whatsapp_widget enable row level security;
+drop trigger if exists whatsapp_widget_set_updated_at on whatsapp_widget;
+create trigger whatsapp_widget_set_updated_at before update on whatsapp_widget
+  for each row execute function set_updated_at();
+
 -- ---------- about_page: one row (id is always 1) ----------
 -- history_* / activities_* are plain text in the CMS textarea: history
 -- paragraphs separated by a blank line, activities one per line.

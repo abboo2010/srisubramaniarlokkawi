@@ -1,7 +1,7 @@
 // Sri Subramaniar Alayam — Service Worker
 // Caches core app files so the app can install and open offline.
 // Bump CACHE_NAME whenever core files change to force a refresh.
-const CACHE_NAME = "temple-kiosk-v33";
+const CACHE_NAME = "temple-kiosk-v34";
 
 const CORE_ASSETS = [
   "./index.html",

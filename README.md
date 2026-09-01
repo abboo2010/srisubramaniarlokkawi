@@ -135,6 +135,24 @@ A popup can now show once to each visitor right when they enter the site (after 
 - Leave **Goes To** on "— No link —" for a plain informational popup with no button
 - Untick **Enabled** and Save any time to turn it off again without losing what you wrote
 
+## WhatsApp Widget — one-time setup
+
+A floating "Chat with Us" card can now show in the bottom-left corner of every screen on the site — an optional photo, a heading and description, and a green WhatsApp button that opens a chat with your number (optionally with a pre-filled message). Fully editable from `/cms.html`'s new **WhatsApp Widget** tab — starts **off**, so nothing appears on the site until you turn it on.
+
+**1. Add the new database table**
+- Supabase dashboard → **SQL Editor** → **New query** → paste in the entire contents of `supabase/add-whatsapp-widget.sql` → **Run** — creates the table (photo/heading/description/phone/message/button text, all optional except the on/off switch and phone number), seeded off with the phone number pre-filled from the WhatsApp number you already set on the Contact Us tab. Safe to re-run — never overwrites anything you've since edited in the CMS.
+- If setting up Supabase fresh (running `cms-schema.sql` for the first time), it already includes this table, so this migration isn't needed in that case.
+
+**2. Nothing else to configure** — no new environment variables, reuses the same login.
+
+**3. Test it**
+- In `/cms.html` → **WhatsApp Widget** tab, tick **Enabled**, check the **WhatsApp Number** field has your number (digits only, with country code — it's pre-filled from Contact Us, but double-check it), Save
+- Reload the live site (or open it in a new private/incognito window) → the card should appear in the bottom-left corner on every screen
+- Tap the **Chat with Us** button → it should open WhatsApp (or wa.me in a browser) with your number, and your pre-filled message if you set one
+- Optional: add a **Widget Photo** (same auto-resize-in-browser upload as Hero Banner/Deities/Gallery/Home Popup), a **Heading**, and a **Description** — all optional, the card works with just the button if left blank
+- Tap the **×** on the card to dismiss it for the rest of that visit — it comes back on the next page load, same as any other site chrome
+- Untick **Enabled** and Save any time to turn it off again without losing what you wrote
+
 ## Push Notifications — one-time setup
 
 Visitors can tap the bell icon in the top bar (next to EN/BM/Tamil) to turn on notifications for that device. From the **Push Notifications** tab in `/cms.html`, type a title and message and press Send — every device currently subscribed gets it right away. This is a free browser feature (the "Web Push" standard) — it doesn't need a paid Supabase or Netlify plan, and there's no per-notification cost or limit from either of them.

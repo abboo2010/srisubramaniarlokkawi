@@ -73,6 +73,24 @@ const ENTITIES = {
     ],
     boolFields: ["popupEnabled"]
   },
+  waWidget: {
+    table: "whatsapp_widget", singleton: true,
+    // Same "prefix every field key" precaution as the popup entity
+    // above — keeps this tab's fld-waWidget... DOM ids from colliding
+    // with any other singleton tab (Ticker's fld-enabled, Popup's own
+    // fld-popupImageUrl, etc.), since every singleton tab's form stays
+    // permanently rendered in the page at once, see cms.html.
+    fields: [
+      ["waWidgetEnabled","enabled"],
+      ["waWidgetImageUrl","image_url"],
+      ["waWidgetHeadingEn","heading_en"],["waWidgetHeadingBm","heading_bm"],["waWidgetHeadingTa","heading_ta"],
+      ["waWidgetDescriptionEn","description_en"],["waWidgetDescriptionBm","description_bm"],["waWidgetDescriptionTa","description_ta"],
+      ["waWidgetPhoneNumber","phone_number"],
+      ["waWidgetMessageEn","message_en"],["waWidgetMessageBm","message_bm"],["waWidgetMessageTa","message_ta"],
+      ["waWidgetButtonLabelEn","button_label_en"],["waWidgetButtonLabelBm","button_label_bm"],["waWidgetButtonLabelTa","button_label_ta"]
+    ],
+    boolFields: ["waWidgetEnabled"]
+  },
   about: {
     table: "about_page", singleton: true,
     fields: [

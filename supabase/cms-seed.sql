@@ -359,3 +359,13 @@ on conflict (id) do update set
   whatsapp_caption_en=excluded.whatsapp_caption_en, whatsapp_caption_bm=excluded.whatsapp_caption_bm, whatsapp_caption_ta=excluded.whatsapp_caption_ta,
   donation_account_name=excluded.donation_account_name, donation_bank=excluded.donation_bank, donation_account_number=excluded.donation_account_number;
 
+-- ---------- whatsapp_widget ----------
+-- Seeded disabled, with the phone number pre-filled from the same
+-- WhatsApp number already used for the Contact Us QR code above, so
+-- it's ready to switch on as soon as Ravi writes a heading/description
+-- in the CMS. "do nothing" on conflict — unlike contact_info above,
+-- this must never clobber an edit made in the CMS after this first run.
+insert into whatsapp_widget (id, enabled, phone_number)
+values (1, false, '60109482080')
+on conflict (id) do nothing;
+

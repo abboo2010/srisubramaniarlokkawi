@@ -19,7 +19,7 @@ const { supabaseClient } = require("./_supabase");
 const NOT_CONFIGURED = {
   configured: false, heroBanner: null, navTiles: null, about: null, deities: null,
   poojaTimings: null, sevas: null, announcements: null, gallery: null, contact: null, ticker: null,
-  committee: null, pageHeadings: null, menuLabels: null, popup: null
+  committee: null, pageHeadings: null, menuLabels: null, popup: null, waWidget: null
 };
 
 exports.handler = async () => {
@@ -29,7 +29,7 @@ exports.handler = async () => {
   }
 
   try {
-    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee, pageHeadings, menuLabels, popup] = await Promise.all([
+    const [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact, ticker, committee, pageHeadings, menuLabels, popup, waWidget] = await Promise.all([
       supabase.from("hero_banner").select("*").eq("id", 1).maybeSingle(),
       supabase.from("nav_tiles").select("*").eq("enabled", true).order("sort_order", { ascending: true }),
       supabase.from("about_page").select("*").eq("id", 1).maybeSingle(),
@@ -45,7 +45,8 @@ exports.handler = async () => {
       supabase.from("committee_members").select("*").order("sort_order", { ascending: true }),
       supabase.from("page_headings").select("*"),
       supabase.from("menu_labels").select("*"),
-      supabase.from("site_popup").select("*").eq("id", 1).maybeSingle()
+      supabase.from("site_popup").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("whatsapp_widget").select("*").eq("id", 1).maybeSingle()
     ]);
 
     for (const r of [hero, tiles, about, deities, timings, sevas, announcements, galleryCategories, galleryFolders, galleryPhotos, contact]) {
@@ -75,6 +76,20 @@ exports.handler = async () => {
       // undefined here, which script.js already treats as "not set".
       image_url: pu.image_url, link_target: pu.link_target,
       link_label_en: pu.link_label_en, link_label_bm: pu.link_label_bm, link_label_ta: pu.link_label_ta
+    } : null;
+
+    // whatsapp_widget is a newer table too — handled leniently for the
+    // same reason as site_ticker/site_popup: must never take down the
+    // rest of the site's live content if add-whatsapp-widget.sql hasn't
+    // been run yet.
+    const ww = (!waWidget.error && waWidget.data) ? waWidget.data : null;
+    const waWidgetOut = ww ? {
+      enabled: ww.enabled, image_url: ww.image_url,
+      heading_en: ww.heading_en, heading_bm: ww.heading_bm, heading_ta: ww.heading_ta,
+      description_en: ww.description_en, description_bm: ww.description_bm, description_ta: ww.description_ta,
+      phone_number: ww.phone_number,
+      message_en: ww.message_en, message_bm: ww.message_bm, message_ta: ww.message_ta,
+      button_label_en: ww.button_label_en, button_label_bm: ww.button_label_bm, button_label_ta: ww.button_label_ta
     } : null;
 
     // committee_members is a newer table too (added alongside the Temple
@@ -227,7 +242,7 @@ exports.handler = async () => {
         configured: true, heroBanner, navTiles, about: aboutOut, deities: deitiesOut,
         poojaTimings, sevas: sevasOut, announcements: announcementsOut, gallery: galleryOut, contact: contactOut,
         ticker: tickerOut, committee: committeeOut, pageHeadings: pageHeadingsOut, menuLabels: menuLabelsOut,
-        popup: popupOut
+        popup: popupOut, waWidget: waWidgetOut
       })
     };
   } catch (err) {
