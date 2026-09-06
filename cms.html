@@ -336,6 +336,11 @@
       <input type="text" id="members-search" placeholder="Search name, NRIC, or membership no…" />
       <button id="members-refresh">Refresh</button>
       <button id="members-print">Print (single listing)</button>
+      <select id="members-print-type-select" title="Which Membership Type to print">
+        <option value="both">Life &amp; Ordinary (split)</option>
+        <option value="Life">Life only</option>
+        <option value="Ordinary">Ordinary only</option>
+      </select>
       <button id="members-print-bytype-btn">Print (split by Type)</button>
       <button id="members-export">Download CSV</button>
       <button id="members-bulk-toggle">Bulk Import</button>
@@ -1447,9 +1452,20 @@ function printMembers(mode){
     };
     const lifeRows = rows.filter(m => m.membershipType === "Life");
     const ordinaryRows = rows.filter(m => m.membershipType !== "Life");
-    const body = groupHtml("Life", lifeRows) + groupHtml("Ordinary", ordinaryRows);
+    // The dropdown next to this button — "Life & Ordinary (split)" (both,
+    // as two tables, the original behavior), "Life only", or "Ordinary
+    // only" (print just that one group, as a single table).
+    const typeChoice = document.getElementById("members-print-type-select").value;
+    let body, printedCount, typeNote;
+    if (typeChoice === "Life"){
+      body = groupHtml("Life", lifeRows); printedCount = lifeRows.length; typeNote = " — Life members only";
+    } else if (typeChoice === "Ordinary"){
+      body = groupHtml("Ordinary", ordinaryRows); printedCount = ordinaryRows.length; typeNote = " — Ordinary members only";
+    } else {
+      body = groupHtml("Life", lifeRows) + groupHtml("Ordinary", ordinaryRows); printedCount = rows.length; typeNote = "";
+    }
     document.getElementById("members-print-bytype").innerHTML =
-      `<h2>Membership Directory — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote}${dateNote}</h2>` +
+      `<h2>Membership Directory — ${printedCount} record${printedCount === 1 ? "" : "s"}${typeNote}${filterNote}${sortNote}${dateNote}</h2>` +
       (body || `<div class="empty-note">No members found.</div>`);
   } else {
     document.getElementById("members-print-heading").textContent =
