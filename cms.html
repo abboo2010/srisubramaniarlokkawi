@@ -69,6 +69,9 @@
   table{width:100%; border-collapse:collapse; background:#fff; border-radius:var(--radius-md); overflow:hidden; box-shadow:0 4px 14px rgba(38,7,11,0.06);}
   th, td{text-align:left; padding:10px 12px; font-size:12.5px; border-bottom:1px solid var(--cream-100); vertical-align:top;}
   th{background:var(--maroon-800); color:#f6e9c8; font-size:11px; text-transform:uppercase; letter-spacing:.03em; position:sticky; top:0;}
+  th.sortable{cursor:pointer; user-select:none;}
+  th.sortable:hover{background:var(--ember-500);}
+  th.sortable .sort-arrow{margin-left:4px; opacity:.85;}
   tr:last-child td{border-bottom:none;}
   tr:hover td{background:var(--cream-50);}
   .table-wrap{overflow-x:auto; max-height:65vh; overflow-y:auto;}
@@ -124,7 +127,33 @@
   .bulk-box.show{display:block;}
   .bulk-box textarea{width:100%; min-height:140px; padding:10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-family:monospace; font-size:12.5px;}
 
-  @media print{ body{display:none;} }
+  .print-only-heading{display:none;}
+  /* Printing the admin CMS by accident (a stray Ctrl+P on any tab) would
+     dump a screenshot of internal tools/NRIC data onto paper — so printing
+     stays blocked (body{display:none}) UNLESS the Membership tab's own
+     Print button explicitly opts in by adding "printing-members" to <body>
+     right before calling window.print() (see members-print's click handler
+     in the script below), which removes itself again right after. That is
+     the ONLY path that can produce printed output from this page. */
+  @media print{
+    body{display:none;}
+    body.printing-members{display:block !important;}
+    body.printing-members::before, body.printing-members::after{content:none;}
+    body.printing-members .app-header-row .admin-logo{width:40px; height:40px;}
+    body.printing-members .status-msg,
+    body.printing-members .tab-switch,
+    body.printing-members #tab-members .panel-hint,
+    body.printing-members #tab-members .toolbar,
+    body.printing-members #tab-members .bulk-box,
+    body.printing-members #members-panel,
+    body.printing-members #members-table .row-actions,
+    body.printing-members #members-table th:last-child,
+    body.printing-members #members-table td:last-child{display:none !important;}
+    body.printing-members .wrap{max-width:none;}
+    body.printing-members .table-wrap{max-height:none; overflow:visible;}
+    body.printing-members table{box-shadow:none; border:1px solid #ccc;}
+    body.printing-members .print-only-heading{display:block; margin:14px 0 6px; font-size:14px; color:var(--ink-600); font-weight:700;}
+  }
 </style>
 </head>
 <body>
@@ -285,11 +314,12 @@
 
   <!-- ================= MEMBERS ================= -->
   <div class="tab-panel" id="tab-members">
-    <p class="panel-hint">Membership records used by the Membership Status lookup on the site (visitors now search by Membership No., not NRIC — NRIC is kept here for your own records only and is never sent to the public lookup).</p>
+    <p class="panel-hint">Membership records used by the Membership Status lookup on the site (visitors now search by Membership No., not NRIC — NRIC is kept here for your own records only and is never sent to the public lookup). Click a Membership No., Membership Type, or Status column heading to sort by it — Print and Download CSV both follow whatever's currently searched/sorted on screen.</p>
     <div class="toolbar">
       <input type="text" id="members-search" placeholder="Search name, NRIC, or membership no…" />
       <button id="members-refresh">Refresh</button>
-      <button id="members-export">Export CSV</button>
+      <button id="members-print">Print</button>
+      <button id="members-export">Download CSV</button>
       <button id="members-bulk-toggle">Bulk Import</button>
       <button class="primary" id="members-add">+ Add Member</button>
     </div>
@@ -300,6 +330,7 @@
       <div class="edit-actions"><button class="save" id="members-bulk-submit">Import</button><button class="cancel" id="members-bulk-cancel">Cancel</button></div>
     </div>
     <div id="members-panel" class="edit-panel"></div>
+    <h2 class="print-only-heading" id="members-print-heading"></h2>
     <div class="table-wrap"><table id="members-table"><thead></thead><tbody></tbody></table></div>
   </div>
 
@@ -1218,14 +1249,68 @@ const menuLabelsTab = makeListTab({
 // Members — dedicated (not the generic list engine): search,
 // export, and a bulk-import box on top of the usual add/edit/delete.
 // ============================================================
-const membersState = { rows: [] };
+const membersState = { rows: [], sortKey: null, sortDir: "asc" };
 const MEMBER_STATUS_VALUES = ["Active", "Not Active", "Pending for Annual renewal"];
 function statusDotClass(status){ return status === "Active" ? "dot-green" : "dot-red"; }
-function renderMembersTable(){
+
+// Membership No. often looks like "M-9"/"M-10" — a plain string sort would
+// wrongly put "M-10" before "M-9" (since "1" < "9" character-by-character).
+// This natural-sort comparator splits each value into alternating digit/
+// non-digit chunks and compares the digit chunks numerically instead, so
+// membership numbers sort in the order a person actually expects.
+function naturalCompare(a, b){
+  const chunk = s => { const out = []; String(s).replace(/(\d+)|(\D+)/g, (_, d, t) => { out.push(d !== undefined ? parseInt(d, 10) : t); return ""; }); return out; };
+  const ax = chunk(a), bx = chunk(b);
+  const len = Math.max(ax.length, bx.length);
+  for (let i = 0; i < len; i++){
+    const av = ax[i], bv = bx[i];
+    if (av === undefined) return -1;
+    if (bv === undefined) return 1;
+    if (typeof av === "number" && typeof bv === "number"){ if (av !== bv) return av - bv; }
+    else { const c = String(av).localeCompare(String(bv)); if (c) return c; }
+  }
+  return 0;
+}
+// The three columns Ravi asked to be able to sort by. Name/NRIC stay
+// click-to-sort-free — nothing was asked for those, and this keeps the
+// header row uncluttered.
+const MEMBER_SORT_COLUMNS = {
+  membershipNo: { label: "Membership No.", compare: (a, b) => naturalCompare(a.membershipNo || "", b.membershipNo || "") },
+  membershipType: { label: "Membership Type", compare: (a, b) => (a.membershipType || "").localeCompare(b.membershipType || "") },
+  status: { label: "Status", compare: (a, b) => (a.status || "Active").localeCompare(b.status || "Active") }
+};
+// Shared by the table render, Print, and Download CSV — so all three always
+// show/export exactly the same rows, in exactly the same order.
+function getFilteredSortedMembers(){
   const q = document.getElementById("members-search").value.trim().toLowerCase();
+  let rows = membersState.rows.filter(m => !q || (m.name + " " + m.nric + " " + m.membershipNo).toLowerCase().includes(q));
+  const col = membersState.sortKey && MEMBER_SORT_COLUMNS[membersState.sortKey];
+  if (col){
+    const dir = membersState.sortDir === "desc" ? -1 : 1;
+    rows = rows.slice().sort((a, b) => col.compare(a, b) * dir);
+  }
+  return rows;
+}
+function renderMembersTable(){
   const tbody = document.querySelector("#members-table tbody");
-  document.querySelector("#members-table thead").innerHTML = "<tr><th>Name</th><th>NRIC</th><th>Membership No.</th><th>Type</th><th>Status</th><th>Actions</th></tr>";
-  const rows = membersState.rows.filter(m => !q || (m.name + " " + m.nric + " " + m.membershipNo).toLowerCase().includes(q));
+  const thead = document.querySelector("#members-table thead");
+  const arrow = key => membersState.sortKey === key ? `<span class="sort-arrow">${membersState.sortDir === "desc" ? "▼" : "▲"}</span>` : "";
+  thead.innerHTML = `<tr>
+    <th>Name</th><th>NRIC</th>
+    <th class="sortable" data-sort="membershipNo">Membership No.${arrow("membershipNo")}</th>
+    <th class="sortable" data-sort="membershipType">Membership Type${arrow("membershipType")}</th>
+    <th class="sortable" data-sort="status">Status${arrow("status")}</th>
+    <th>Actions</th>
+  </tr>`;
+  thead.querySelectorAll("th.sortable").forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+      membersState.sortDir = membersState.sortKey === key && membersState.sortDir === "asc" ? "desc" : "asc";
+      membersState.sortKey = key;
+      renderMembersTable();
+    });
+  });
+  const rows = getFilteredSortedMembers();
   tbody.innerHTML = "";
   if (!rows.length){ tbody.innerHTML = `<tr><td colspan="6"><div class="empty-note">No members found.</div></td></tr>`; return; }
   rows.forEach(m => {
@@ -1302,13 +1387,35 @@ document.getElementById("members-search").addEventListener("input", renderMember
 document.getElementById("members-add").addEventListener("click", () => openMemberForm(null));
 document.getElementById("members-export").addEventListener("click", () => {
   const rows = [["Name","NRIC","Membership No.","Membership Type","Status"]];
-  membersState.rows.forEach(m => rows.push([m.name, m.nric, m.membershipNo, m.membershipType, m.status || "Active"]));
+  // Exports whatever is currently searched/sorted on screen, not the whole
+  // unfiltered list — so the file matches what Ravi is actually looking at.
+  getFilteredSortedMembers().forEach(m => rows.push([m.name, m.nric, m.membershipNo, m.membershipType, m.status || "Active"]));
   const csv = rows.map(r => r.map(c => { const s = String(c == null ? "" : c); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a"); a.href = url; a.download = "members.csv";
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
+document.getElementById("members-print").addEventListener("click", () => {
+  const rows = getFilteredSortedMembers();
+  const q = document.getElementById("members-search").value.trim();
+  const sortNote = membersState.sortKey
+    ? ` — sorted by ${MEMBER_SORT_COLUMNS[membersState.sortKey].label} (${membersState.sortDir === "desc" ? "descending" : "ascending"})`
+    : "";
+  const filterNote = q ? ` — filtered: "${q}"` : "";
+  document.getElementById("members-print-heading").textContent =
+    `Membership Directory — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote} — printed ${new Date().toLocaleDateString()}`;
+  // "printing-members" is what tells the @media print rules (see the <style>
+  // block) that this Print button — not a stray Ctrl+P on some other tab —
+  // is the one producing this printout; it's what safely narrows the page
+  // down to just this table instead of the whole admin UI. Removed again
+  // once the print dialog closes (or after a few seconds as a fallback, in
+  // case a browser doesn't fire "afterprint").
+  document.body.classList.add("printing-members");
+  window.print();
+  setTimeout(() => document.body.classList.remove("printing-members"), 5000);
+});
+window.addEventListener("afterprint", () => document.body.classList.remove("printing-members"));
 document.getElementById("members-bulk-toggle").addEventListener("click", () => document.getElementById("members-bulk-box").classList.toggle("show"));
 document.getElementById("members-bulk-cancel").addEventListener("click", () => document.getElementById("members-bulk-box").classList.remove("show"));
 document.getElementById("members-bulk-submit").addEventListener("click", async () => {
