@@ -149,6 +149,7 @@
        for it gone from print specifically, so only this line is hidden;
        the temple name/logo above it stays, same as before. */
     body.printing-members .app-header-text p.sub,
+    body.printing-members .app-title-line2,
     body.printing-members .status-msg,
     body.printing-members .tab-switch,
     body.printing-members #tab-members .panel-hint,
@@ -1462,11 +1463,11 @@ function printMembers(){
       body = groupHtml("Life", lifeRows) + groupHtml("Ordinary", ordinaryRows); printedCount = rows.length; typeNote = "";
     }
     document.getElementById("members-print-bytype").innerHTML =
-      `<h2>Membership Directory — ${printedCount} record${printedCount === 1 ? "" : "s"}${typeNote}${filterNote}${sortNote}${dateNote}</h2>` +
+      `<h2>Membership Listing — ${printedCount} record${printedCount === 1 ? "" : "s"}${typeNote}${filterNote}${sortNote}${dateNote}</h2>` +
       (body || `<div class="empty-note">No members found.</div>`);
   } else {
     document.getElementById("members-print-heading").textContent =
-      `Membership Directory — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote}${dateNote}`;
+      `Membership Listing — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote}${dateNote}`;
   }
 
   // "printing-members" is what tells the @media print rules (see the <style>
