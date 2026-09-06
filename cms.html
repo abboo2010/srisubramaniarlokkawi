@@ -128,18 +128,27 @@
   .bulk-box textarea{width:100%; min-height:140px; padding:10px; border-radius:var(--radius-sm); border:1.5px solid var(--cream-100); font-family:monospace; font-size:12.5px;}
 
   .print-only-heading{display:none;}
+  /* Populated only right before printing in "split by type" mode (see
+     printMembers() below) — two separate Life / Ordinary tables instead of
+     the one on-screen table. Stays empty and hidden the rest of the time. */
+  #members-print-bytype{display:none;}
   /* Printing the admin CMS by accident (a stray Ctrl+P on any tab) would
      dump a screenshot of internal tools/NRIC data onto paper — so printing
-     stays blocked (body{display:none}) UNLESS the Membership tab's own
-     Print button explicitly opts in by adding "printing-members" to <body>
-     right before calling window.print() (see members-print's click handler
-     in the script below), which removes itself again right after. That is
-     the ONLY path that can produce printed output from this page. */
+     stays blocked (body{display:none}) UNLESS one of the Membership tab's
+     own Print buttons explicitly opts in by adding "printing-members" to
+     <body> right before calling window.print() (see printMembers() in the
+     script below), which removes itself again right after. That is the
+     ONLY path that can produce printed output from this page. */
   @media print{
     body{display:none;}
     body.printing-members{display:block !important;}
     body.printing-members::before, body.printing-members::after{content:none;}
     body.printing-members .app-header-row .admin-logo{width:40px; height:40px;}
+    /* The header's own explanatory blurb ("Edit the Hero Banner...") reads
+       like leftover on-screen instructions on a printed page — Ravi asked
+       for it gone from print specifically, so only this line is hidden;
+       the temple name/logo above it stays, same as before. */
+    body.printing-members .app-header-text p.sub,
     body.printing-members .status-msg,
     body.printing-members .tab-switch,
     body.printing-members #tab-members .panel-hint,
@@ -153,6 +162,14 @@
     body.printing-members .table-wrap{max-height:none; overflow:visible;}
     body.printing-members table{box-shadow:none; border:1px solid #ccc;}
     body.printing-members .print-only-heading{display:block; margin:14px 0 6px; font-size:14px; color:var(--ink-600); font-weight:700;}
+    /* "Split by Type" mode swaps which block shows: hide the normal single
+       table (and its heading), show the two-table breakdown instead. */
+    body.printing-members-bytype .print-only-heading,
+    body.printing-members-bytype .table-wrap{display:none !important;}
+    body.printing-members-bytype #members-print-bytype{display:block !important;}
+    #members-print-bytype h2{margin:14px 0 6px; font-size:14px; color:var(--ink-600); font-weight:700;}
+    #members-print-bytype h3{margin:18px 0 8px; color:var(--maroon-800); font-size:13.5px;}
+    #members-print-bytype .empty-note{padding:8px 0; font-size:12.5px;}
   }
 </style>
 </head>
@@ -318,7 +335,8 @@
     <div class="toolbar">
       <input type="text" id="members-search" placeholder="Search name, NRIC, or membership no…" />
       <button id="members-refresh">Refresh</button>
-      <button id="members-print">Print</button>
+      <button id="members-print">Print (single listing)</button>
+      <button id="members-print-bytype-btn">Print (split by Type)</button>
       <button id="members-export">Download CSV</button>
       <button id="members-bulk-toggle">Bulk Import</button>
       <button class="primary" id="members-add">+ Add Member</button>
@@ -332,6 +350,9 @@
     <div id="members-panel" class="edit-panel"></div>
     <h2 class="print-only-heading" id="members-print-heading"></h2>
     <div class="table-wrap"><table id="members-table"><thead></thead><tbody></tbody></table></div>
+    <!-- Filled in only right before a "Print (split by Type)" print — see
+         printMembers() below. Empty and hidden the rest of the time. -->
+    <div id="members-print-bytype"></div>
   </div>
 
   <!-- ================= CONTACT US (singleton) ================= -->
@@ -1396,26 +1417,61 @@ document.getElementById("members-export").addEventListener("click", () => {
   const a = document.createElement("a"); a.href = url; a.download = "members.csv";
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
-document.getElementById("members-print").addEventListener("click", () => {
+// Shared by both Print buttons. mode "single" prints the one on-screen
+// table as-is (unchanged from before); mode "byType" instead builds two
+// separate Life / Ordinary tables (each in currently-searched/sorted order)
+// into the normally-hidden #members-print-bytype container and prints that
+// instead — added because Ravi asked to be able to print the two
+// membership types as separate listings, as well as keeping the option to
+// print everyone together in one list.
+function printMembers(mode){
   const rows = getFilteredSortedMembers();
   const q = document.getElementById("members-search").value.trim();
   const sortNote = membersState.sortKey
     ? ` — sorted by ${MEMBER_SORT_COLUMNS[membersState.sortKey].label} (${membersState.sortDir === "desc" ? "descending" : "ascending"})`
     : "";
   const filterNote = q ? ` — filtered: "${q}"` : "";
-  document.getElementById("members-print-heading").textContent =
-    `Membership Directory — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote} — printed ${new Date().toLocaleDateString()}`;
+  const dateNote = ` — printed ${new Date().toLocaleDateString()}`;
+
+  if (mode === "byType"){
+    const groupHtml = (typeLabel, groupRows) => {
+      if (!groupRows.length) return "";
+      const tableRows = groupRows.map(m => `<tr>
+        <td>${escHtml(m.name)}</td><td>${escHtml(m.nric)}</td><td>${escHtml(m.membershipNo)}</td>
+        <td><span class="status-dot ${statusDotClass(m.status)}"></span>${escHtml(m.status || "Active")}</td>
+      </tr>`).join("");
+      return `
+        <h3>${escHtml(typeLabel)} Members (${groupRows.length})</h3>
+        <table><thead><tr><th>Name</th><th>NRIC</th><th>Membership No.</th><th>Status</th></tr></thead>
+        <tbody>${tableRows}</tbody></table>`;
+    };
+    const lifeRows = rows.filter(m => m.membershipType === "Life");
+    const ordinaryRows = rows.filter(m => m.membershipType !== "Life");
+    const body = groupHtml("Life", lifeRows) + groupHtml("Ordinary", ordinaryRows);
+    document.getElementById("members-print-bytype").innerHTML =
+      `<h2>Membership Directory — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote}${dateNote}</h2>` +
+      (body || `<div class="empty-note">No members found.</div>`);
+  } else {
+    document.getElementById("members-print-heading").textContent =
+      `Membership Directory — ${rows.length} record${rows.length === 1 ? "" : "s"}${filterNote}${sortNote}${dateNote}`;
+  }
+
   // "printing-members" is what tells the @media print rules (see the <style>
-  // block) that this Print button — not a stray Ctrl+P on some other tab —
-  // is the one producing this printout; it's what safely narrows the page
-  // down to just this table instead of the whole admin UI. Removed again
-  // once the print dialog closes (or after a few seconds as a fallback, in
-  // case a browser doesn't fire "afterprint").
+  // block) that one of these two Print buttons — not a stray Ctrl+P on some
+  // other tab — is the one producing this printout; it's what safely
+  // narrows the page down to just the Membership content instead of the
+  // whole admin UI. "printing-members-bytype" additionally swaps which
+  // block is shown (the two-table breakdown instead of the single table).
+  // Both are removed again once the print dialog closes (or after a few
+  // seconds as a fallback, in case a browser doesn't fire "afterprint").
   document.body.classList.add("printing-members");
+  if (mode === "byType") document.body.classList.add("printing-members-bytype");
   window.print();
-  setTimeout(() => document.body.classList.remove("printing-members"), 5000);
-});
-window.addEventListener("afterprint", () => document.body.classList.remove("printing-members"));
+  setTimeout(() => document.body.classList.remove("printing-members", "printing-members-bytype"), 5000);
+}
+document.getElementById("members-print").addEventListener("click", () => printMembers("single"));
+document.getElementById("members-print-bytype-btn").addEventListener("click", () => printMembers("byType"));
+window.addEventListener("afterprint", () => document.body.classList.remove("printing-members", "printing-members-bytype"));
 document.getElementById("members-bulk-toggle").addEventListener("click", () => document.getElementById("members-bulk-box").classList.toggle("show"));
 document.getElementById("members-bulk-cancel").addEventListener("click", () => document.getElementById("members-bulk-box").classList.remove("show"));
 document.getElementById("members-bulk-submit").addEventListener("click", async () => {
