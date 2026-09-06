@@ -848,6 +848,24 @@ img{display:block;max-width:100%;}
   width:270px;max-width:calc(100vw - 32px);
   background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);
   overflow:hidden;
+  transform-origin:right bottom;
+  /* Small-size + gentle float, per Ravi's reference (click4techsolutions.com's
+     own WhatsApp widget): scaling the whole card down from a fixed corner
+     (transform-origin: right bottom, so it shrinks toward the corner it's
+     anchored to instead of drifting off-screen) shrinks every part of it —
+     photo, text, button — together and in proportion, the same trick the
+     reference site uses, rather than hand-tuning every sub-element's own
+     size. animation adds the same continuous gentle up/down "float" bob the
+     reference widget has. Respects prefers-reduced-motion below. */
+  animation:waWidgetFloat 3s ease-in-out infinite;
+}
+@keyframes waWidgetFloat{
+  0%{transform:scale(.6) translateY(0);}
+  50%{transform:scale(.6) translateY(-8px);}
+  100%{transform:scale(.6) translateY(0);}
+}
+@media (prefers-reduced-motion:reduce){
+  .wa-widget{animation:none;transform:scale(.6);}
 }
 .wa-widget-close{
   position:absolute;top:8px;right:8px;z-index:1;
@@ -869,8 +887,14 @@ img{display:block;max-width:100%;}
 }
 .wa-widget-button svg{width:18px;height:18px;flex-shrink:0;}
 @media (max-width:480px){
-  .wa-widget{right:12px;bottom:70px;width:calc(100vw - 24px);}
-  .wa-widget-image{height:160px;}
+  /* Previously this also shrank .wa-widget's own width to fit narrow phone
+     screens (the card used to render at its full, unscaled size). Now that
+     .wa-widget is scaled down to 60% everywhere (see the base rule above),
+     the card is already small enough to fit any phone width comfortably —
+     re-widening it back to near-full-screen here would make it look
+     proportionally BIGGER on mobile than on desktop instead of matching,
+     so this breakpoint now only repositions it, same base size as desktop. */
+  .wa-widget{right:12px;bottom:70px;}
 }
 
 @media (max-width:860px){
