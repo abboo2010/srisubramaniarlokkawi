@@ -335,13 +335,13 @@
     <div class="toolbar">
       <input type="text" id="members-search" placeholder="Search name, NRIC, or membership no…" />
       <button id="members-refresh">Refresh</button>
-      <button id="members-print">Print (single listing)</button>
-      <select id="members-print-type-select" title="Which Membership Type to print">
-        <option value="both">Life &amp; Ordinary (split)</option>
-        <option value="Life">Life only</option>
-        <option value="Ordinary">Ordinary only</option>
+      <select id="members-print-mode" title="What to print">
+        <option value="all">Print: Life &amp; Ordinary together (one list)</option>
+        <option value="both">Print: Life &amp; Ordinary as separate lists</option>
+        <option value="Life">Print: Life members only</option>
+        <option value="Ordinary">Print: Ordinary members only</option>
       </select>
-      <button id="members-print-bytype-btn">Print (split by Type)</button>
+      <button id="members-print-btn">Print</button>
       <button id="members-export">Download CSV</button>
       <button id="members-bulk-toggle">Bulk Import</button>
       <button class="primary" id="members-add">+ Add Member</button>
@@ -1422,14 +1422,14 @@ document.getElementById("members-export").addEventListener("click", () => {
   const a = document.createElement("a"); a.href = url; a.download = "members.csv";
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
 });
-// Shared by both Print buttons. mode "single" prints the one on-screen
-// table as-is (unchanged from before); mode "byType" instead builds two
-// separate Life / Ordinary tables (each in currently-searched/sorted order)
-// into the normally-hidden #members-print-bytype container and prints that
-// instead — added because Ravi asked to be able to print the two
-// membership types as separate listings, as well as keeping the option to
-// print everyone together in one list.
-function printMembers(mode){
+// One Print button, driven by the "members-print-mode" dropdown next to
+// it — "all" prints everyone in one plain list (the original single-table
+// print); "both"/"Life"/"Ordinary" all go through the split-by-type layout
+// below, just with a different subset of it shown: "both" prints Life and
+// Ordinary as two separate tables one after another, "Life"/"Ordinary"
+// print only that one group, as a single table.
+function printMembers(){
+  const choice = document.getElementById("members-print-mode").value;
   const rows = getFilteredSortedMembers();
   const q = document.getElementById("members-search").value.trim();
   const sortNote = membersState.sortKey
@@ -1437,8 +1437,9 @@ function printMembers(mode){
     : "";
   const filterNote = q ? ` — filtered: "${q}"` : "";
   const dateNote = ` — printed ${new Date().toLocaleDateString()}`;
+  const byType = choice !== "all";
 
-  if (mode === "byType"){
+  if (byType){
     const groupHtml = (typeLabel, groupRows) => {
       if (!groupRows.length) return "";
       const tableRows = groupRows.map(m => `<tr>
@@ -1452,16 +1453,12 @@ function printMembers(mode){
     };
     const lifeRows = rows.filter(m => m.membershipType === "Life");
     const ordinaryRows = rows.filter(m => m.membershipType !== "Life");
-    // The dropdown next to this button — "Life & Ordinary (split)" (both,
-    // as two tables, the original behavior), "Life only", or "Ordinary
-    // only" (print just that one group, as a single table).
-    const typeChoice = document.getElementById("members-print-type-select").value;
     let body, printedCount, typeNote;
-    if (typeChoice === "Life"){
+    if (choice === "Life"){
       body = groupHtml("Life", lifeRows); printedCount = lifeRows.length; typeNote = " — Life members only";
-    } else if (typeChoice === "Ordinary"){
+    } else if (choice === "Ordinary"){
       body = groupHtml("Ordinary", ordinaryRows); printedCount = ordinaryRows.length; typeNote = " — Ordinary members only";
-    } else {
+    } else { // "both"
       body = groupHtml("Life", lifeRows) + groupHtml("Ordinary", ordinaryRows); printedCount = rows.length; typeNote = "";
     }
     document.getElementById("members-print-bytype").innerHTML =
@@ -1473,20 +1470,20 @@ function printMembers(mode){
   }
 
   // "printing-members" is what tells the @media print rules (see the <style>
-  // block) that one of these two Print buttons — not a stray Ctrl+P on some
-  // other tab — is the one producing this printout; it's what safely
-  // narrows the page down to just the Membership content instead of the
-  // whole admin UI. "printing-members-bytype" additionally swaps which
-  // block is shown (the two-table breakdown instead of the single table).
-  // Both are removed again once the print dialog closes (or after a few
-  // seconds as a fallback, in case a browser doesn't fire "afterprint").
+  // block) that this Print button — not a stray Ctrl+P on some other tab —
+  // is the one producing this printout; it's what safely narrows the page
+  // down to just the Membership content instead of the whole admin UI.
+  // "printing-members-bytype" additionally swaps which block is shown (the
+  // Life/Ordinary breakdown instead of the single table) whenever the
+  // dropdown isn't set to "all". Both are removed again once the print
+  // dialog closes (or after a few seconds as a fallback, in case a browser
+  // doesn't fire "afterprint").
   document.body.classList.add("printing-members");
-  if (mode === "byType") document.body.classList.add("printing-members-bytype");
+  if (byType) document.body.classList.add("printing-members-bytype");
   window.print();
   setTimeout(() => document.body.classList.remove("printing-members", "printing-members-bytype"), 5000);
 }
-document.getElementById("members-print").addEventListener("click", () => printMembers("single"));
-document.getElementById("members-print-bytype-btn").addEventListener("click", () => printMembers("byType"));
+document.getElementById("members-print-btn").addEventListener("click", printMembers);
 window.addEventListener("afterprint", () => document.body.classList.remove("printing-members", "printing-members-bytype"));
 document.getElementById("members-bulk-toggle").addEventListener("click", () => document.getElementById("members-bulk-box").classList.toggle("show"));
 document.getElementById("members-bulk-cancel").addEventListener("click", () => document.getElementById("members-bulk-box").classList.remove("show"));
