@@ -440,6 +440,13 @@ img{display:block;max-width:100%;}
 .cal-month-label{
   font-family:var(--font-display);font-size:18px;color:var(--maroon-800);margin-left:4px;
 }
+.cal-toolbar-right{display:flex;align-items:center;}
+.cal-year-select{
+  border:1px solid var(--cream-100);background:#fff;color:var(--ink-900);
+  padding:8px 12px;border-radius:999px;font-size:12.5px;font-weight:700;
+  font-family:inherit;cursor:pointer;
+}
+.cal-year-select:focus{outline:2px solid var(--maroon-800);outline-offset:1px;}
 .cal-weekdays{
   display:grid;grid-template-columns:repeat(7,1fr);
   border-bottom:1px solid var(--cream-100);

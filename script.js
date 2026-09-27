@@ -586,12 +586,30 @@ function renderCalendarWeekdays(){
   (WEEKDAY_LABELS[currentLang] || WEEKDAY_LABELS.en).forEach(w => calWeekdays.appendChild(el(`<div>${w}</div>`)));
 }
 
+// Lets a visitor jump straight to a year that actually has poojas on the
+// calendar (e.g. 2027) without clicking "next month" a dozen times. The
+// option list is derived from the real event data every render — rather
+// than hardcoded to 2026/2027 — so a future year appears here automatically
+// the moment prayers/events get added for it, with no code change needed.
+function populateCalYearSelect(){
+  const sel = document.getElementById("calYearSelect");
+  if(!sel) return;
+  const years = new Set(getCalendarEvents().map(e => Number(e.iso.slice(0,4))));
+  years.add(today.getFullYear());
+  years.add(calYear);
+  const sorted = Array.from(years).sort((a,b)=>a-b);
+  const optionsHtml = sorted.map(y => `<option value="${y}"${y===calYear ? " selected" : ""}>${y}</option>`).join("");
+  if(sel.innerHTML !== optionsHtml) sel.innerHTML = optionsHtml;
+  sel.value = String(calYear);
+}
+
 function renderCalendarGrid(){
   const grid = document.getElementById("calGrid");
   grid.innerHTML = "";
   const eventsByDate = buildEventsByDate();
   const monthNames = MONTH_NAMES[currentLang] || MONTH_NAMES.en;
   document.getElementById("calMonthLabel").textContent = `${monthNames[calMonth]} ${calYear}`;
+  populateCalYearSelect();
 
   const firstOfMonth = new Date(calYear, calMonth, 1);
   const startOffset = firstOfMonth.getDay();
@@ -698,6 +716,10 @@ document.getElementById("calNext").addEventListener("click", ()=>{
 });
 document.getElementById("calToday").addEventListener("click", ()=>{
   calMonth = today.getMonth(); calYear = today.getFullYear();
+  renderCalendarGrid();
+});
+document.getElementById("calYearSelect").addEventListener("change", (ev)=>{
+  calYear = Number(ev.target.value);
   renderCalendarGrid();
 });
 
