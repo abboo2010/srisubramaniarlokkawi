@@ -408,7 +408,7 @@
           <tr>
             <th class="select-col"><input type="checkbox" id="scheduleSelectAll" title="Select all shown"></th>
             <th>Date</th><th>Pooja</th><th>Category</th><th>Pooja Type</th><th>Ubayam Fee</th><th>Ubayakarar</th><th>Annathanam</th>
-            <th>Participants</th><th>Status</th><th>Actions</th>
+            <th>Participants</th><th>Status</th><th>Visibility</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="scheduleBody"></tbody>
@@ -1458,7 +1458,8 @@
         <td><span class="pill ${p.ubayakararOpen ? "open" : "taken"}">${p.ubayakararOpen ? "Open" : "Taken"}</span>${p.ubayakararSponsor ? "<br>" + p.ubayakararSponsor : ""}</td>
         <td><span class="pill ${p.annathanamOpen ? "open" : "taken"}">${p.annathanamOpen ? "Open" : "Taken"}</span>${p.annathanamSponsor ? "<br>" + p.annathanamSponsor : ""}</td>
         <td><span class="pill ${p.participantsEnabled ? "open" : "taken"}">${p.participantsEnabled ? "Yes" : "No"}</span>${p.participantsEnabled && p.participantFee ? "<br>RM " + p.participantFee : ""}</td>
-        <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}${p.published === false ? '<br><span class="pill taken" title="Invisible and un-bookable on the public site until published">Draft</span>' : ''}</td>
+        <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}</td>
+        <td><span class="pill ${p.published === false ? "taken" : "open"}" title="${p.published === false ? "Invisible and un-bookable on the public site" : "Visible and bookable on the public site"}">${p.published === false ? "Draft" : "Published"}</span></td>
         <td class="row-actions">
           <button data-edit="${p.id}">Edit</button>
           ${manageBtn}
