@@ -24,6 +24,7 @@ const VALID_ROLES = ["ubayakarar", "annathanam", "participant"];
 
 const ERROR_MESSAGES = {
   PRAYER_NOT_FOUND: { code: 404, message: "Pooja/prayer not found." },
+  PRAYER_NOT_PUBLISHED: { code: 409, message: "Registration for this pooja isn't open yet. Please check back soon." },
   PRAYER_OVER: { code: 409, message: "This pooja has already taken place. Registration is closed." },
   ROLE_TAKEN: { code: 409, message: "Sorry — someone just reserved this slot. Please choose another pooja or role." },
   PARTICIPANT_NOT_ENABLED: { code: 409, message: "Participant registration is not open for this pooja." },

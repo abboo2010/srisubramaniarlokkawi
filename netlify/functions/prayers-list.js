@@ -13,10 +13,22 @@
 // public prayer detail view can show "Reference: AP-..." and (for
 // Ubayakarar, the only one of the two the site ever collects payment
 // for) a Paid/Not Paid indicator next to the Ubayam Fee.
+//
+// "published" rows only, for anyone WITHOUT a valid admin session —
+// this is how a still-unconfirmed year (e.g. next year's schedule,
+// duplicated ahead of the priest confirming real dates) stays
+// invisible to devotees and un-bookable, while still showing up for
+// a logged-in committee member reviewing it in admin-prayers.html's
+// Schedule tab (which sends its admin bearer token on this same
+// endpoint — see loadSchedule() in admin-prayers.html). A request
+// with no token, or an invalid/expired one, silently falls back to
+// the public (published-only) view rather than erroring — this
+// endpoint's core contract is "always works for the public".
 // ============================================================
 const { supabaseClient } = require("./_supabase");
+const { requireAdmin } = require("./_admin-auth");
 
-exports.handler = async () => {
+exports.handler = async (event) => {
   const supabase = supabaseClient();
   if (!supabase) {
     // Not configured yet — tell the frontend so it can fall back to
@@ -29,9 +41,22 @@ exports.handler = async () => {
   }
 
   try {
+    // Opportunistic auth: a valid admin token unlocks unpublished rows too;
+    // anything else (no token, expired, wrong access) just means "public
+    // view" — never an error, since this endpoint must always work for
+    // an ordinary site visitor with no token at all.
+    let isAdmin = false;
+    try {
+      const authResult = await requireAdmin(supabase, event, { need: "prayers" });
+      isAdmin = authResult.ok;
+    } catch { /* no-op — fall back to public view */ }
+
+    let prayerQuery = supabase.from("prayers").select("*").order("date", { ascending: true });
+    if (!isAdmin) prayerQuery = prayerQuery.eq("published", true);
+
     const [{ data: prayerRows, error: prayerErr }, { data: catererRows, error: catererErr }, { data: participantRows, error: participantErr }, { data: sponsorRows, error: sponsorErr }] =
       await Promise.all([
-        supabase.from("prayers").select("*").order("date", { ascending: true }),
+        prayerQuery,
         supabase.from("caterers").select("*").order("sort_order", { ascending: true }),
         supabase.from("bookings").select("prayer_id, name, participant_count").eq("role", "participant").neq("status", "Cancelled"),
         supabase.from("bookings").select("prayer_id, role, booking_id, status, created_at")
@@ -59,7 +84,8 @@ exports.handler = async () => {
       participantsEnabled: p.participants_enabled,
       participantFee: p.participant_fee,
       notes: p.notes || "",
-      statusOverride: p.status_override
+      statusOverride: p.status_override,
+      published: p.published !== false
     }));
 
     // id is included so admin-prayers.html's Edit/Delete caterer buttons have
