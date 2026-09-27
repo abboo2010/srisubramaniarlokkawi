@@ -95,6 +95,8 @@
   .row-actions button.confirm{color:var(--green-600); border-color:var(--green-600);}
   .row-actions button.cancel, .row-actions button.delete{color:#a4232f; border-color:#a4232f;}
   .row-actions button.participants{color:var(--maroon-800); border-color:var(--gold-500); background:rgba(201,154,62,0.12);}
+  .row-actions button.publish{color:var(--green-600); border-color:var(--green-600);}
+  .row-actions button.unpublish{color:#a4232f; border-color:#a4232f;}
   .row-actions button:disabled{opacity:.5; cursor:default;}
 
   .empty-note{padding:30px; text-align:center; color:var(--ink-600); font-size:13px;}
@@ -333,10 +335,13 @@
       <button id="printScheduleBtn">Print</button>
       <button id="exportScheduleBtn">Export CSV</button>
       <button id="duplicateScheduleBtn" disabled title="Tick the checkbox on one or more rows below, then click this to duplicate them.">Duplicate Selected</button>
+      <button id="publishScheduleBtn" disabled title="Tick the checkbox on one or more rows below, then click this to make them visible/bookable on the public site.">Publish Selected</button>
+      <button id="unpublishScheduleBtn" disabled title="Tick the checkbox on one or more rows below, then click this to hide them from the public site again.">Unpublish Selected</button>
       <button class="primary" id="addPrayerBtn">+ Add Pooja</button>
     </div>
 
     <p class="panel-hint" style="margin:-6px 0 14px;">Not every pooja has participants apart from its Ubayakarar/Annathanam sponsor — check "Allow devotees to self-register as a Participant" in a pooja's Edit form for the ones that do, and its 👥 Manage Participants button appears here so you can add, edit, or delete names for it (this works the same for a past pooja as an upcoming one — checking the box never opens public registration for an event that's already over, it only unlocks your own admin list for it).</p>
+    <p class="panel-hint" style="margin:-6px 0 14px;">A pooja marked <b>Draft</b> is invisible on the public Event Calendar and Prayers &amp; Registration screen, and can't be registered for even by direct link — use this for a whole batch (like next year's schedule) duplicated ahead of the priest confirming real dates. Publish it (per row, or select several and use "Publish Selected") once it's ready for devotees to see.</p>
 
     <div class="edit-panel" id="prayerEditPanel">
       <h2 id="prayerEditPanelTitle">Add Pooja</h2>
@@ -1346,7 +1351,7 @@
   // ================= SCHEDULE =================
   async function loadSchedule(){
     try {
-      const res = await fetch("/.netlify/functions/prayers-list", { cache: "no-store" });
+      const res = await fetch("/.netlify/functions/prayers-list", { cache: "no-store", headers: authHeaders() });
       const data = await res.json();
       if (!data.configured){
         showStatus("Database not configured yet — set SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in Netlify.", "error");
@@ -1453,10 +1458,11 @@
         <td><span class="pill ${p.ubayakararOpen ? "open" : "taken"}">${p.ubayakararOpen ? "Open" : "Taken"}</span>${p.ubayakararSponsor ? "<br>" + p.ubayakararSponsor : ""}</td>
         <td><span class="pill ${p.annathanamOpen ? "open" : "taken"}">${p.annathanamOpen ? "Open" : "Taken"}</span>${p.annathanamSponsor ? "<br>" + p.annathanamSponsor : ""}</td>
         <td><span class="pill ${p.participantsEnabled ? "open" : "taken"}">${p.participantsEnabled ? "Yes" : "No"}</span>${p.participantsEnabled && p.participantFee ? "<br>RM " + p.participantFee : ""}</td>
-        <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}</td>
+        <td>${p.statusOverride ? "Forced: " + p.statusOverride : "Automatic"}${p.published === false ? '<br><span class="pill taken" title="Invisible and un-bookable on the public site until published">Draft</span>' : ''}</td>
         <td class="row-actions">
           <button data-edit="${p.id}">Edit</button>
           ${manageBtn}
+          <button class="${p.published === false ? "publish" : "unpublish"}" data-publish-toggle="${p.id}" data-next="${p.published === false}">${p.published === false ? "Publish" : "Unpublish"}</button>
           <button class="delete" data-delete="${p.id}">Delete</button>
         </td>
       `;
@@ -1465,6 +1471,7 @@
     body.querySelectorAll("button[data-edit]").forEach(btn => btn.addEventListener("click", () => openPrayerEdit(btn.dataset.edit)));
     body.querySelectorAll("button[data-participants]").forEach(btn => btn.addEventListener("click", () => openParticipantsModal(btn.dataset.participants)));
     body.querySelectorAll("button[data-delete]").forEach(btn => btn.addEventListener("click", () => deletePrayer(btn.dataset.delete)));
+    body.querySelectorAll("button[data-publish-toggle]").forEach(btn => btn.addEventListener("click", () => setPrayerPublished([btn.dataset.publishToggle], btn.dataset.next === "true")));
     document.getElementById("scheduleSelectAll").checked = false;
     updateScheduleDuplicateButtonState();
     body.querySelectorAll(".schedule-select").forEach(cb => {
@@ -1474,13 +1481,52 @@
 
   function updateScheduleDuplicateButtonState(){
     const n = document.querySelectorAll(".schedule-select:checked").length;
-    const btn = document.getElementById("duplicateScheduleBtn");
-    btn.disabled = n === 0;
-    btn.textContent = n ? `Duplicate Selected (${n})` : "Duplicate Selected";
+    const dupBtn = document.getElementById("duplicateScheduleBtn");
+    dupBtn.disabled = n === 0;
+    dupBtn.textContent = n ? `Duplicate Selected (${n})` : "Duplicate Selected";
+    document.getElementById("publishScheduleBtn").disabled = n === 0;
+    document.getElementById("unpublishScheduleBtn").disabled = n === 0;
   }
   document.getElementById("scheduleSelectAll").addEventListener("change", (e) => {
     document.querySelectorAll(".schedule-select").forEach(cb => { cb.checked = e.target.checked; });
     updateScheduleDuplicateButtonState();
+  });
+
+  // Flips one or more poojas' visibility on the public site. Used by both
+  // the per-row Publish/Unpublish button and the bulk Publish Selected /
+  // Unpublish Selected buttons above the table — a single request per id,
+  // sent one after another (these lists are small — a year's worth of
+  // poojas — so there's no need for anything fancier than a simple loop).
+  async function setPrayerPublished(ids, published){
+    if (!ids.length) return;
+    try {
+      for (const id of ids) {
+        const res = await fetch("/.netlify/functions/admin-prayers-crud", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ entity: "prayer", action: "update", data: { id, published } })
+        });
+        if (res.status === 401){ handleAuthExpired(); return; }
+        if (!res.ok){
+          const result = await res.json().catch(() => ({}));
+          showStatus(result.error || `Could not update "${id}".`, "error");
+          return;
+        }
+      }
+      showStatus(published ? `Published ${ids.length} pooja${ids.length > 1 ? "s" : ""}.` : `Unpublished ${ids.length} pooja${ids.length > 1 ? "s" : ""}.`, "ok");
+      loadSchedule();
+    } catch (err){
+      showStatus("Update failed.", "error");
+    }
+  }
+
+  document.getElementById("publishScheduleBtn").addEventListener("click", () => {
+    const ids = Array.from(document.querySelectorAll(".schedule-select:checked")).map(cb => cb.dataset.id);
+    setPrayerPublished(ids, true);
+  });
+  document.getElementById("unpublishScheduleBtn").addEventListener("click", () => {
+    const ids = Array.from(document.querySelectorAll(".schedule-select:checked")).map(cb => cb.dataset.id);
+    setPrayerPublished(ids, false);
   });
 
   // Shows/hides the Pooja Type field (Annual doesn't use it) and refreshes

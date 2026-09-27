@@ -56,6 +56,14 @@ function prayerRowFromInput(data) {
   if (data.participantFee !== undefined) row.participant_fee = data.participantFee === "" || data.participantFee === null ? null : Number(data.participantFee);
   if (data.notes !== undefined) row.notes = data.notes || "";
   if (data.statusOverride !== undefined) row.status_override = data.statusOverride || null;
+  // Whether this pooja is visible/bookable on the public site at all —
+  // separate from ubayakararOpen/annathanamOpen/participantsEnabled, which
+  // only matter once a pooja IS published. Lets a whole batch (e.g. next
+  // year's schedule, duplicated ahead of the priest confirming real dates)
+  // sit in admin-only draft until someone flips it on, via the Publish/
+  // Unpublish button in the Events table or the bulk "Publish Selected" /
+  // "Unpublish Selected" buttons above it.
+  if (data.published !== undefined) row.published = !!data.published;
   return row;
 }
 
