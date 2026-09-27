@@ -1680,8 +1680,53 @@
     }
   });
 
+  // Deleting a pooja that still has bookings against it fails at the
+  // database level (a foreign-key safety net, so a pooja with real
+  // registrations can't vanish by accident). Rather than just surfacing
+  // that as an opaque error and sending the admin off to Manage
+  // Participants (or SQL) to clear each one by hand, check up front and
+  // offer to delete the bookings together with the pooja in one confirm.
   async function deletePrayer(id){
-    if (!confirm("Delete this pooja from the schedule? This only works if it has no bookings recorded against it.")) return;
+    const p = allPrayers.find(x => x.id === id);
+    const relatedBookings = allBookings.filter(b => b.prayerId === id);
+
+    if (relatedBookings.length){
+      const names = relatedBookings.slice(0, 8).map(b => `• ${b.name} (${b.role})`).join("\n")
+        + (relatedBookings.length > 8 ? `\n…and ${relatedBookings.length - 8} more` : "");
+      const ok = confirm(
+        `"${p ? p.name : id}" has ${relatedBookings.length} booking${relatedBookings.length === 1 ? "" : "s"} recorded against it, so it can't be deleted on its own:\n\n${names}\n\n` +
+        `Delete this pooja AND all ${relatedBookings.length} of these bookings? This can't be undone.`
+      );
+      if (!ok) return;
+
+      let failed = 0;
+      for (const b of relatedBookings){
+        try {
+          const res = await fetch("/.netlify/functions/admin-delete-booking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ bookingId: b.bookingId })
+          });
+          if (res.status === 401){ handleAuthExpired(); return; }
+          if (res.ok){
+            allBookings = allBookings.filter(x => x.bookingId !== b.bookingId);
+          } else {
+            failed++;
+          }
+        } catch {
+          failed++;
+        }
+      }
+      renderBookings();
+      if (failed){
+        showStatus(`Deleted ${relatedBookings.length - failed} of ${relatedBookings.length} bookings, but ${failed} failed — pooja not deleted yet. Try again.`, "error");
+        return;
+      }
+      // fall through to delete the now-unblocked pooja
+    } else if (!confirm("Delete this pooja from the schedule?")) {
+      return;
+    }
+
     try {
       const res = await fetch("/.netlify/functions/admin-prayers-crud", {
         method: "POST",
@@ -1691,7 +1736,7 @@
       if (res.status === 401){ handleAuthExpired(); return; }
       const result = await res.json();
       if (!res.ok){ showStatus(result.error || "Delete failed — it may still have bookings recorded.", "error"); return; }
-      showStatus("Pooja deleted.", "ok");
+      showStatus(relatedBookings.length ? "Pooja and its bookings deleted." : "Pooja deleted.", "ok");
       loadSchedule();
     } catch (err){
       showStatus("Delete failed.", "error");
