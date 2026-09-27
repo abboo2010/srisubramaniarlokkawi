@@ -720,6 +720,7 @@ document.getElementById("calToday").addEventListener("click", ()=>{
 });
 document.getElementById("calYearSelect").addEventListener("change", (ev)=>{
   calYear = Number(ev.target.value);
+  calMonth = 0; // jumping to a different year starts at January, a clean point to browse from
   renderCalendarGrid();
 });
 
