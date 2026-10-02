@@ -41,8 +41,9 @@ let currentLang = "en";
 const TICKER = {
   enabled: true,
   message_en: "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
-  message_bm: "⚠️ LAMAN WEB MASIH DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Harap jangan menganggapnya sebagai maklumat rasmi atau muktamad.",
-  message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
+  message_bm: "⚠️ LAMAN WEB MASIH DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Sila jangan menganggapnya sebagai maklumat rasmi atau muktamad.",
+  message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்.",
+  message_zh: "⚠️ 网站建设中：此处显示的资料仅供测试与参考，尚未经庙宇管理理事会审核或批准。请勿视为正式或最终资料。"
 };
 
 // Bundled default for the Home Popup (editable from /cms.html's Home
@@ -52,14 +53,14 @@ const TICKER = {
 // it on from the CMS.
 const POPUP = {
   enabled: false,
-  title_en: "", title_bm: "", title_ta: "",
-  message_en: "", message_bm: "", message_ta: "",
+  title_en: "", title_bm: "", title_ta: "", title_zh: "",
+  message_en: "", message_bm: "", message_ta: "", message_zh: "",
   image_url: "",
   link_target: "",
   // Claude's own translation, not reviewed by a Tamil/Malay speaker on
   // the committee — freely editable any time from the CMS's Home Popup
   // tab, same caveat as every other bundled default text in this file.
-  link_label_en: "View", link_label_bm: "Lihat", link_label_ta: "பார்க்க"
+  link_label_en: "View", link_label_bm: "Lihat", link_label_ta: "பார்க்க", link_label_zh: "查看"
 };
 
 // Bundled default for the floating WhatsApp Widget (editable from
@@ -72,14 +73,14 @@ const POPUP = {
 const WA_WIDGET = {
   enabled: false,
   image_url: "",
-  heading_en: "", heading_bm: "", heading_ta: "",
-  description_en: "", description_bm: "", description_ta: "",
+  heading_en: "", heading_bm: "", heading_ta: "", heading_zh: "",
+  description_en: "", description_bm: "", description_ta: "", description_zh: "",
   phone_number: "",
-  message_en: "", message_bm: "", message_ta: "",
+  message_en: "", message_bm: "", message_ta: "", message_zh: "",
   // Claude's own translation, not reviewed by a Tamil/Malay speaker on
   // the committee — freely editable any time from the CMS's WhatsApp
   // Widget tab, same caveat as every other bundled default text here.
-  button_label_en: "Chat with Us", button_label_bm: "Berbual Dengan Kami", button_label_ta: "எங்களுடன் அரட்டையடிக்க"
+  button_label_en: "Chat with Us", button_label_bm: "Berbual Dengan Kami", button_label_ta: "எங்களுடன் அரட்டையடிக்க", button_label_zh: "与我们聊天"
 };
 
 // Bundled default for the Temple Committee screen. Declared HERE, not in
@@ -118,11 +119,13 @@ let COMMITTEE = {
 
 function eventTitle(ev){
   if (currentLang === "ta" && ev.title_ta) return ev.title_ta;
+  if (currentLang === "zh" && ev.title_zh) return ev.title_zh;
   if (currentLang === "bm" && ev.title_bm) return ev.title_bm;
   return ev.title;
 }
 function eventDesc(ev){
   if (currentLang === "ta" && ev.desc_ta) return ev.desc_ta;
+  if (currentLang === "zh" && ev.desc_zh) return ev.desc_zh;
   if (currentLang === "bm" && ev.desc_bm) return ev.desc_bm;
   return ev.desc || "";
 }
@@ -132,6 +135,14 @@ function firstSentence(text){
   if (!text) return "";
   const match = text.match(/^.*?[.!?](?=\s|$)/);
   return match ? match[0] : text;
+}
+// Home-tile text for the current language. Falls back to the bundled Simplified
+// Chinese copy (TILE_ZH in data.js) and then English, so a tile loaded from the
+// database that has no zh text yet never renders blank.
+function tileText(tItem, field){
+  const m = tItem[field] || {};
+  if (currentLang === "zh") return m.zh || ((TILE_ZH[tItem.key] || {})[field]) || m.en || "";
+  return m[currentLang] || m.en || "";
 }
 function t(key){ return (UI[currentLang] && UI[currentLang][key]) || UI.en[key] || ""; }
 function tf(obj, field){ return obj[field + "_" + currentLang] || obj[field + "_en"]; }
@@ -211,7 +222,7 @@ document.querySelectorAll(".lang-pill button").forEach(btn=>{
 });
 
 // ---------- Clock ----------
-const CLOCK_LOCALE = { en: "en-MY", bm: "ms-MY", ta: "ta-MY" };
+const CLOCK_LOCALE = { en: "en-MY", bm: "ms-MY", ta: "ta-MY", zh: "zh-Hans-MY" };
 function tickClock(){
   const now = new Date();
   const locale = CLOCK_LOCALE[currentLang] || "en-MY";
@@ -350,8 +361,8 @@ function renderHomeTiles(){
     const btn = el(`
       <button class="tile" data-goto="${dest}">
         <div class="tile-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${icon}</svg></div>
-        <h3>${tItem.title[currentLang]}</h3>
-        <p>${tItem.desc[currentLang]}</p>
+        <h3>${tileText(tItem, "title")}</h3>
+        <p>${tileText(tItem, "desc")}</p>
       </button>
     `);
     btn.addEventListener("click", ()=>goTo(dest));
@@ -523,8 +534,8 @@ function prayerToCalendarEvent(p){
   // name across en/bm/ta here too.
   return {
     iso: p.date,
-    title: p.name, title_bm: p.name, title_ta: p.name,
-    desc: p.notes || "", desc_bm: p.notes || "", desc_ta: p.notes || "",
+    title: p.name, title_bm: p.name, title_ta: p.name, title_zh: p.name,
+    desc: p.notes || "", desc_bm: p.notes || "", desc_ta: p.notes || "", desc_zh: p.notes || "",
     isPrayer: true, prayerId: p.id
   };
 }
@@ -545,21 +556,25 @@ function buildEventsByDate(){
 const MONTH_NAMES = {
   en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
   bm: ["Januari","Februari","Mac","April","Mei","Jun","Julai","Ogos","September","Oktober","November","Disember"],
+  zh: ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],
   ta: ["ஜனவரி","பிப்ரவரி","மார்ச்","ஏப்ரல்","மே","ஜூன்","ஜூலை","ஆகஸ்ட்","செப்டம்பர்","அக்டோபர்","நவம்பர்","டிசம்பர்"]
 };
 const WEEKDAY_LABELS = {
   en: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
   bm: ["Ahd","Isn","Sel","Rab","Kha","Jum","Sab"],
+  zh: ["日","一","二","三","四","五","六"],
   ta: ["ஞாயி","திங்","செவ்","புத","வியா","வெள்","சனி"]
 };
 const WEEKDAY_FULL = {
   en: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
   bm: ["Ahad","Isnin","Selasa","Rabu","Khamis","Jumaat","Sabtu"],
+  zh: ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"],
   ta: ["ஞாயிறு","திங்கள்","செவ்வாய்","புதன்","வியாழன்","வெள்ளி","சனி"]
 };
 const MONTH_ABBR = {
   en: ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"],
   bm: ["JAN","FEB","MAC","APR","MEI","JUN","JUL","OGO","SEP","OKT","NOV","DIS"],
+  zh: ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
   ta: ["ஜன","பிப்","மார்","ஏப்","மே","ஜூன்","ஜூலை","ஆக","செப்","அக்","நவ","டிச"]
 };
 function dayNum(iso){ return iso.split("-")[2]; }
@@ -572,7 +587,13 @@ function formatEventDate(iso){
   const dt = new Date(y, m-1, d);
   const weekdays = WEEKDAY_FULL[currentLang] || WEEKDAY_FULL.en;
   const months = MONTH_NAMES[currentLang] || MONTH_NAMES.en;
+  if (currentLang === "zh") return `${y}年${m}月${d}日 ${weekdays[dt.getDay()]}`;
   return `${weekdays[dt.getDay()]}, ${String(d).padStart(2,"0")} ${months[m-1]} ${y}`;
+}
+// "October 2026" style label; Chinese reads 2026年10月.
+function monthYearLabel(m, y){
+  if (currentLang === "zh") return `${y}年${m+1}月`;
+  return `${(MONTH_NAMES[currentLang] || MONTH_NAMES.en)[m]} ${y}`;
 }
 
 let calMonth = today.getMonth();
@@ -608,7 +629,7 @@ function renderCalendarGrid(){
   grid.innerHTML = "";
   const eventsByDate = buildEventsByDate();
   const monthNames = MONTH_NAMES[currentLang] || MONTH_NAMES.en;
-  document.getElementById("calMonthLabel").textContent = `${monthNames[calMonth]} ${calYear}`;
+  document.getElementById("calMonthLabel").textContent = monthYearLabel(calMonth, calYear);
   populateCalYearSelect();
 
   const firstOfMonth = new Date(calYear, calMonth, 1);
@@ -660,7 +681,7 @@ function renderMonthEventList(){
   const calendarList = document.getElementById("calendarList");
   calendarList.innerHTML = "";
   const monthNames = MONTH_NAMES[currentLang] || MONTH_NAMES.en;
-  document.getElementById("calendarListHeading").textContent = `${monthNames[calMonth]} ${calYear} ${t("calEventsSuffix")}`;
+  document.getElementById("calendarListHeading").textContent = `${monthYearLabel(calMonth, calYear)} ${t("calEventsSuffix")}`;
 
   const monthPrefix = `${calYear}-${String(calMonth+1).padStart(2,"0")}`;
   const monthEvents = getCalendarEvents().filter(e => e.iso.startsWith(monthPrefix)).sort((a,b)=> a.iso.localeCompare(b.iso));
@@ -2013,7 +2034,7 @@ function loadLiveContent(){
       safeApply("heroBanner", () => {
         if (!data.heroBanner) return;
         const hb = data.heroBanner;
-        const setText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; } };
+        const setText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; UI.zh[key] = val.zh || UI.zh[key] || val.en; } };
         setText("heroEyebrow", hb.eyebrow);
         setText("heroTitleLine1", hb.titleLine1);
         setText("heroTitleLine2", hb.titleLine2);
@@ -2094,7 +2115,7 @@ function loadLiveContent(){
           CONTACT.address_bm = c.address_bm || c.address_en;
           CONTACT.address_ta = c.address_ta || c.address_en;
         }
-        const setContactText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; } };
+        const setContactText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; UI.zh[key] = val.zh || UI.zh[key] || val.en; } };
         setContactText("enquiriesTitle", c.enquiriesHeading);
         setContactText("whatsappCaption", c.whatsappCaption);
         if (c.donationAccount){
@@ -2110,6 +2131,7 @@ function loadLiveContent(){
         if (data.ticker.message_en) TICKER.message_en = data.ticker.message_en;
         TICKER.message_bm = data.ticker.message_bm || "";
         TICKER.message_ta = data.ticker.message_ta || "";
+        TICKER.message_zh = data.ticker.message_zh || "";
       });
 
       safeApply("popup", () => {
@@ -2121,9 +2143,11 @@ function loadLiveContent(){
         POPUP.title_en = data.popup.title_en || "";
         POPUP.title_bm = data.popup.title_bm || "";
         POPUP.title_ta = data.popup.title_ta || "";
+        POPUP.title_zh = data.popup.title_zh || "";
         POPUP.message_en = data.popup.message_en || "";
         POPUP.message_bm = data.popup.message_bm || "";
         POPUP.message_ta = data.popup.message_ta || "";
+        POPUP.message_zh = data.popup.message_zh || "";
         POPUP.image_url = data.popup.image_url || "";
         POPUP.link_target = data.popup.link_target || "";
         // A blank link_label from the CMS still falls back to "View"
@@ -2133,6 +2157,7 @@ function loadLiveContent(){
         POPUP.link_label_en = data.popup.link_label_en || "";
         POPUP.link_label_bm = data.popup.link_label_bm || "";
         POPUP.link_label_ta = data.popup.link_label_ta || "";
+        POPUP.link_label_zh = data.popup.link_label_zh || "";
         // Covers the race where a visitor clicked Enter before this
         // fetch resolved — see the HOME POPUP section above.
         maybeShowHomePopup();
@@ -2148,16 +2173,20 @@ function loadLiveContent(){
         WA_WIDGET.heading_en = data.waWidget.heading_en || "";
         WA_WIDGET.heading_bm = data.waWidget.heading_bm || "";
         WA_WIDGET.heading_ta = data.waWidget.heading_ta || "";
+        WA_WIDGET.heading_zh = data.waWidget.heading_zh || "";
         WA_WIDGET.description_en = data.waWidget.description_en || "";
         WA_WIDGET.description_bm = data.waWidget.description_bm || "";
         WA_WIDGET.description_ta = data.waWidget.description_ta || "";
+        WA_WIDGET.description_zh = data.waWidget.description_zh || "";
         WA_WIDGET.phone_number = data.waWidget.phone_number || "";
         WA_WIDGET.message_en = data.waWidget.message_en || "";
         WA_WIDGET.message_bm = data.waWidget.message_bm || "";
         WA_WIDGET.message_ta = data.waWidget.message_ta || "";
+        WA_WIDGET.message_zh = data.waWidget.message_zh || "";
         WA_WIDGET.button_label_en = data.waWidget.button_label_en || "";
         WA_WIDGET.button_label_bm = data.waWidget.button_label_bm || "";
         WA_WIDGET.button_label_ta = data.waWidget.button_label_ta || "";
+        WA_WIDGET.button_label_zh = data.waWidget.button_label_zh || "";
       });
 
       safeApply("committee", () => {
@@ -2188,11 +2217,13 @@ function loadLiveContent(){
             UI.en[headingKey] = row.heading_en;
             UI.bm[headingKey] = row.heading_bm || row.heading_en;
             UI.ta[headingKey] = row.heading_ta || row.heading_en;
+            UI.zh[headingKey] = row.heading_zh || UI.zh[headingKey] || row.heading_en;
           }
           if (row.sub_en) {
             UI.en[subKey] = row.sub_en;
             UI.bm[subKey] = row.sub_bm || row.sub_en;
             UI.ta[subKey] = row.sub_ta || row.sub_en;
+            UI.zh[subKey] = row.sub_zh || UI.zh[subKey] || row.sub_en;
           }
         });
       });
@@ -2215,6 +2246,7 @@ function loadLiveContent(){
             UI.en[navKey] = row.label_en;
             UI.bm[navKey] = row.label_bm || row.label_en;
             UI.ta[navKey] = row.label_ta || row.label_en;
+            UI.zh[navKey] = row.label_zh || UI.zh[navKey] || row.label_en;
           }
         });
       });
