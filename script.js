@@ -1996,6 +1996,7 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 if (!CONTACT.address_en) CONTACT.address_en = CONTACT.address;
 if (!CONTACT.address_bm) CONTACT.address_bm = CONTACT.address;
 if (!CONTACT.address_ta) CONTACT.address_ta = CONTACT.address;
+if (!CONTACT.address_zh) CONTACT.address_zh = CONTACT.address;
 
 // Converts a normal Google Drive "share" link (any common format) into a
 // URL that actually works in an <img src="">. Kept as a defensive
@@ -2114,6 +2115,7 @@ function loadLiveContent(){
           CONTACT.address_en = c.address_en;
           CONTACT.address_bm = c.address_bm || c.address_en;
           CONTACT.address_ta = c.address_ta || c.address_en;
+          CONTACT.address_zh = c.address_zh || c.address_en;
         }
         const setContactText = (key, val) => { if (val && val.en){ UI.en[key] = val.en; UI.bm[key] = val.bm || val.en; UI.ta[key] = val.ta || val.en; UI.zh[key] = val.zh || UI.zh[key] || val.en; } };
         setContactText("enquiriesTitle", c.enquiriesHeading);
