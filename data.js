@@ -266,13 +266,13 @@ const UI = {
   // on purpose so they match the signage devotees see at the temple.
   zh: {
     navHome: "首页", navAbout: "关于本庙", navCommittee: "庙宇理事会", navDeities: "神明",
-    railBrandLine1: "Sri Subramaniar", railBrandLine2: "Alayam", railBrandLoc: "Lok Kawi，亚庇",
+    railBrandLine1: "斯里苏布拉马尼亚", railBrandLine2: "庙", railBrandLoc: "洛卡威，亚庇",
     navCalendar: "活动日历", navTimings: "Pooja 时间表", navGallery: "相册",
     navSevas: "Seva 与捐款", navNews: "最新消息与公告",
     navMembership: "会员状态", navContact: "联系我们",
     railHoursTitle: "庙宇开放时间 — 每日", railMorning: "早上", railEvening: "傍晚",
     heroEyebrow: "欢迎来到",
-    heroTitleLine1: "Sri Subramaniar Alayam", heroTitleLine2: "Lok Kawi",
+    heroTitleLine1: "斯里苏布拉马尼亚庙", heroTitleLine2: "洛卡威",
     statEstablished: "创立", statDevotees: "信徒", statEvents: "年度活动",
     heroBtnEvents: "近期活动", heroBtnTimings: "Pooja 时间表",
     panelTodayTimings: "今日 POOJA 时间", panelUpcomingEvents: "近期活动",
