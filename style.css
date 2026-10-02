@@ -3,7 +3,7 @@
    Design tokens (v1 — placeholder theme, expected to be redesigned)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
 
 :root{
   /* color */
@@ -22,8 +22,8 @@
   --green-600:#3e7c52;
 
   /* type */
-  --font-display:'Cinzel', 'Noto Sans Tamil', serif;
-  --font-body:'Manrope', 'Noto Sans Tamil', sans-serif;
+  --font-display:'Cinzel', 'Noto Sans Tamil', 'Noto Sans SC', serif;
+  --font-body:'Manrope', 'Noto Sans Tamil', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
   /* layout */
   --rail-w:236px;
