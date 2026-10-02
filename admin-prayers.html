@@ -352,7 +352,10 @@
         <div class="edit-field"><label>ID (used in booking references, e.g. p46)</label><input id="f_id" /></div>
         <div class="edit-field"><label>Ref #</label><input id="f_ref" type="number" /></div>
         <div class="edit-field"><label>Date</label><input id="f_date" type="date" /></div>
-        <div class="edit-field" style="grid-column:span 2;"><label>Name</label><input id="f_name" /></div>
+        <div class="edit-field" style="grid-column:span 2;"><label>Name (English)</label><input id="f_name" /></div>
+        <div class="edit-field" style="grid-column:span 2;"><label>Name (Malay) — blank = show English</label><input id="f_nameBm" /></div>
+        <div class="edit-field" style="grid-column:span 2;"><label>Name (Tamil) — blank = show English</label><input id="f_nameTa" /></div>
+        <div class="edit-field" style="grid-column:span 2;"><label>Name (Chinese) — blank = show English</label><input id="f_nameZh" /></div>
         <div class="edit-field"><label>Category</label>
           <select id="f_category">
             <option value="annual">Annual Prayers/Poojas</option>
@@ -1589,6 +1592,9 @@
     document.getElementById("f_ref").value = ""; // Ref # is this pooja's own official schedule number — never duplicate it
     document.getElementById("f_date").value = p.date;
     document.getElementById("f_name").value = p.name;
+    document.getElementById("f_nameBm").value = p.nameBm || "";
+    document.getElementById("f_nameTa").value = p.nameTa || "";
+    document.getElementById("f_nameZh").value = p.nameZh || "";
     document.getElementById("f_category").value = p.category || "annual";
     refreshPoojaTypeField();
     document.getElementById("f_poojaType").value = p.poojaType || "";
@@ -1623,6 +1629,9 @@
     document.getElementById("f_ref").value = p && p.ref != null ? p.ref : "";
     document.getElementById("f_date").value = p ? p.date : "";
     document.getElementById("f_name").value = p ? p.name : "";
+    document.getElementById("f_nameBm").value = p ? (p.nameBm || "") : "";
+    document.getElementById("f_nameTa").value = p ? (p.nameTa || "") : "";
+    document.getElementById("f_nameZh").value = p ? (p.nameZh || "") : "";
     document.getElementById("f_category").value = p ? (p.category || "annual") : "annual";
     refreshPoojaTypeField();
     document.getElementById("f_poojaType").value = p ? (p.poojaType || "") : "";
@@ -1645,6 +1654,9 @@
       ref: document.getElementById("f_ref").value,
       date: document.getElementById("f_date").value,
       name: document.getElementById("f_name").value.trim(),
+      nameBm: document.getElementById("f_nameBm").value.trim(),
+      nameTa: document.getElementById("f_nameTa").value.trim(),
+      nameZh: document.getElementById("f_nameZh").value.trim(),
       category: document.getElementById("f_category").value,
       poojaType: document.getElementById("f_poojaType").value.trim(),
       ubayamFee: document.getElementById("f_ubayamFee").value,

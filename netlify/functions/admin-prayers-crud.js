@@ -30,6 +30,9 @@ function prayerRowFromInput(data) {
   if (data.ref !== undefined) row.ref = data.ref === "" || data.ref === null ? null : Number(data.ref);
   if (data.date !== undefined) row.date = data.date;
   if (data.name !== undefined) row.name = data.name;
+  if (data.nameBm !== undefined) row.name_bm = String(data.nameBm || "").trim();
+  if (data.nameTa !== undefined) row.name_ta = String(data.nameTa || "").trim();
+  if (data.nameZh !== undefined) row.name_zh = String(data.nameZh || "").trim();
   if (data.category !== undefined) row.category = PRAYER_CATEGORIES.includes(data.category) ? data.category : "annual";
   // Pooja Type is what the public site's Monthly/Special sub-tabs group on —
   // e.g. every "Bairavar" pooja, whichever month it's for, lands on the same

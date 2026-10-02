@@ -117,6 +117,15 @@ let COMMITTEE = {
   ]
 };
 
+// Translated pooja/festival name for the current language (falls back to
+// the English `name` when no translation has been entered yet).
+function prayerName(p){
+  if (!p) return "";
+  if (currentLang === "bm" && p.nameBm) return p.nameBm;
+  if (currentLang === "ta" && p.nameTa) return p.nameTa;
+  if (currentLang === "zh" && p.nameZh) return p.nameZh;
+  return p.name;
+}
 function eventTitle(ev){
   if (currentLang === "ta" && ev.title_ta) return ev.title_ta;
   if (currentLang === "zh" && ev.title_zh) return ev.title_zh;
@@ -534,7 +543,7 @@ function prayerToCalendarEvent(p){
   // name across en/bm/ta here too.
   return {
     iso: p.date,
-    title: p.name, title_bm: p.name, title_ta: p.name, title_zh: p.name,
+    title: p.name, title_bm: p.nameBm || p.name, title_ta: p.nameTa || p.name, title_zh: p.nameZh || p.name,
     desc: p.notes || "", desc_bm: p.notes || "", desc_ta: p.notes || "", desc_zh: p.notes || "",
     isPrayer: true, prayerId: p.id
   };
@@ -1131,7 +1140,7 @@ function buildPrayerCard(p){
       <div class="prayer-card-date"><b>${dayNum(p.date)}</b><small>${monthAbbr(p.date)}</small></div>
       <div class="prayer-card-body">
         <div class="prayer-card-top">
-          <h4>${p.name}</h4>
+          <h4>${prayerName(p)}</h4>
           <span class="prayer-status-pill ${over ? "over" : "upcoming"}">${over ? t("prayersStatusOver") : t("prayersStatusUpcoming")}</span>
         </div>
         <div class="prayer-card-fee">${feeText}</div>
@@ -1213,7 +1222,7 @@ function openPrayerModal(p){
   const badgeEl = document.getElementById("prayerModalStatusBadge");
   badgeEl.textContent = over ? t("prayersStatusOver") : t("prayersStatusUpcoming");
   badgeEl.className = "prayer-modal-badge " + (over ? "over" : "upcoming");
-  document.getElementById("prayerModalTitle").textContent = p.name;
+  document.getElementById("prayerModalTitle").textContent = prayerName(p);
   document.getElementById("prayerModalDate").textContent = formatPrayerDate(p.date);
 
   let rowsHtml = prayerRoleRow(p, "ubayakarar") + prayerRoleRow(p, "annathanam");
@@ -1301,7 +1310,7 @@ function showPrayerForm(p, role){
   document.getElementById("prayerFormView").style.display = "block";
 
   const titleKey = role === "ubayakarar" ? "prayersModalUbayakararTitle" : role === "annathanam" ? "prayersModalAnnathanamTitle" : "prayersModalParticipantTitle";
-  document.getElementById("prayerFormTitle").textContent = t(titleKey) + " — " + p.name;
+  document.getElementById("prayerFormTitle").textContent = t(titleKey) + " — " + prayerName(p);
   document.getElementById("prayerFormNameLabel").textContent = t("prayersFormName");
   document.getElementById("prayerFormPhoneLabel").textContent = t("prayersFormPhone");
   document.getElementById("prayerFormParticipantCountLabel").textContent = t("prayersFormParticipantCount");
