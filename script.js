@@ -41,7 +41,7 @@ let currentLang = "en";
 const TICKER = {
   enabled: true,
   message_en: "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
-  message_bm: "⚠️ LAMAN WEB DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk tujuan ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Sila jangan anggap ia sebagai rasmi atau muktamad.",
+  message_bm: "⚠️ LAMAN WEB MASIH DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Harap jangan menganggapnya sebagai maklumat rasmi atau muktamad.",
   message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
 };
 
@@ -79,7 +79,7 @@ const WA_WIDGET = {
   // Claude's own translation, not reviewed by a Tamil/Malay speaker on
   // the committee — freely editable any time from the CMS's WhatsApp
   // Widget tab, same caveat as every other bundled default text here.
-  button_label_en: "Chat with Us", button_label_bm: "Chat Dengan Kami", button_label_ta: "எங்களுடன் அரட்டையடிக்க"
+  button_label_en: "Chat with Us", button_label_bm: "Berbual Dengan Kami", button_label_ta: "எங்களுடன் அரட்டையடிக்க"
 };
 
 // Bundled default for the Temple Committee screen. Declared HERE, not in
