@@ -31,18 +31,18 @@ const ENTITIES = {
   heroBanner: {
     table: "hero_banner", singleton: true,
     fields: [
-      ["eyebrowEn","eyebrow_en"],["eyebrowBm","eyebrow_bm"],["eyebrowTa","eyebrow_ta"],
-      ["titleLine1En","title_line1_en"],["titleLine1Bm","title_line1_bm"],["titleLine1Ta","title_line1_ta"],
-      ["titleLine2En","title_line2_en"],["titleLine2Bm","title_line2_bm"],["titleLine2Ta","title_line2_ta"],
+      ["eyebrowEn","eyebrow_en"],["eyebrowBm","eyebrow_bm"],["eyebrowTa","eyebrow_ta"],["eyebrowZh","eyebrow_zh"],
+      ["titleLine1En","title_line1_en"],["titleLine1Bm","title_line1_bm"],["titleLine1Ta","title_line1_ta"],["titleLine1Zh","title_line1_zh"],
+      ["titleLine2En","title_line2_en"],["titleLine2Bm","title_line2_bm"],["titleLine2Ta","title_line2_ta"],["titleLine2Zh","title_line2_zh"],
       ["establishedValue","established_value"],
-      ["establishedLabelEn","established_label_en"],["establishedLabelBm","established_label_bm"],["establishedLabelTa","established_label_ta"],
+      ["establishedLabelEn","established_label_en"],["establishedLabelBm","established_label_bm"],["establishedLabelTa","established_label_ta"],["establishedLabelZh","established_label_zh"],
       ["devoteesValue","devotees_value"],
-      ["devoteesLabelEn","devotees_label_en"],["devoteesLabelBm","devotees_label_bm"],["devoteesLabelTa","devotees_label_ta"],
+      ["devoteesLabelEn","devotees_label_en"],["devoteesLabelBm","devotees_label_bm"],["devoteesLabelTa","devotees_label_ta"],["devoteesLabelZh","devotees_label_zh"],
       ["annualEventsValue","annual_events_value"],
-      ["annualEventsLabelEn","annual_events_label_en"],["annualEventsLabelBm","annual_events_label_bm"],["annualEventsLabelTa","annual_events_label_ta"],
-      ["upcomingEventsLabelEn","upcoming_events_label_en"],["upcomingEventsLabelBm","upcoming_events_label_bm"],["upcomingEventsLabelTa","upcoming_events_label_ta"],
+      ["annualEventsLabelEn","annual_events_label_en"],["annualEventsLabelBm","annual_events_label_bm"],["annualEventsLabelTa","annual_events_label_ta"],["annualEventsLabelZh","annual_events_label_zh"],
+      ["upcomingEventsLabelEn","upcoming_events_label_en"],["upcomingEventsLabelBm","upcoming_events_label_bm"],["upcomingEventsLabelTa","upcoming_events_label_ta"],["upcomingEventsLabelZh","upcoming_events_label_zh"],
       ["upcomingEventsLink","upcoming_events_link"],
-      ["poojaTimingsLabelEn","pooja_timings_label_en"],["poojaTimingsLabelBm","pooja_timings_label_bm"],["poojaTimingsLabelTa","pooja_timings_label_ta"],
+      ["poojaTimingsLabelEn","pooja_timings_label_en"],["poojaTimingsLabelBm","pooja_timings_label_bm"],["poojaTimingsLabelTa","pooja_timings_label_ta"],["poojaTimingsLabelZh","pooja_timings_label_zh"],
       ["poojaTimingsLink","pooja_timings_link"],
       ["imageUrl","image_url"]
     ]
@@ -51,7 +51,7 @@ const ENTITIES = {
     table: "site_ticker", singleton: true,
     fields: [
       ["enabled","enabled"],
-      ["messageEn","message_en"],["messageBm","message_bm"],["messageTa","message_ta"]
+      ["messageEn","message_en"],["messageBm","message_bm"],["messageTa","message_ta"],["messageZh","message_zh"]
     ],
     boolFields: ["enabled"]
   },
@@ -65,11 +65,11 @@ const ENTITIES = {
     // permanently rendered in the page at once, see cms.html's popupTab.
     fields: [
       ["popupEnabled","enabled"],
-      ["popupTitleEn","title_en"],["popupTitleBm","title_bm"],["popupTitleTa","title_ta"],
-      ["popupMessageEn","message_en"],["popupMessageBm","message_bm"],["popupMessageTa","message_ta"],
+      ["popupTitleEn","title_en"],["popupTitleBm","title_bm"],["popupTitleTa","title_ta"],["popupTitleZh","title_zh"],
+      ["popupMessageEn","message_en"],["popupMessageBm","message_bm"],["popupMessageTa","message_ta"],["popupMessageZh","message_zh"],
       ["popupImageUrl","image_url"],
       ["popupLinkTarget","link_target"],
-      ["popupLinkLabelEn","link_label_en"],["popupLinkLabelBm","link_label_bm"],["popupLinkLabelTa","link_label_ta"]
+      ["popupLinkLabelEn","link_label_en"],["popupLinkLabelBm","link_label_bm"],["popupLinkLabelTa","link_label_ta"],["popupLinkLabelZh","link_label_zh"]
     ],
     boolFields: ["popupEnabled"]
   },
@@ -83,21 +83,21 @@ const ENTITIES = {
     fields: [
       ["waWidgetEnabled","enabled"],
       ["waWidgetImageUrl","image_url"],
-      ["waWidgetHeadingEn","heading_en"],["waWidgetHeadingBm","heading_bm"],["waWidgetHeadingTa","heading_ta"],
-      ["waWidgetDescriptionEn","description_en"],["waWidgetDescriptionBm","description_bm"],["waWidgetDescriptionTa","description_ta"],
+      ["waWidgetHeadingEn","heading_en"],["waWidgetHeadingBm","heading_bm"],["waWidgetHeadingTa","heading_ta"],["waWidgetHeadingZh","heading_zh"],
+      ["waWidgetDescriptionEn","description_en"],["waWidgetDescriptionBm","description_bm"],["waWidgetDescriptionTa","description_ta"],["waWidgetDescriptionZh","description_zh"],
       ["waWidgetPhoneNumber","phone_number"],
-      ["waWidgetMessageEn","message_en"],["waWidgetMessageBm","message_bm"],["waWidgetMessageTa","message_ta"],
-      ["waWidgetButtonLabelEn","button_label_en"],["waWidgetButtonLabelBm","button_label_bm"],["waWidgetButtonLabelTa","button_label_ta"]
+      ["waWidgetMessageEn","message_en"],["waWidgetMessageBm","message_bm"],["waWidgetMessageTa","message_ta"],["waWidgetMessageZh","message_zh"],
+      ["waWidgetButtonLabelEn","button_label_en"],["waWidgetButtonLabelBm","button_label_bm"],["waWidgetButtonLabelTa","button_label_ta"],["waWidgetButtonLabelZh","button_label_zh"]
     ],
     boolFields: ["waWidgetEnabled"]
   },
   about: {
     table: "about_page", singleton: true,
     fields: [
-      ["visionEn","vision_en"],["visionBm","vision_bm"],["visionTa","vision_ta"],
-      ["missionEn","mission_en"],["missionBm","mission_bm"],["missionTa","mission_ta"],
-      ["historyEn","history_en"],["historyBm","history_bm"],["historyTa","history_ta"],
-      ["activitiesEn","activities_en"],["activitiesBm","activities_bm"],["activitiesTa","activities_ta"]
+      ["visionEn","vision_en"],["visionBm","vision_bm"],["visionTa","vision_ta"],["visionZh","vision_zh"],
+      ["missionEn","mission_en"],["missionBm","mission_bm"],["missionTa","mission_ta"],["missionZh","mission_zh"],
+      ["historyEn","history_en"],["historyBm","history_bm"],["historyTa","history_ta"],["historyZh","history_zh"],
+      ["activitiesEn","activities_en"],["activitiesBm","activities_bm"],["activitiesTa","activities_ta"],["activitiesZh","activities_zh"]
     ]
   },
   contact: {
@@ -105,9 +105,9 @@ const ENTITIES = {
     fields: [
       ["orgName","org_name"],["registrationNo","registration_no"],["phone","phone"],["email","email"],
       ["whatsappNumber","whatsapp_number"],["social","social"],
-      ["addressEn","address_en"],["addressBm","address_bm"],["addressTa","address_ta"],
-      ["enquiriesHeadingEn","enquiries_heading_en"],["enquiriesHeadingBm","enquiries_heading_bm"],["enquiriesHeadingTa","enquiries_heading_ta"],
-      ["whatsappCaptionEn","whatsapp_caption_en"],["whatsappCaptionBm","whatsapp_caption_bm"],["whatsappCaptionTa","whatsapp_caption_ta"],
+      ["addressEn","address_en"],["addressBm","address_bm"],["addressTa","address_ta"],["addressZh","address_zh"],
+      ["enquiriesHeadingEn","enquiries_heading_en"],["enquiriesHeadingBm","enquiries_heading_bm"],["enquiriesHeadingTa","enquiries_heading_ta"],["enquiriesHeadingZh","enquiries_heading_zh"],
+      ["whatsappCaptionEn","whatsapp_caption_en"],["whatsappCaptionBm","whatsapp_caption_bm"],["whatsappCaptionTa","whatsapp_caption_ta"],["whatsappCaptionZh","whatsapp_caption_zh"],
       ["donationAccountName","donation_account_name"],["donationBank","donation_bank"],["donationAccountNumber","donation_account_number"]
     ]
   },
@@ -115,23 +115,23 @@ const ENTITIES = {
     table: "page_headings", singleton: false, orderBy: "id",
     fields: [
       ["screenKey","screen_key"],
-      ["headingEn","heading_en"],["headingBm","heading_bm"],["headingTa","heading_ta"],
-      ["subEn","sub_en"],["subBm","sub_bm"],["subTa","sub_ta"]
+      ["headingEn","heading_en"],["headingBm","heading_bm"],["headingTa","heading_ta"],["headingZh","heading_zh"],
+      ["subEn","sub_en"],["subBm","sub_bm"],["subTa","sub_ta"],["subZh","sub_zh"]
     ]
   },
   menuLabel: {
     table: "menu_labels", singleton: false, orderBy: "id",
     fields: [
       ["screenKey","screen_key"],
-      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"]
+      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"],["labelZh","label_zh"]
     ]
   },
   navTile: {
     table: "nav_tiles", singleton: false,
     fields: [
       ["tileKey","tile_key"],["icon","icon"],
-      ["titleEn","title_en"],["titleBm","title_bm"],["titleTa","title_ta"],
-      ["descEn","desc_en"],["descBm","desc_bm"],["descTa","desc_ta"],
+      ["titleEn","title_en"],["titleBm","title_bm"],["titleTa","title_ta"],["titleZh","title_zh"],
+      ["descEn","desc_en"],["descBm","desc_bm"],["descTa","desc_ta"],["descZh","desc_zh"],
       ["destination","destination"],["enabled","enabled"],["sortOrder","sort_order"]
     ],
     boolFields: ["enabled"], numFields: ["sortOrder"]
@@ -139,9 +139,9 @@ const ENTITIES = {
   deity: {
     table: "deities", singleton: false,
     fields: [
-      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
-      ["roleEn","role_en"],["roleBm","role_bm"],["roleTa","role_ta"],
-      ["descriptionEn","description_en"],["descriptionBm","description_bm"],["descriptionTa","description_ta"],
+      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],["nameZh","name_zh"],
+      ["roleEn","role_en"],["roleBm","role_bm"],["roleTa","role_ta"],["roleZh","role_zh"],
+      ["descriptionEn","description_en"],["descriptionBm","description_bm"],["descriptionTa","description_ta"],["descriptionZh","description_zh"],
       ["imageUrl","image_url"],["color","color"],["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder"]
@@ -150,8 +150,8 @@ const ENTITIES = {
     table: "committee_members", singleton: false,
     fields: [
       ["tier","tier"],["nameEn","name_en"],["nameTa","name_ta"],
-      ["roleEn","role_en"],["roleBm","role_bm"],["roleTa","role_ta"],
-      ["subtitleEn","subtitle_en"],["subtitleBm","subtitle_bm"],["subtitleTa","subtitle_ta"],
+      ["roleEn","role_en"],["roleBm","role_bm"],["roleTa","role_ta"],["roleZh","role_zh"],
+      ["subtitleEn","subtitle_en"],["subtitleBm","subtitle_bm"],["subtitleTa","subtitle_ta"],["subtitleZh","subtitle_zh"],
       ["phone","phone"],["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder"]
@@ -159,7 +159,7 @@ const ENTITIES = {
   poojaTiming: {
     table: "pooja_timings", singleton: false,
     fields: [
-      ["listType","list_type"],["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
+      ["listType","list_type"],["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],["nameZh","name_zh"],
       ["timeLabel","time_label"],["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder"]
@@ -167,10 +167,10 @@ const ENTITIES = {
   seva: {
     table: "sevas", singleton: false,
     fields: [
-      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
-      ["priceEn","price_en"],["priceBm","price_bm"],["priceTa","price_ta"],
-      ["descEn","desc_en"],["descBm","desc_bm"],["descTa","desc_ta"],
-      ["ctaEn","cta_en"],["ctaBm","cta_bm"],["ctaTa","cta_ta"],
+      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],["nameZh","name_zh"],
+      ["priceEn","price_en"],["priceBm","price_bm"],["priceTa","price_ta"],["priceZh","price_zh"],
+      ["descEn","desc_en"],["descBm","desc_bm"],["descTa","desc_ta"],["descZh","desc_zh"],
+      ["ctaEn","cta_en"],["ctaBm","cta_bm"],["ctaTa","cta_ta"],["ctaZh","cta_zh"],
       ["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder"]
@@ -178,8 +178,8 @@ const ENTITIES = {
   announcement: {
     table: "announcements", singleton: false,
     fields: [
-      ["titleEn","title_en"],["titleBm","title_bm"],["titleTa","title_ta"],
-      ["descEn","desc_en"],["descBm","desc_bm"],["descTa","desc_ta"],
+      ["titleEn","title_en"],["titleBm","title_bm"],["titleTa","title_ta"],["titleZh","title_zh"],
+      ["descEn","desc_en"],["descBm","desc_bm"],["descTa","desc_ta"],["descZh","desc_zh"],
       ["published","published"],["sortOrder","sort_order"]
     ],
     boolFields: ["published"], numFields: ["sortOrder"]
@@ -187,7 +187,7 @@ const ENTITIES = {
   galleryCategory: {
     table: "gallery_categories", singleton: false,
     fields: [
-      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
+      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],["nameZh","name_zh"],
       ["coverUrl","cover_url"],
       ["sortOrder","sort_order"]
     ],
@@ -197,7 +197,7 @@ const ENTITIES = {
     table: "gallery_folders", singleton: false,
     fields: [
       ["categoryId","category_id"],
-      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],
+      ["nameEn","name_en"],["nameBm","name_bm"],["nameTa","name_ta"],["nameZh","name_zh"],
       ["coverUrl","cover_url"],
       ["sortOrder","sort_order"]
     ],
@@ -208,7 +208,7 @@ const ENTITIES = {
     fields: [
       ["folderId","folder_id"],
       ["imageUrl","image_url"],["thumbnailUrl","thumbnail_url"],
-      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"],
+      ["labelEn","label_en"],["labelBm","label_bm"],["labelTa","label_ta"],["labelZh","label_zh"],
       ["sortOrder","sort_order"]
     ],
     numFields: ["sortOrder","folderId"]

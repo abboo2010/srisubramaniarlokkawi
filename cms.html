@@ -789,10 +789,10 @@ const tilesTab = makeListTab({
     { key:"icon", label:"Icon", type:"select", options: ICON_OPTIONS },
     { key:"titleEn", label:"Title (English)", type:"text" },
     { key:"titleBm", label:"Title (Malay)", type:"text" },
-    { key:"titleTa", label:"Title (Tamil)", type:"text" },
+    { key:"titleTa", label:"Title (Tamil)", type:"text" }, { key:"titleZh", label:"Title (Chinese)", type:"text" },
     { key:"descEn", label:"Description (English)", type:"text" },
     { key:"descBm", label:"Description (Malay)", type:"text" },
-    { key:"descTa", label:"Description (Tamil)", type:"text" },
+    { key:"descTa", label:"Description (Tamil)", type:"text" }, { key:"descZh", label:"Description (Chinese)", type:"text" },
     { key:"destination", label:"Destination Screen", type:"select", options: SCREEN_OPTIONS },
     { key:"enabled", label:"Enabled", type:"checkbox", default:true },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
@@ -809,10 +809,10 @@ const committeeTab = makeListTab({
     { key:"nameTa", label:"Name (Tamil)", type:"text" },
     { key:"roleEn", label:"Role / Title (English)", type:"text" },
     { key:"roleBm", label:"Role / Title (Malay)", type:"text" },
-    { key:"roleTa", label:"Role / Title (Tamil)", type:"text" },
+    { key:"roleTa", label:"Role / Title (Tamil)", type:"text" }, { key:"roleZh", label:"Role / Title (Chinese)", type:"text" },
     { key:"subtitleEn", label:"Portfolio (English, optional — e.g. \"IT & Technology\")", type:"text" },
     { key:"subtitleBm", label:"Portfolio (Malay, optional)", type:"text" },
-    { key:"subtitleTa", label:"Portfolio (Tamil, optional)", type:"text" },
+    { key:"subtitleTa", label:"Portfolio (Tamil, optional)", type:"text" }, { key:"subtitleZh", label:"Portfolio (Chinese, optional)", type:"text" },
     { key:"phone", label:"Phone (optional)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
@@ -826,13 +826,13 @@ const deitiesTab = makeListTab({
     { key:"imageUrl", label:"Photo", type:"image" },
     { key:"nameEn", label:"Name (English)", type:"text" },
     { key:"nameBm", label:"Name (Malay)", type:"text" },
-    { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" }, { key:"nameZh", label:"Name (Chinese)", type:"text" },
     { key:"roleEn", label:"Role (English)", type:"text" },
     { key:"roleBm", label:"Role (Malay)", type:"text" },
-    { key:"roleTa", label:"Role (Tamil)", type:"text" },
+    { key:"roleTa", label:"Role (Tamil)", type:"text" }, { key:"roleZh", label:"Role (Chinese)", type:"text" },
     { key:"descriptionEn", label:"Description (English)", type:"textarea", wide:true },
     { key:"descriptionBm", label:"Description (Malay)", type:"textarea", wide:true },
-    { key:"descriptionTa", label:"Description (Tamil)", type:"textarea", wide:true },
+    { key:"descriptionTa", label:"Description (Tamil)", type:"textarea", wide:true }, { key:"descriptionZh", label:"Description (Chinese)", type:"textarea", wide:true },
     { key:"color", label:"Accent Color (hex)", type:"text", default:"#711821" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
@@ -846,7 +846,7 @@ const timingsTab = makeListTab({
     { key:"listType", label:"List", type:"select", options:["today","daily","friday","fullMoon"] },
     { key:"nameEn", label:"Pooja Name (English)", type:"text" },
     { key:"nameBm", label:"Pooja Name (Malay)", type:"text" },
-    { key:"nameTa", label:"Pooja Name (Tamil)", type:"text" },
+    { key:"nameTa", label:"Pooja Name (Tamil)", type:"text" }, { key:"nameZh", label:"Pooja Name (Chinese)", type:"text" },
     { key:"timeLabel", label:"Time (e.g. 6:00 AM)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
@@ -857,10 +857,10 @@ const sevasTab = makeListTab({
   tabId: "sevas", entity: "seva", singularLabel: "Seva", required: ["nameEn"],
   columns: [ {key:"nameEn",label:"Name (EN)"}, {key:"priceEn",label:"Price"}, {key:"sortOrder",label:"Order"} ],
   fields: [
-    { key:"nameEn", label:"Name (English)", type:"text" }, { key:"nameBm", label:"Name (Malay)", type:"text" }, { key:"nameTa", label:"Name (Tamil)", type:"text" },
-    { key:"priceEn", label:"Price (English)", type:"text" }, { key:"priceBm", label:"Price (Malay)", type:"text" }, { key:"priceTa", label:"Price (Tamil)", type:"text" },
-    { key:"descEn", label:"Description (English)", type:"textarea", wide:true }, { key:"descBm", label:"Description (Malay)", type:"textarea", wide:true }, { key:"descTa", label:"Description (Tamil)", type:"textarea", wide:true },
-    { key:"ctaEn", label:"Button Text (English)", type:"text" }, { key:"ctaBm", label:"Button Text (Malay)", type:"text" }, { key:"ctaTa", label:"Button Text (Tamil)", type:"text" },
+    { key:"nameEn", label:"Name (English)", type:"text" }, { key:"nameBm", label:"Name (Malay)", type:"text" }, { key:"nameTa", label:"Name (Tamil)", type:"text" }, { key:"nameZh", label:"Name (Chinese)", type:"text" },
+    { key:"priceEn", label:"Price (English)", type:"text" }, { key:"priceBm", label:"Price (Malay)", type:"text" }, { key:"priceTa", label:"Price (Tamil)", type:"text" }, { key:"priceZh", label:"Price (Chinese)", type:"text" },
+    { key:"descEn", label:"Description (English)", type:"textarea", wide:true }, { key:"descBm", label:"Description (Malay)", type:"textarea", wide:true }, { key:"descTa", label:"Description (Tamil)", type:"textarea", wide:true }, { key:"descZh", label:"Description (Chinese)", type:"textarea", wide:true },
+    { key:"ctaEn", label:"Button Text (English)", type:"text" }, { key:"ctaBm", label:"Button Text (Malay)", type:"text" }, { key:"ctaTa", label:"Button Text (Tamil)", type:"text" }, { key:"ctaZh", label:"Button Text (Chinese)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
 });
@@ -870,8 +870,8 @@ const announcementsTab = makeListTab({
   tabId: "announcements", entity: "announcement", singularLabel: "Announcement", required: ["titleEn"],
   columns: [ {key:"titleEn",label:"Title (EN)"}, {key:"published",label:"Published",bool:true}, {key:"sortOrder",label:"Order"} ],
   fields: [
-    { key:"titleEn", label:"Title (English)", type:"text" }, { key:"titleBm", label:"Title (Malay)", type:"text" }, { key:"titleTa", label:"Title (Tamil)", type:"text" },
-    { key:"descEn", label:"Description (English)", type:"textarea", wide:true }, { key:"descBm", label:"Description (Malay)", type:"textarea", wide:true }, { key:"descTa", label:"Description (Tamil)", type:"textarea", wide:true },
+    { key:"titleEn", label:"Title (English)", type:"text" }, { key:"titleBm", label:"Title (Malay)", type:"text" }, { key:"titleTa", label:"Title (Tamil)", type:"text" }, { key:"titleZh", label:"Title (Chinese)", type:"text" },
+    { key:"descEn", label:"Description (English)", type:"textarea", wide:true }, { key:"descBm", label:"Description (Malay)", type:"textarea", wide:true }, { key:"descTa", label:"Description (Tamil)", type:"textarea", wide:true }, { key:"descZh", label:"Description (Chinese)", type:"textarea", wide:true },
     { key:"published", label:"Published", type:"checkbox", default:true },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
@@ -895,7 +895,7 @@ const galleryCategoriesTab = makeListTab({
   fields: [
     { key:"nameEn", label:"Name (English)", type:"text" },
     { key:"nameBm", label:"Name (Malay)", type:"text" },
-    { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" }, { key:"nameZh", label:"Name (Chinese)", type:"text" },
     { key:"coverUrl", label:"Cover Photo", type:"image", maxDim:900, quality:0.78 },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
@@ -915,7 +915,7 @@ const galleryFoldersTab = makeListTab({
       options: () => galleryCategoriesTab.rows.map(c => ({ value:String(c.id), label:c.nameEn })) },
     { key:"nameEn", label:"Name (English)", type:"text" },
     { key:"nameBm", label:"Name (Malay)", type:"text" },
-    { key:"nameTa", label:"Name (Tamil)", type:"text" },
+    { key:"nameTa", label:"Name (Tamil)", type:"text" }, { key:"nameZh", label:"Name (Chinese)", type:"text" },
     { key:"coverUrl", label:"Cover Photo", type:"image", maxDim:900, quality:0.78 },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
@@ -934,7 +934,7 @@ const galleryTab = makeListTab({
       options: () => galleryFoldersTab.rows.map(f => ({ value:String(f.id), label:`${categoryName(f.categoryId)} / ${f.nameEn}` })) },
     { key:"imageUrl", label:"Photo", type:"image", thumbKey:"thumbnailUrl", maxDim:1600, quality:0.82 },
     { key:"thumbnailUrl", type:"hidden" },
-    { key:"labelEn", label:"Caption (English)", type:"text" }, { key:"labelBm", label:"Caption (Malay)", type:"text" }, { key:"labelTa", label:"Caption (Tamil)", type:"text" },
+    { key:"labelEn", label:"Caption (English)", type:"text" }, { key:"labelBm", label:"Caption (Malay)", type:"text" }, { key:"labelTa", label:"Caption (Tamil)", type:"text" }, { key:"labelZh", label:"Caption (Chinese)", type:"text" },
     { key:"sortOrder", label:"Sort Order", type:"number", default:0 }
   ]
 });
@@ -997,7 +997,7 @@ document.getElementById("gallery-bulk-submit").addEventListener("click", async (
         // so photos are distinguishable in the table afterwards; not
         // required for the save to succeed (gallery.label_en isn't a
         // unique column, blank or repeated captions are fine).
-        labelEn: titleFromFilename(file.name), labelBm: "", labelTa: "",
+        labelEn: titleFromFilename(file.name), labelBm: "", labelTa: "", labelZh: "",
         sortOrder: existingMax + i + 1
       });
       uploaded++;
@@ -1067,22 +1067,22 @@ const heroTab = makeSingletonTab({
   groups: [
     { title:"Background Photo", fields: [ { key:"imageUrl", label:"Hero Background Photo", type:"image" } ] },
     { title:"Eyebrow & Title", fields: [
-      { key:"eyebrowEn", label:"Eyebrow (English)", type:"text" }, { key:"eyebrowBm", label:"Eyebrow (Malay)", type:"text" }, { key:"eyebrowTa", label:"Eyebrow (Tamil)", type:"text" },
-      { key:"titleLine1En", label:"Title Line 1 (English)", type:"text" }, { key:"titleLine1Bm", label:"Title Line 1 (Malay)", type:"text" }, { key:"titleLine1Ta", label:"Title Line 1 (Tamil)", type:"text" },
-      { key:"titleLine2En", label:"Title Line 2 (English)", type:"text" }, { key:"titleLine2Bm", label:"Title Line 2 (Malay)", type:"text" }, { key:"titleLine2Ta", label:"Title Line 2 (Tamil)", type:"text" }
+      { key:"eyebrowEn", label:"Eyebrow (English)", type:"text" }, { key:"eyebrowBm", label:"Eyebrow (Malay)", type:"text" }, { key:"eyebrowTa", label:"Eyebrow (Tamil)", type:"text" }, { key:"eyebrowZh", label:"Eyebrow (Chinese)", type:"text" },
+      { key:"titleLine1En", label:"Title Line 1 (English)", type:"text" }, { key:"titleLine1Bm", label:"Title Line 1 (Malay)", type:"text" }, { key:"titleLine1Ta", label:"Title Line 1 (Tamil)", type:"text" }, { key:"titleLine1Zh", label:"Title Line 1 (Chinese)", type:"text" },
+      { key:"titleLine2En", label:"Title Line 2 (English)", type:"text" }, { key:"titleLine2Bm", label:"Title Line 2 (Malay)", type:"text" }, { key:"titleLine2Ta", label:"Title Line 2 (Tamil)", type:"text" }, { key:"titleLine2Zh", label:"Title Line 2 (Chinese)", type:"text" }
     ]},
     { title:"Stats", fields: [
       { key:"establishedValue", label:"Established Year", type:"text" },
-      { key:"establishedLabelEn", label:"Established Label (EN)", type:"text" }, { key:"establishedLabelBm", label:"Established Label (BM)", type:"text" }, { key:"establishedLabelTa", label:"Established Label (TA)", type:"text" },
+      { key:"establishedLabelEn", label:"Established Label (EN)", type:"text" }, { key:"establishedLabelBm", label:"Established Label (BM)", type:"text" }, { key:"establishedLabelTa", label:"Established Label (TA)", type:"text" }, { key:"establishedLabelZh", label:"Established Label (ZH)", type:"text" },
       { key:"devoteesValue", label:"Devotees", type:"text" },
-      { key:"devoteesLabelEn", label:"Devotees Label (EN)", type:"text" }, { key:"devoteesLabelBm", label:"Devotees Label (BM)", type:"text" }, { key:"devoteesLabelTa", label:"Devotees Label (TA)", type:"text" },
+      { key:"devoteesLabelEn", label:"Devotees Label (EN)", type:"text" }, { key:"devoteesLabelBm", label:"Devotees Label (BM)", type:"text" }, { key:"devoteesLabelTa", label:"Devotees Label (TA)", type:"text" }, { key:"devoteesLabelZh", label:"Devotees Label (ZH)", type:"text" },
       { key:"annualEventsValue", label:"Annual Events", type:"text" },
-      { key:"annualEventsLabelEn", label:"Annual Events Label (EN)", type:"text" }, { key:"annualEventsLabelBm", label:"Annual Events Label (BM)", type:"text" }, { key:"annualEventsLabelTa", label:"Annual Events Label (TA)", type:"text" }
+      { key:"annualEventsLabelEn", label:"Annual Events Label (EN)", type:"text" }, { key:"annualEventsLabelBm", label:"Annual Events Label (BM)", type:"text" }, { key:"annualEventsLabelTa", label:"Annual Events Label (TA)", type:"text" }, { key:"annualEventsLabelZh", label:"Annual Events Label (ZH)", type:"text" }
     ]},
     { title:"Buttons", fields: [
-      { key:"upcomingEventsLabelEn", label:"Events Button (EN)", type:"text" }, { key:"upcomingEventsLabelBm", label:"Events Button (BM)", type:"text" }, { key:"upcomingEventsLabelTa", label:"Events Button (TA)", type:"text" },
+      { key:"upcomingEventsLabelEn", label:"Events Button (EN)", type:"text" }, { key:"upcomingEventsLabelBm", label:"Events Button (BM)", type:"text" }, { key:"upcomingEventsLabelTa", label:"Events Button (TA)", type:"text" }, { key:"upcomingEventsLabelZh", label:"Events Button (ZH)", type:"text" },
       { key:"upcomingEventsLink", label:"Events Button Goes To", type:"select", options: SCREEN_OPTIONS },
-      { key:"poojaTimingsLabelEn", label:"Timings Button (EN)", type:"text" }, { key:"poojaTimingsLabelBm", label:"Timings Button (BM)", type:"text" }, { key:"poojaTimingsLabelTa", label:"Timings Button (TA)", type:"text" },
+      { key:"poojaTimingsLabelEn", label:"Timings Button (EN)", type:"text" }, { key:"poojaTimingsLabelBm", label:"Timings Button (BM)", type:"text" }, { key:"poojaTimingsLabelTa", label:"Timings Button (TA)", type:"text" }, { key:"poojaTimingsLabelZh", label:"Timings Button (ZH)", type:"text" },
       { key:"poojaTimingsLink", label:"Timings Button Goes To", type:"select", options: SCREEN_OPTIONS }
     ]}
   ]
@@ -1091,17 +1091,17 @@ const heroTab = makeSingletonTab({
 const aboutTab = makeSingletonTab({
   tabId: "about", entity: "about",
   groups: [
-    { title:"Vision", fields: [ { key:"visionEn", label:"Vision (English)", type:"textarea", wide:true }, { key:"visionBm", label:"Vision (Malay)", type:"textarea", wide:true }, { key:"visionTa", label:"Vision (Tamil)", type:"textarea", wide:true } ] },
-    { title:"Mission", fields: [ { key:"missionEn", label:"Mission (English)", type:"textarea", wide:true }, { key:"missionBm", label:"Mission (Malay)", type:"textarea", wide:true }, { key:"missionTa", label:"Mission (Tamil)", type:"textarea", wide:true } ] },
+    { title:"Vision", fields: [ { key:"visionEn", label:"Vision (English)", type:"textarea", wide:true }, { key:"visionBm", label:"Vision (Malay)", type:"textarea", wide:true }, { key:"visionTa", label:"Vision (Tamil)", type:"textarea", wide:true }, { key:"visionZh", label:"Vision (Chinese)", type:"textarea", wide:true } ] },
+    { title:"Mission", fields: [ { key:"missionEn", label:"Mission (English)", type:"textarea", wide:true }, { key:"missionBm", label:"Mission (Malay)", type:"textarea", wide:true }, { key:"missionTa", label:"Mission (Tamil)", type:"textarea", wide:true }, { key:"missionZh", label:"Mission (Chinese)", type:"textarea", wide:true } ] },
     { title:"History (separate paragraphs with a blank line)", fields: [
       { key:"historyEn", label:"History (English)", type:"textarea", tall:true, wide:true },
       { key:"historyBm", label:"History (Malay)", type:"textarea", tall:true, wide:true },
-      { key:"historyTa", label:"History (Tamil)", type:"textarea", tall:true, wide:true }
+      { key:"historyTa", label:"History (Tamil)", type:"textarea", tall:true, wide:true }, { key:"historyZh", label:"History (Chinese)", type:"textarea", tall:true, wide:true }
     ]},
     { title:"Activities (one per line)", fields: [
       { key:"activitiesEn", label:"Activities (English)", type:"textarea", wide:true },
       { key:"activitiesBm", label:"Activities (Malay)", type:"textarea", wide:true },
-      { key:"activitiesTa", label:"Activities (Tamil)", type:"textarea", wide:true }
+      { key:"activitiesTa", label:"Activities (Tamil)", type:"textarea", wide:true }, { key:"activitiesZh", label:"Activities (Chinese)", type:"textarea", wide:true }
     ]}
   ]
 });
@@ -1119,11 +1119,11 @@ const contactTab = makeSingletonTab({
     { title:"Address", fields: [
       { key:"addressEn", label:"Address (English)", type:"textarea", wide:true },
       { key:"addressBm", label:"Address (Malay)", type:"textarea", wide:true },
-      { key:"addressTa", label:"Address (Tamil)", type:"textarea", wide:true }
+      { key:"addressTa", label:"Address (Tamil)", type:"textarea", wide:true }, { key:"addressZh", label:"Address (Chinese)", type:"textarea", wide:true }
     ]},
     { title:"Enquiries Card", fields: [
-      { key:"enquiriesHeadingEn", label:"Heading (EN)", type:"text" }, { key:"enquiriesHeadingBm", label:"Heading (BM)", type:"text" }, { key:"enquiriesHeadingTa", label:"Heading (TA)", type:"text" },
-      { key:"whatsappCaptionEn", label:"Caption (EN)", type:"text" }, { key:"whatsappCaptionBm", label:"Caption (BM)", type:"text" }, { key:"whatsappCaptionTa", label:"Caption (TA)", type:"text" }
+      { key:"enquiriesHeadingEn", label:"Heading (EN)", type:"text" }, { key:"enquiriesHeadingBm", label:"Heading (BM)", type:"text" }, { key:"enquiriesHeadingTa", label:"Heading (TA)", type:"text" }, { key:"enquiriesHeadingZh", label:"Heading (ZH)", type:"text" },
+      { key:"whatsappCaptionEn", label:"Caption (EN)", type:"text" }, { key:"whatsappCaptionBm", label:"Caption (BM)", type:"text" }, { key:"whatsappCaptionTa", label:"Caption (TA)", type:"text" }, { key:"whatsappCaptionZh", label:"Caption (ZH)", type:"text" }
     ]},
     { title:"Donation Bank Account", fields: [
       { key:"donationAccountName", label:"Account Name", type:"text", wide:true },
@@ -1141,7 +1141,7 @@ const tickerTab = makeSingletonTab({
     { title:"Message", fields: [
       { key:"messageEn", label:"Message (English)", type:"textarea", wide:true },
       { key:"messageBm", label:"Message (Malay) — leave blank to reuse the English text", type:"textarea", wide:true },
-      { key:"messageTa", label:"Message (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }
+      { key:"messageTa", label:"Message (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }, { key:"messageZh", label:"Message (Chinese) — leave blank to reuse the English text", type:"textarea", wide:true }
     ]}
   ]
 });
@@ -1161,12 +1161,12 @@ const popupTab = makeSingletonTab({
     { title:"Title (optional)", fields: [
       { key:"popupTitleEn", label:"Title (English)", type:"text" },
       { key:"popupTitleBm", label:"Title (Malay) — leave blank to reuse the English text", type:"text" },
-      { key:"popupTitleTa", label:"Title (Tamil) — leave blank to reuse the English text", type:"text" }
+      { key:"popupTitleTa", label:"Title (Tamil) — leave blank to reuse the English text", type:"text" }, { key:"popupTitleZh", label:"Title (Chinese) — leave blank to reuse the English text", type:"text" }
     ]},
     { title:"Message", fields: [
       { key:"popupMessageEn", label:"Message (English)", type:"textarea", wide:true },
       { key:"popupMessageBm", label:"Message (Malay) — leave blank to reuse the English text", type:"textarea", wide:true },
-      { key:"popupMessageTa", label:"Message (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }
+      { key:"popupMessageTa", label:"Message (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }, { key:"popupMessageZh", label:"Message (Chinese) — leave blank to reuse the English text", type:"textarea", wide:true }
     ]},
     { title:"Photo (optional)", fields: [
       { key:"popupImageUrl", label:"Popup Photo", type:"image" }
@@ -1179,7 +1179,7 @@ const popupTab = makeSingletonTab({
         options: () => [{ value:"", label:"— No link (popup won't be tappable) —" }, ...SCREEN_OPTIONS.map(s => ({ value:s, label: screenFriendlyName(s) }))] },
       { key:"popupLinkLabelEn", label:"Button Text (English) — leave blank for \"View\"", type:"text" },
       { key:"popupLinkLabelBm", label:"Button Text (Malay) — leave blank to reuse the English text", type:"text" },
-      { key:"popupLinkLabelTa", label:"Button Text (Tamil) — leave blank to reuse the English text", type:"text" }
+      { key:"popupLinkLabelTa", label:"Button Text (Tamil) — leave blank to reuse the English text", type:"text" }, { key:"popupLinkLabelZh", label:"Button Text (Chinese) — leave blank to reuse the English text", type:"text" }
     ]}
   ],
   imageFolder: "popup"
@@ -1201,23 +1201,23 @@ const waWidgetTab = makeSingletonTab({
     { title:"Heading (optional)", fields: [
       { key:"waWidgetHeadingEn", label:"Heading (English)", type:"text" },
       { key:"waWidgetHeadingBm", label:"Heading (Malay) — leave blank to reuse the English text", type:"text" },
-      { key:"waWidgetHeadingTa", label:"Heading (Tamil) — leave blank to reuse the English text", type:"text" }
+      { key:"waWidgetHeadingTa", label:"Heading (Tamil) — leave blank to reuse the English text", type:"text" }, { key:"waWidgetHeadingZh", label:"Heading (Chinese) — leave blank to reuse the English text", type:"text" }
     ]},
     { title:"Description (optional)", fields: [
       { key:"waWidgetDescriptionEn", label:"Description (English)", type:"textarea", wide:true },
       { key:"waWidgetDescriptionBm", label:"Description (Malay) — leave blank to reuse the English text", type:"textarea", wide:true },
-      { key:"waWidgetDescriptionTa", label:"Description (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }
+      { key:"waWidgetDescriptionTa", label:"Description (Tamil) — leave blank to reuse the English text", type:"textarea", wide:true }, { key:"waWidgetDescriptionZh", label:"Description (Chinese) — leave blank to reuse the English text", type:"textarea", wide:true }
     ]},
     { title:"WhatsApp Number & Message", fields: [
       { key:"waWidgetPhoneNumber", label:"WhatsApp Number (digits only, with country code — e.g. 60123456789)", type:"text", wide:true },
       { key:"waWidgetMessageEn", label:"Pre-filled Message (English, optional)", type:"text", wide:true },
       { key:"waWidgetMessageBm", label:"Pre-filled Message (Malay, optional) — leave blank to reuse the English text", type:"text", wide:true },
-      { key:"waWidgetMessageTa", label:"Pre-filled Message (Tamil, optional) — leave blank to reuse the English text", type:"text", wide:true }
+      { key:"waWidgetMessageTa", label:"Pre-filled Message (Tamil, optional) — leave blank to reuse the English text", type:"text", wide:true }, { key:"waWidgetMessageZh", label:"Pre-filled Message (Chinese, optional) — leave blank to reuse the English text", type:"text", wide:true }
     ]},
     { title:"Button Text", fields: [
       { key:"waWidgetButtonLabelEn", label:"Button Text (English) — leave blank for \"Chat with Us\"", type:"text" },
       { key:"waWidgetButtonLabelBm", label:"Button Text (Malay) — leave blank to reuse the English text", type:"text" },
-      { key:"waWidgetButtonLabelTa", label:"Button Text (Tamil) — leave blank to reuse the English text", type:"text" }
+      { key:"waWidgetButtonLabelTa", label:"Button Text (Tamil) — leave blank to reuse the English text", type:"text" }, { key:"waWidgetButtonLabelZh", label:"Button Text (Chinese) — leave blank to reuse the English text", type:"text" }
     ]}
   ],
   imageFolder: "whatsapp"
@@ -1249,10 +1249,10 @@ const pageHeadingsTab = makeListTab({
     { key:"screenKey", label:"Screen", type:"text", readonly:true },
     { key:"headingEn", label:"Heading (English)", type:"text" },
     { key:"headingBm", label:"Heading (Malay) — leave blank to reuse the English text", type:"text" },
-    { key:"headingTa", label:"Heading (Tamil) — leave blank to reuse the English text", type:"text" },
+    { key:"headingTa", label:"Heading (Tamil) — leave blank to reuse the English text", type:"text" }, { key:"headingZh", label:"Heading (Chinese) — leave blank to reuse the English text", type:"text" },
     { key:"subEn", label:"Subtitle (English)", type:"text", wide:true },
     { key:"subBm", label:"Subtitle (Malay) — leave blank to reuse the English text", type:"text", wide:true },
-    { key:"subTa", label:"Subtitle (Tamil) — leave blank to reuse the English text", type:"text", wide:true }
+    { key:"subTa", label:"Subtitle (Tamil) — leave blank to reuse the English text", type:"text", wide:true }, { key:"subZh", label:"Subtitle (Chinese) — leave blank to reuse the English text", type:"text", wide:true }
   ]
 });
 
@@ -1262,13 +1262,13 @@ const menuLabelsTab = makeListTab({
     { key:"screenKey", label:"Screen", compute: r => screenFriendlyName(r.screenKey) },
     { key:"labelEn", label:"Label (EN)" },
     { key:"labelBm", label:"Label (BM)" },
-    { key:"labelTa", label:"Label (Tamil)" }
+    { key:"labelTa", label:"Label (Tamil)" }, { key:"labelZh", label:"Label (Chinese)" }
   ],
   fields: [
     { key:"screenKey", label:"Screen", type:"text", readonly:true },
     { key:"labelEn", label:"Label (English)", type:"text" },
     { key:"labelBm", label:"Label (Malay) — leave blank to reuse the English text", type:"text" },
-    { key:"labelTa", label:"Label (Tamil) — leave blank to reuse the English text", type:"text" }
+    { key:"labelTa", label:"Label (Tamil) — leave blank to reuse the English text", type:"text" }, { key:"labelZh", label:"Label (Chinese) — leave blank to reuse the English text", type:"text" }
   ]
 });
 
