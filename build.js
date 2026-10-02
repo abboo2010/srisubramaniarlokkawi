@@ -45,7 +45,7 @@ const ABOUT = ${JSON.stringify(about, null, 2)};
 const DEITIES = ${JSON.stringify(deities, null, 2)};
 
 const POOJA_NAME = ${JSON.stringify(
-  Object.fromEntries(poojaTimings.poojaNames.map(p => [p.key, { bm: p.bm, ta: p.ta }])),
+  Object.fromEntries(poojaTimings.poojaNames.map(p => [p.key, { bm: p.bm, ta: p.ta, zh: p.zh }])),
   null, 2
 )};
 function poojaName(name){ return (POOJA_NAME[name] && POOJA_NAME[name][currentLang]) || name; }
