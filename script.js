@@ -41,7 +41,7 @@ let currentLang = "en";
 const TICKER = {
   enabled: true,
   message_en: "⚠️ WEBSITE UNDER CONSTRUCTION: Information displayed is for testing/reference only and has not yet been reviewed or approved by the Temple Management Committee. Please do not treat it as official or final.",
-  message_bm: "⚠️ LAMAN WEB MASIH DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Harap jangan menganggapnya sebagai maklumat rasmi atau muktamad.",
+  message_bm: "⚠️ LAMAN WEB MASIH DALAM PEMBINAAN: Maklumat yang dipaparkan adalah untuk ujian/rujukan sahaja dan belum disemak atau diluluskan oleh Jawatankuasa Pengurusan Kuil. Sila jangan menganggapnya sebagai maklumat rasmi atau muktamad.",
   message_ta: "⚠️ இணையதளம் கட்டுமானத்தில் உள்ளது: இங்கு காட்டப்படும் தகவல்கள் சோதனை/குறிப்புக்காக மட்டுமே, மேலும் இது இன்னும் கோயில் நிர்வாகக் குழுவால் சரிபார்க்கப்படவோ அங்கீகரிக்கப்படவோ இல்லை. தயவுசெய்து இதை உத்தியோகபூர்வமானதாகவோ இறுதியானதாகவோ கருத வேண்டாம்."
 };
 
