@@ -1109,8 +1109,28 @@ img{display:block;max-width:100%;}
   .hero-stat b{font-size:17px;}
   .hero-gopuram{display:none;}
 
-  .tile-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
-  .tile{padding:14px 12px;}
+  /* Phone home menu: compact 3-per-row tiles (icon on top, title only).
+     The 10th tile spans the full width as a wide bar so the grid ends evenly. */
+  .tile-grid{grid-template-columns:repeat(3,1fr);gap:10px;}
+  .tile{
+    padding:14px 6px 12px;
+    text-align:center;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    min-height:104px;
+  }
+  .tile-icon{margin:0 auto 8px;}
+  .tile h3{
+    margin:0;font-size:12.5px;line-height:1.25;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .tile p{display:none;}
+  .tile:nth-child(10):last-child{
+    grid-column:1 / -1;
+    flex-direction:row;justify-content:center;gap:12px;
+    min-height:0;padding:12px 14px;
+  }
+  .tile:nth-child(10):last-child .tile-icon{margin:0;}
+  .tile:nth-child(10):last-child h3{font-size:14px;}
 
   .panel-grid{gap:12px;}
 
@@ -1142,7 +1162,6 @@ img{display:block;max-width:100%;}
 }
 
 @media (max-width:420px){
-  .tile-grid{grid-template-columns:1fr;}
   .hero h1{font-size:18px;}
   .rail-hours{display:none;}
 }
