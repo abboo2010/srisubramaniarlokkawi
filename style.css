@@ -101,6 +101,7 @@ img{display:block;max-width:100%;}
   flex-direction:column;
   padding:22px 14px 18px;
   overflow-y:auto;
+  border-right:3px solid var(--gold-500);
 }
 .rail-brand{
   display:flex;
@@ -154,16 +155,24 @@ img{display:block;max-width:100%;}
   font-size:14.5px;
   font-weight:600;
   text-align:left;
-  transition:background .15s ease, transform .12s ease;
+  opacity:.82;
+  cursor:pointer;
+  transition:background .15s ease, opacity .15s ease, transform .12s ease;
 }
 .rail-btn svg{width:19px;height:19px;flex-shrink:0;opacity:0.9;}
 .rail-btn:active{transform:scale(0.97);}
+/* Same menu effect as the Group Prayers Committee panel: dimmed when idle,
+   brightens on hover, selected item = soft gold wash + 3px gold bar on the left. */
 .rail-btn.active{
-  background:linear-gradient(90deg, var(--gold-500), #b1852f);
-  color:var(--maroon-950);
-  box-shadow:var(--shadow-card);
+  background:rgba(232,206,142,.16);
+  color:var(--gold-100);
+  opacity:1;
+  box-shadow:inset 3px 0 0 var(--gold-500);
 }
-.rail-btn:not(.active):hover{background:rgba(232,206,142,0.10);}
+.rail-btn:not(.active):hover{
+  background:rgba(232,206,142,.08);
+  opacity:1;
+}
 
 .rail-hours{
   margin-top:14px;
