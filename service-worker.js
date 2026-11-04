@@ -1,7 +1,7 @@
 // Sri Subramaniar Alayam — Service Worker
 // Caches core app files so the app can install and open offline.
 // Bump CACHE_NAME whenever core files change to force a refresh.
-const CACHE_NAME = "temple-kiosk-v46";
+const CACHE_NAME = "temple-kiosk-v47";
 
 const CORE_ASSETS = [
   "./index.html",
@@ -77,6 +77,9 @@ self.addEventListener("fetch", (event) => {
   // requests with schemes the Cache API doesn't support (chrome-extension:,
   // moz-extension:, etc.) — only handle real http(s) requests.
   if (!event.request.url.startsWith("http")) return;
+  // The Group Prayers portal is a separate app proxied under /groupprayers —
+  // never cache or intercept it.
+  if (new URL(event.request.url).pathname.startsWith("/groupprayers")) return;
 
   const isLiveDataRequest =
     event.request.url.includes("/.netlify/functions/") ||

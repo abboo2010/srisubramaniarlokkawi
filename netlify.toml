@@ -2,3 +2,16 @@
   command = "node build.js"
   publish = "."
   functions = "netlify/functions"
+
+# Group Prayers Registration Portal (separate Netlify site, proxied here)
+[[redirects]]
+  from = "/groupprayers"
+  to = "/groupprayers/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/groupprayers/*"
+  to = "https://groupprayersregistrationportal.netlify.app/:splat"
+  status = 200
+  force = true
