@@ -217,7 +217,9 @@ const ICONS = {
   fridayAnnathanam: `<path d="M5 11 C5 16 8 20 12 20 C16 20 19 16 19 11" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 11 H20" stroke-linecap="round"/><path d="M9 11 V6.5 C9 5 10.5 4 12 4" stroke-linecap="round"/><circle cx="12" cy="3.3" r="0.9" fill="currentColor" stroke="none"/>`,
   membership: `<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="8.5" cy="12" r="2.1"/><path d="M5.3 16.3 C5.3 14.8 6.7 13.7 8.5 13.7 C10.3 13.7 11.7 14.8 11.7 16.3" stroke-linecap="round"/><path d="M13.8 10.3 H18.3 M13.8 13.3 H16.8" stroke-linecap="round"/>`,
   gallery: `<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><circle cx="9" cy="10" r="1.7"/><path d="M4 17.5 L9.5 12.5 L13 15.5 L16.5 12 L20.5 16" stroke-linecap="round" stroke-linejoin="round"/>`,
-  committee: `<circle cx="12" cy="7.3" r="2.6"/><path d="M6.5 20 C6.5 16.3 8.9 14.3 12 14.3 C15.1 14.3 17.5 16.3 17.5 20" stroke-linecap="round"/><circle cx="5" cy="9.5" r="2"/><path d="M1.6 19 C1.6 16.3 3 14.7 5 14.7 C5.7 14.7 6.4 14.9 6.9 15.3" stroke-linecap="round"/><circle cx="19" cy="9.5" r="2"/><path d="M22.4 19 C22.4 16.3 21 14.7 19 14.7 C18.3 14.7 17.6 14.9 17.1 15.3" stroke-linecap="round"/>`
+  committee: `<circle cx="12" cy="7.3" r="2.6"/><path d="M6.5 20 C6.5 16.3 8.9 14.3 12 14.3 C15.1 14.3 17.5 16.3 17.5 20" stroke-linecap="round"/><circle cx="5" cy="9.5" r="2"/><path d="M1.6 19 C1.6 16.3 3 14.7 5 14.7 C5.7 14.7 6.4 14.9 6.9 15.3" stroke-linecap="round"/><circle cx="19" cy="9.5" r="2"/><path d="M22.4 19 C22.4 16.3 21 14.7 19 14.7 C18.3 14.7 17.6 14.9 17.1 15.3" stroke-linecap="round"/>`,
+  news: `<path d="M3.5 9 L9 6 V17 L3.5 15 Z" stroke-linejoin="round"/><path d="M9 7.5 L18 5 V17.5 L9 15.5 M16 9.5 C17 10.3 17 12.2 16 13" stroke-linecap="round" stroke-linejoin="round"/>`,
+  contact: `<path d="M12 21 C12 21 5 14.5 5 9.8 C5 6.3 7.7 4 11 4 C11.4 4 11.7 4 12 4.1 C12.3 4 12.6 4 13 4 C16.3 4 19 6.3 19 9.8 C19 14.5 12 21 12 21 Z" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.2"/>`
 };
 
 const PANEL_COLORS = ["#711821", "#8f202b", "#c1531f", "#3e7c52", "#2b1b12", "#8e4a9e", "#3e7c8c", "#b5651d"];
@@ -253,6 +255,7 @@ function goTo(name){
   crumb.textContent = t(CRUMB_KEY[name]) || t("navHome");
   document.getElementById("screenWrap").scrollTop = 0;
   closeMobileNav();
+  if (homeBtn) homeBtn.classList.toggle("show", name !== "home");
   resetIdleTimer();
 }
 
@@ -264,10 +267,12 @@ document.querySelectorAll("[data-goto]").forEach(b =>
 // ---------- Mobile nav drawer ----------
 const railEl = document.querySelector(".rail");
 const railBackdrop = document.getElementById("railBackdrop");
-const hamburgerBtn = document.getElementById("hamburgerBtn");
+const homeBtn = document.getElementById("homeBtn");
 function openMobileNav(){ railEl.classList.add("open"); railBackdrop.classList.add("show"); }
 function closeMobileNav(){ railEl.classList.remove("open"); railBackdrop.classList.remove("show"); }
-hamburgerBtn.addEventListener("click", openMobileNav);
+// Phone: the three-line menu was removed — every page is reached from the Home
+// tiles, and this Home button (shown on sub-pages only, see goTo) is the way back.
+if (homeBtn) homeBtn.addEventListener("click", () => goTo("home"));
 railBackdrop.addEventListener("click", closeMobileNav);
 
 // ---------- Language switching ----------
@@ -409,7 +414,7 @@ function renderStaticText(){
 function renderHomeTiles(){
   const tileGrid = document.getElementById("homeTiles");
   tileGrid.innerHTML = "";
-  const iconMap = { about: ICONS.about, committee: ICONS.committee, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers, fridayAnnathanam: ICONS.fridayAnnathanam, membership: ICONS.membership, gallery: ICONS.gallery };
+  const iconMap = { about: ICONS.about, committee: ICONS.committee, deities: ICONS.deities, calendar: ICONS.calendar, timings: ICONS.timings, sevas: ICONS.sevas, prayers: ICONS.prayers, fridayAnnathanam: ICONS.fridayAnnathanam, membership: ICONS.membership, gallery: ICONS.gallery, news: ICONS.news, contact: ICONS.contact };
   TILE_META.forEach(tItem=>{
     // "icon" picks the artwork and "destination" picks the screen it opens —
     // separate fields (both editable in /cms.html's Home Tiles tab) so a

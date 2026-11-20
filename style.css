@@ -211,13 +211,13 @@ img{display:block;max-width:100%;}
   background:var(--cream-50);
   border-bottom:1px solid var(--cream-100);
 }
-.hamburger-btn{
+.home-btn{
   display:none;
   width:38px;height:38px;border-radius:10px;border:none;
   background:var(--cream-100);color:var(--maroon-800);
   align-items:center;justify-content:center;flex-shrink:0;margin-right:12px;
 }
-.hamburger-btn svg{width:20px;height:20px;}
+.home-btn svg{width:20px;height:20px;}
 .topbar-crumb{
   font-family:var(--font-display);
   font-size:16px;
@@ -1116,7 +1116,11 @@ img{display:block;max-width:100%;}
 
   .site-ticker-item{font-size:11.5px;padding-right:36px;}
 
-  .hamburger-btn{display:flex;}
+  /* Phone: no three-line menu; Home button appears on sub-pages only (class set in goTo) */
+  .home-btn.show{display:flex;}
+  .lang-pill button{white-space:nowrap;}
+  .topbar-crumb{min-width:0;flex:1 1 auto;font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .topbar-right{flex-shrink:0;}
   .rail-backdrop{display:block;}
 
   .rail{
