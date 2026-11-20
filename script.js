@@ -439,6 +439,14 @@ function renderHomeTiles(){
 // Phone bottom menu: one item per home tile (same order, titles, icons and
 // CMS-controlled list as the Home tiles), shown only on sub-pages. Visibility
 // is the body.has-bottom-nav class set in updateBottomNav() — never [hidden].
+// The bottom bar's cells are narrow (6 per row), so a long "X & Y" title is
+// shortened to "X" there ("News & Announcements" -> "News"). The page's own
+// heading and the Home tile still show the full CMS title.
+function bottomNavLabel(title){
+  const s = (title || "").trim();
+  const i = s.indexOf(" & ");
+  return (s.length > 18 && i > 0) ? s.slice(0, i) : s;
+}
 function renderBottomNav(){
   const bar = document.getElementById("bottomNav");
   if (!bar) return;
@@ -449,7 +457,7 @@ function renderBottomNav(){
     const b = el(`
       <button class="bn-item" type="button" data-bn="${dest}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${icon}</svg>
-        <span>${tileText(tItem, "title")}</span>
+        <span>${bottomNavLabel(tileText(tItem, "title"))}</span>
       </button>
     `);
     b.addEventListener("click", () => goTo(dest));
@@ -461,14 +469,9 @@ function updateBottomNav(name){
   const bar = document.getElementById("bottomNav");
   if (!bar) return;
   document.body.classList.toggle("has-bottom-nav", name !== "home");
-  let active = null;
   bar.querySelectorAll(".bn-item").forEach(b => {
-    const on = b.dataset.bn === name;
-    b.classList.toggle("active", on);
-    if (on) active = b;
+    b.classList.toggle("active", b.dataset.bn === name);
   });
-  // keep the current page's item centred in the scrolling bar
-  if (active && name !== "home") bar.scrollLeft = active.offsetLeft - (bar.clientWidth - active.offsetWidth) / 2;
 }
 
 function renderHomeTimings(){
