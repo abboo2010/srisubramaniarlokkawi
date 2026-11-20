@@ -256,6 +256,7 @@ function goTo(name){
   document.getElementById("screenWrap").scrollTop = 0;
   closeMobileNav();
   if (homeBtn) homeBtn.classList.toggle("show", name !== "home");
+  updateBottomNav(name);
   resetIdleTimer();
 }
 
@@ -433,6 +434,41 @@ function renderHomeTiles(){
     btn.addEventListener("click", ()=>goTo(dest));
     tileGrid.appendChild(btn);
   });
+}
+
+// Phone bottom menu: one item per home tile (same order, titles, icons and
+// CMS-controlled list as the Home tiles), shown only on sub-pages. Visibility
+// is the body.has-bottom-nav class set in updateBottomNav() — never [hidden].
+function renderBottomNav(){
+  const bar = document.getElementById("bottomNav");
+  if (!bar) return;
+  bar.innerHTML = "";
+  TILE_META.forEach(tItem => {
+    const dest = tItem.destination || tItem.key;
+    const icon = ICONS[tItem.icon] || ICONS.about;
+    const b = el(`
+      <button class="bn-item" type="button" data-bn="${dest}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${icon}</svg>
+        <span>${tileText(tItem, "title")}</span>
+      </button>
+    `);
+    b.addEventListener("click", () => goTo(dest));
+    bar.appendChild(b);
+  });
+  updateBottomNav(currentScreen);
+}
+function updateBottomNav(name){
+  const bar = document.getElementById("bottomNav");
+  if (!bar) return;
+  document.body.classList.toggle("has-bottom-nav", name !== "home");
+  let active = null;
+  bar.querySelectorAll(".bn-item").forEach(b => {
+    const on = b.dataset.bn === name;
+    b.classList.toggle("active", on);
+    if (on) active = b;
+  });
+  // keep the current page's item centred in the scrolling bar
+  if (active && name !== "home") bar.scrollLeft = active.offsetLeft - (bar.clientWidth - active.offsetWidth) / 2;
 }
 
 function renderHomeTimings(){
@@ -2016,6 +2052,7 @@ function renderAll(){
   safeRender("ticker", renderTicker);
   safeRender("waWidget", renderWaWidget);
   safeRender("homeTiles", renderHomeTiles);
+  safeRender("bottomNav", renderBottomNav);
   safeRender("homeTimings", renderHomeTimings);
   safeRender("homeEvents", renderHomeEvents);
   safeRender("homeAnnounce", renderHomeAnnounce);
