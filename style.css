@@ -1071,6 +1071,31 @@ img{display:block;max-width:100%;}
   50%{ box-shadow:0 0 0 14px rgba(232,206,142,0), 0 10px 24px rgba(0,0,0,0.4); }
 }
 
+/* ---------- Splash: "install the app" prompt (phones/tablets in a browser) ----------
+   Hidden by default; script.js switches the box / button / hint on with
+   element.style.display (never the [hidden] attribute — an author display
+   rule would override it). */
+.splash-install{
+  display:none;flex-direction:column;align-items:center;
+  margin-top:22px;max-width:300px;
+  opacity:0;animation:splashFadeUp .8s ease forwards 1.3s;
+}
+.splash-install-btn{
+  display:none;flex-direction:column;align-items:center;gap:2px;
+  cursor:pointer;background:rgba(26,4,7,0.45);
+  border:1px solid var(--gold-300);color:var(--cream-50);
+  padding:10px 28px;border-radius:999px;
+}
+.splash-install-btn:active{transform:scale(0.96);}
+.splash-install-hint{
+  display:none;flex-direction:column;align-items:center;gap:3px;
+  background:rgba(26,4,7,0.45);border:1px solid rgba(232,206,142,0.55);
+  color:var(--cream-50);padding:10px 16px;border-radius:14px;
+}
+.splash-install-main{font-size:13px;font-weight:700;letter-spacing:0.02em;}
+.splash-install-sub{font-size:10.5px;font-weight:500;opacity:0.78;line-height:1.35;}
+.splash-install-share{vertical-align:-3px;margin:0 1px;color:var(--gold-300);}
+
 /* ---------- Responsive scale-down for smaller kiosk panels ---------- */
 @media (max-width:1180px){
   .tile-grid{grid-template-columns:repeat(3,1fr);}

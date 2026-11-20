@@ -27,6 +27,57 @@
   });
 })();
 
+// INSTALL-THE-APP PROMPT on the splash screen. Phones/tablets only, and
+// only while the site is open in a normal browser tab (never once it is
+// already running as the installed app). Wired up right after the Enter
+// button for the same reason: nothing further down may ever break it.
+//  - Android (Chrome etc.): the browser fires "beforeinstallprompt" when the
+//    PWA is installable; we keep that event and show a one-tap Install button.
+//    No event (already installed, or browser can't install) = nothing shown.
+//  - iPhone/iPad: Apple gives websites no install button at all, so we show
+//    the Share -> Add to Home Screen steps instead. Skipped inside in-app
+//    browsers (Facebook, Instagram, etc.), which can't add to home screen.
+// Show/hide uses element.style.display, never the [hidden] attribute.
+(function setUpInstallPrompt(){
+  const box = document.getElementById("splashInstall");
+  const btn = document.getElementById("splashInstallBtn");
+  const hint = document.getElementById("splashInstallHint");
+  if (!box || !btn || !hint) return;
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPhone|iPad|iPod/.test(ua) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(ua);
+  if (!isIOS && !isAndroid) return;
+  const standalone =
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    window.navigator.standalone === true;
+  if (standalone) return;
+
+  let deferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    hint.style.display = "none";
+    btn.style.display = "flex";
+    box.style.display = "flex";
+  });
+  btn.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    const p = deferredPrompt;
+    deferredPrompt = null;
+    try { p.prompt(); await p.userChoice; } catch (_) {}
+    box.style.display = "none";
+  });
+  window.addEventListener("appinstalled", () => { box.style.display = "none"; });
+
+  const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|MicroMessenger|TikTok|Snapchat/i.test(ua);
+  if (isIOS && !inAppBrowser) {
+    btn.style.display = "none";
+    hint.style.display = "flex";
+    box.style.display = "flex";
+  }
+})();
+
 let currentLang = "en";
 
 // Bundled default for the notice ticker. Declared HERE, not in
