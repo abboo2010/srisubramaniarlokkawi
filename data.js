@@ -362,7 +362,9 @@ const TILE_ZH = {
   prayers:          { title: "年度 Pooja 与报名", desc: "赞助或参加 Pooja" },
   fridayAnnathanam: { title: "星期五 Annathanam", desc: "赞助每周星期五的餐食" },
   membership:       { title: "会员状态",          desc: "查询您的会员状态" },
-  gallery:          { title: "相册",              desc: "庙宇活动与庆典照片" }
+  gallery:          { title: "相册",              desc: "庙宇活动与庆典照片" },
+  news:             { title: "最新消息与公告",    desc: "庙宇的最新动态" },
+  contact:          { title: "联系我们",          desc: "地址、电话与 WhatsApp" }
 };
 
 // ---------- Home quick-nav tile copy (title/desc per language) ----------
@@ -396,5 +398,11 @@ const TILE_META = [
     desc:  { en: "Check Your Membership Status", bm: "Semak Status Keahlian Anda", ta: "உங்கள் உறுப்பினர் நிலையைச் சரிபார்க்கவும்" } },
   { key: "gallery", icon: "gallery", destination: "gallery",
     title: { en: "Gallery", bm: "Galeri", ta: "படத்தொகுப்பு" },
-    desc:  { en: "Photos from Temple Events & Festivals", bm: "Foto Acara & Perayaan Kuil", ta: "கோயில் நிகழ்வுகள் & திருவிழாக்களின் புகைப்படங்கள்" } }
+    desc:  { en: "Photos from Temple Events & Festivals", bm: "Foto Acara & Perayaan Kuil", ta: "கோயில் நிகழ்வுகள் & திருவிழாக்களின் புகைப்படங்கள்" } },
+  { key: "news", icon: "news", destination: "news",
+    title: { en: "News & Announcements", bm: "Berita & Pengumuman", ta: "செய்திகள் & அறிவிப்புகள்" },
+    desc:  { en: "Latest Updates from the Temple", bm: "Kemas Kini Terkini dari Kuil", ta: "கோயிலின் சமீபத்திய தகவல்கள்" } },
+  { key: "contact", icon: "contact", destination: "contact",
+    title: { en: "Contact Us", bm: "Hubungi Kami", ta: "தொடர்பு கொள்ள" },
+    desc:  { en: "Address, Phone & WhatsApp", bm: "Alamat, Telefon & WhatsApp", ta: "முகவரி, தொலைபேசி & WhatsApp" } }
 ];
