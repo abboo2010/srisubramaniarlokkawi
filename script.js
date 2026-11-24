@@ -541,15 +541,20 @@ function renderAbout(){
 // TEMPLE COMMITTEE
 // ============================================================
 // A person card used for President/Vice President/Officers/Members —
-// a gold initials-circle stands in for a photo (none were supplied),
+// a gold male/female icon-circle stands in for a photo (none were supplied),
 // name, role, and an optional portfolio subtitle/phone.
+// Gender is taken from the English name's title: "Mdm/Madam/Mrs/Ms/Miss" = female, otherwise male.
+const AVATAR_MALE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.5" r="3.6"/><path d="M5 21 V19 C5 15.8 8 14 12 14 C16 14 19 15.8 19 19 V21"/></svg>`;
+const AVATAR_FEMALE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7.5" r="3.6"/><path d="M8.4 7.5 C8.4 4.4 15.6 4.4 15.6 7.5"/><path d="M5.5 21 L8 14.8 C9 14.2 10.4 14 12 14 C13.6 14 15 14.2 16 14.8 L18.5 21 Z"/></svg>`;
+
 function committeePersonCard(m, cardClass){
   const name = tf(m, "name");
-  const initial = (name || "?").trim().charAt(0).toUpperCase();
+  const enName = (m.name_en || name || "").trim();
+  const isFemale = /^(mdm|madam|mrs|ms|miss)\b/i.test(enName);
   const subtitle = tf(m, "subtitle");
   return `
     <div class="${cardClass}">
-      <div class="committee-avatar">${initial}</div>
+      <div class="committee-avatar">${isFemale ? AVATAR_FEMALE : AVATAR_MALE}</div>
       <div class="committee-person-info">
         <div class="committee-role">${tf(m,"role")}</div>
         <div class="committee-name">${name}</div>
