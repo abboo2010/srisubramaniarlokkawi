@@ -477,7 +477,7 @@ function updateBottomNav(name){
 function renderHomeTimings(){
   const homeTimings = document.getElementById("homeTimings");
   homeTimings.innerHTML = "";
-  POOJA_TIMINGS_TODAY.slice(0,5).forEach(p=>{
+  POOJA_TIMINGS_TODAY.forEach(p=>{
     homeTimings.appendChild(el(`<div class="list-row"><b>${poojaName(p.name)}</b><span>${p.time}</span></div>`));
   });
 }
@@ -857,8 +857,8 @@ document.getElementById("calYearSelect").addEventListener("change", (ev)=>{
 // ============================================================
 // POOJA TIMINGS (tabbed)
 // ============================================================
-const TIMING_TAB_KEYS = ["daily", "friday", "fullMoon"];
-const TIMING_TAB_UIKEY = { daily: "timingTabDaily", friday: "timingTabFriday", fullMoon: "timingTabFullMoon" };
+const TIMING_TAB_KEYS = ["daily", "friday"];
+const TIMING_TAB_UIKEY = { daily: "timingTabDaily", friday: "timingTabFriday" };
 let currentTimingTab = "daily";
 
 function renderTimingTabs(){
@@ -2189,7 +2189,6 @@ function loadLiveContent(){
         if (pt.weekly){
           if (pt.weekly.daily && pt.weekly.daily.length) POOJA_TIMINGS_WEEKLY.daily = pt.weekly.daily;
           if (pt.weekly.friday && pt.weekly.friday.length) POOJA_TIMINGS_WEEKLY.friday = pt.weekly.friday;
-          if (pt.weekly.fullMoon && pt.weekly.fullMoon.length) POOJA_TIMINGS_WEEKLY.fullMoon = pt.weekly.fullMoon;
         }
         if (pt.poojaNames) Object.assign(POOJA_NAME, pt.poojaNames);
       });

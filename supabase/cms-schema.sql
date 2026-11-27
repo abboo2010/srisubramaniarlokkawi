@@ -322,12 +322,13 @@ create table if not exists pooja_timings (
   name_en     text not null default '',
   name_bm     text not null default '',
   name_ta     text not null default '',
+  name_zh     text not null default '',
   time_label  text not null default '',
   sort_order  integer not null default 0,
   updated_at  timestamptz not null default now()
 );
 create index if not exists pooja_timings_list_idx on pooja_timings (list_type, sort_order);
-create unique index if not exists pooja_timings_list_name_key on pooja_timings (list_type, name_en);
+create unique index if not exists pooja_timings_list_name_time_key on pooja_timings (list_type, name_en, time_label);
 alter table pooja_timings enable row level security;
 drop trigger if exists pooja_timings_set_updated_at on pooja_timings;
 create trigger pooja_timings_set_updated_at before update on pooja_timings

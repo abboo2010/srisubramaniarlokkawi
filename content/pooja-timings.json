@@ -5,24 +5,28 @@
       "time": "5:30 AM"
     },
     {
-      "name": "Ushakala Pooja",
+      "name": "Abishegam",
       "time": "6:00 AM"
     },
     {
-      "name": "Kalasanthi Pooja",
-      "time": "8:30 AM"
+      "name": "Pooja",
+      "time": "7:00 AM"
     },
     {
-      "name": "Uchikala Pooja",
-      "time": "12:00 PM"
+      "name": "Nadai Saatthal",
+      "time": "10:00 AM"
     },
     {
-      "name": "Sayaraksha Pooja",
-      "time": "6:00 PM"
+      "name": "Nadai Thirappu",
+      "time": "5:30 PM"
     },
     {
-      "name": "Arthajama Pooja",
-      "time": "8:30 PM"
+      "name": "Pooja",
+      "time": "7:00 PM"
+    },
+    {
+      "name": "Nadai Saatthal",
+      "time": "8:45 PM"
     }
   ],
   "weekly": {
@@ -32,79 +36,53 @@
         "time": "5:30 AM"
       },
       {
-        "name": "Ushakala Pooja",
+        "name": "Abishegam",
         "time": "6:00 AM"
       },
       {
-        "name": "Kalasanthi Pooja",
-        "time": "8:30 AM"
+        "name": "Pooja",
+        "time": "7:00 AM"
       },
       {
-        "name": "Uchikala Pooja",
-        "time": "12:00 PM"
+        "name": "Nadai Saatthal",
+        "time": "10:00 AM"
       },
       {
-        "name": "Sayaraksha Pooja",
-        "time": "6:00 PM"
+        "name": "Nadai Thirappu",
+        "time": "5:30 PM"
       },
       {
-        "name": "Arthajama Pooja",
-        "time": "8:30 PM"
+        "name": "Pooja",
+        "time": "7:00 PM"
+      },
+      {
+        "name": "Nadai Saatthal",
+        "time": "8:45 PM"
       }
     ],
     "friday": [
       {
-        "name": "Nadai Thirappu",
-        "time": "5:00 AM"
+        "name": "Abishegam",
+        "time": "5:30 AM"
       },
       {
-        "name": "Special Abhishekam",
+        "name": "Pooja",
         "time": "7:00 AM"
       },
       {
-        "name": "Kalasanthi Pooja",
-        "time": "8:30 AM"
+        "name": "Nadai Saatthal",
+        "time": "10:00 AM"
       },
       {
-        "name": "Uchikala Pooja",
-        "time": "12:00 PM"
+        "name": "Abishegam",
+        "time": "4:30 PM"
       },
       {
-        "name": "Sayaraksha Pooja",
-        "time": "6:00 PM"
+        "name": "Pooja",
+        "time": "7:00 PM"
       },
       {
-        "name": "Deepa Aradhanai",
-        "time": "7:30 PM"
-      },
-      {
-        "name": "Arthajama Pooja",
-        "time": "9:00 PM"
-      }
-    ],
-    "fullMoon": [
-      {
-        "name": "Nadai Thirappu",
-        "time": "5:00 AM"
-      },
-      {
-        "name": "Special Abhishekam",
-        "time": "6:30 AM"
-      },
-      {
-        "name": "Kalasanthi Pooja",
-        "time": "8:30 AM"
-      },
-      {
-        "name": "Annadhanam",
-        "time": "12:30 PM"
-      },
-      {
-        "name": "Sayaraksha Pooja",
-        "time": "6:00 PM"
-      },
-      {
-        "name": "Arthajama Pooja",
+        "name": "Nadai Saatthal",
         "time": "9:00 PM"
       }
     ]
@@ -113,47 +91,26 @@
     {
       "key": "Nadai Thirappu",
       "bm": "Pembukaan Pintu Kuil",
-      "ta": "நடைத் திறப்பு"
+      "ta": "நடைத் திறப்பு",
+      "zh": "开庙门"
     },
     {
-      "key": "Ushakala Pooja",
-      "bm": "Pooja Subuh",
-      "ta": "உஷக்கால பூஜை"
+      "key": "Abishegam",
+      "bm": "Abhishekam",
+      "ta": "அபிஷேகம்",
+      "zh": "Abhishekam"
     },
     {
-      "key": "Kalasanthi Pooja",
-      "bm": "Pooja Pagi",
-      "ta": "காலசந்தி பூஜை"
+      "key": "Pooja",
+      "bm": "Pooja",
+      "ta": "பூஜை",
+      "zh": "Pooja"
     },
     {
-      "key": "Uchikala Pooja",
-      "bm": "Pooja Tengah Hari",
-      "ta": "உச்சிகால பூஜை"
-    },
-    {
-      "key": "Sayaraksha Pooja",
-      "bm": "Pooja Petang",
-      "ta": "சாயரட்சை பூஜை"
-    },
-    {
-      "key": "Arthajama Pooja",
-      "bm": "Pooja Malam",
-      "ta": "அர்த்தஜாம பூஜை"
-    },
-    {
-      "key": "Special Abhishekam",
-      "bm": "Abhishekam Khas",
-      "ta": "சிறப்பு அபிஷேகம்"
-    },
-    {
-      "key": "Deepa Aradhanai",
-      "bm": "Deepa Aradhanai",
-      "ta": "தீப ஆராதனை"
-    },
-    {
-      "key": "Annadhanam",
-      "bm": "Annadhanam",
-      "ta": "அன்னதானம்"
+      "key": "Nadai Saatthal",
+      "bm": "Penutupan Pintu Kuil",
+      "ta": "நடை சாத்துதல்",
+      "zh": "关庙门"
     }
   ]
 }
