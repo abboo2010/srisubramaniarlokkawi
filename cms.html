@@ -268,7 +268,7 @@
 
   <!-- ================= POOJA TIMINGS (list) ================= -->
   <div class="tab-panel" id="tab-timings">
-    <p class="panel-hint">Daily poojas ("Today" and "Daily" are usually identical — "Today" is what shows on the Home screen preview), plus the special Friday and Full Moon schedules.</p>
+    <p class="panel-hint">Daily poojas ("Today" and "Daily" are usually identical — "Today" is what shows on the Home screen preview), plus the special Friday schedule.</p>
     <div class="toolbar"><button id="timings-refresh">Refresh</button><button class="primary" id="timings-add">+ Add Timing</button></div>
     <div id="timings-panel" class="edit-panel"></div>
     <div class="table-wrap"><table id="timings-table"><thead></thead><tbody></tbody></table></div>
@@ -843,7 +843,7 @@ const timingsTab = makeListTab({
   tabId: "timings", entity: "poojaTiming", singularLabel: "Timing", required: ["nameEn","listType"],
   columns: [ {key:"listType",label:"List"}, {key:"nameEn",label:"Pooja Name (EN)"}, {key:"timeLabel",label:"Time"}, {key:"sortOrder",label:"Order"} ],
   fields: [
-    { key:"listType", label:"List", type:"select", options:["today","daily","friday","fullMoon"] },
+    { key:"listType", label:"List", type:"select", options:["today","daily","friday"] },
     { key:"nameEn", label:"Pooja Name (English)", type:"text" },
     { key:"nameBm", label:"Pooja Name (Malay)", type:"text" },
     { key:"nameTa", label:"Pooja Name (Tamil)", type:"text" }, { key:"nameZh", label:"Pooja Name (Chinese)", type:"text" },

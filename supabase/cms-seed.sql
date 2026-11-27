@@ -226,31 +226,30 @@ select 'trustee', 'Mr. Kalaichelvan Govindaraja', 'திரு. கலைச்
 where not exists (select 1 from committee_members where tier = 'trustee' and name_en = 'Mr. Kalaichelvan Govindaraja');
 
 -- ---------- pooja_timings (live sheet content, EN/BM/TA merged per row) ----------
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '5:30 AM', 0) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Ushakala Pooja', 'Pooja Subuh', 'உஷக்கால பூஜை', '6:00 AM', 1) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Kalasanthi Pooja', 'Pooja Pagi', 'காலசந்தி பூஜை', '8:30 AM', 2) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Uchikala Pooja', 'Pooja Tengah Hari', 'உச்சிகால பூஜை', '12:00 PM', 3) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Sayaraksha Pooja', 'Pooja Petang', 'சாயரட்சை பூஜை', '6:00 PM', 4) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('today', 'Arthajama Pooja', 'Pooja Malam', 'அர்த்தஜாம பூஜை', '8:30 PM', 5) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('daily', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '5:30 AM', 0) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('daily', 'Ushakala Pooja', 'Pooja Subuh', 'உஷக்கால பூஜை', '6:00 AM', 1) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('daily', 'Kalasanthi Pooja', 'Pooja Pagi', 'காலசந்தி பூஜை', '8:30 AM', 2) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('daily', 'Uchikala Pooja', 'Pooja Tengah Hari', 'உச்சிகால பூஜை', '12:00 PM', 3) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('daily', 'Sayaraksha Pooja', 'Pooja Petang', 'சாயரட்சை பூஜை', '6:00 PM', 4) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('daily', 'Arthajama Pooja', 'Pooja Malam', 'அர்த்தஜாம பூஜை', '8:30 PM', 5) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '5:00 AM', 0) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Special Abhishekam', 'Abhishekam Khas', 'சிறப்பு அபிஷேகம்', '7:00 AM', 1) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Kalasanthi Pooja', 'Pooja Pagi', 'காலசந்தி பூஜை', '8:30 AM', 2) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Uchikala Pooja', 'Pooja Tengah Hari', 'உச்சிகால பூஜை', '12:00 PM', 3) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Sayaraksha Pooja', 'Pooja Petang', 'சாயரட்சை பூஜை', '6:00 PM', 4) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Deepa Aradhanai', 'Deepa Aradhanai', 'தீப ஆராதனை', '7:30 PM', 5) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('friday', 'Arthajama Pooja', 'Pooja Malam', 'அர்த்தஜாம பூஜை', '9:00 PM', 6) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('fullMoon', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '5:00 AM', 0) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('fullMoon', 'Special Abhishekam', 'Abhishekam Khas', 'சிறப்பு அபிஷேகம்', '6:30 AM', 1) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('fullMoon', 'Kalasanthi Pooja', 'Pooja Pagi', 'காலசந்தி பூஜை', '8:30 AM', 2) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('fullMoon', 'Annadhanam', 'Annadhanam', 'அன்னதானம்', '12:30 PM', 3) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('fullMoon', 'Sayaraksha Pooja', 'Pooja Petang', 'சாயரட்சை பூஜை', '6:00 PM', 4) on conflict (list_type, name_en) do nothing;
-insert into pooja_timings (list_type, name_en, name_bm, name_ta, time_label, sort_order) values ('fullMoon', 'Arthajama Pooja', 'Pooja Malam', 'அர்த்தஜாம பூஜை', '9:00 PM', 5) on conflict (list_type, name_en) do nothing;
+insert into pooja_timings (list_type, name_en, name_bm, name_ta, name_zh, time_label, sort_order)
+select * from (values
+  ('today', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '开庙门', '5:30 AM', 0),
+  ('today', 'Abishegam', 'Abhishekam', 'அபிஷேகம்', 'Abhishekam', '6:00 AM', 1),
+  ('today', 'Pooja', 'Pooja', 'பூஜை', 'Pooja', '7:00 AM', 2),
+  ('today', 'Nadai Saatthal', 'Penutupan Pintu Kuil', 'நடை சாத்துதல்', '关庙门', '10:00 AM', 3),
+  ('today', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '开庙门', '5:30 PM', 4),
+  ('today', 'Pooja', 'Pooja', 'பூஜை', 'Pooja', '7:00 PM', 5),
+  ('today', 'Nadai Saatthal', 'Penutupan Pintu Kuil', 'நடை சாத்துதல்', '关庙门', '8:45 PM', 6),
+  ('daily', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '开庙门', '5:30 AM', 0),
+  ('daily', 'Abishegam', 'Abhishekam', 'அபிஷேகம்', 'Abhishekam', '6:00 AM', 1),
+  ('daily', 'Pooja', 'Pooja', 'பூஜை', 'Pooja', '7:00 AM', 2),
+  ('daily', 'Nadai Saatthal', 'Penutupan Pintu Kuil', 'நடை சாத்துதல்', '关庙门', '10:00 AM', 3),
+  ('daily', 'Nadai Thirappu', 'Pembukaan Pintu Kuil', 'நடைத் திறப்பு', '开庙门', '5:30 PM', 4),
+  ('daily', 'Pooja', 'Pooja', 'பூஜை', 'Pooja', '7:00 PM', 5),
+  ('daily', 'Nadai Saatthal', 'Penutupan Pintu Kuil', 'நடை சாத்துதல்', '关庙门', '8:45 PM', 6),
+  ('friday', 'Abishegam', 'Abhishekam', 'அபிஷேகம்', 'Abhishekam', '5:30 AM', 0),
+  ('friday', 'Pooja', 'Pooja', 'பூஜை', 'Pooja', '7:00 AM', 1),
+  ('friday', 'Nadai Saatthal', 'Penutupan Pintu Kuil', 'நடை சாத்துதல்', '关庙门', '10:00 AM', 2),
+  ('friday', 'Abishegam', 'Abhishekam', 'அபிஷேகம்', 'Abhishekam', '4:30 PM', 3),
+  ('friday', 'Pooja', 'Pooja', 'பூஜை', 'Pooja', '7:00 PM', 4),
+  ('friday', 'Nadai Saatthal', 'Penutupan Pintu Kuil', 'நடை சாத்துதல்', '关庙门', '9:00 PM', 5)
+) as v
+where not exists (select 1 from pooja_timings);
 
 -- ---------- sevas (live sheet content; repeated 'General Donation' rows collapsed) ----------
 insert into sevas (name_en, name_bm, name_ta, price_en, price_bm, price_ta, desc_en, desc_bm, desc_ta, cta_en, cta_bm, cta_ta, sort_order) values ('Archanai', 'Archanai', 'அர்ச்சனை', 'RM 10', 'RM 10', 'RM 10', 'Individual prayer offering with your name and star (nakshatra) invoked.', 'Persembahan doa individu dengan nama dan bintang (nakshatra) anda disebut.', 'உங்கள் பெயரும் நட்சத்திரமும் கூறி செய்யப்படும் தனிப்பட்ட பிரார்த்தனை காணிக்கை.', 'Pay Archanai', 'Bayar Archanai', 'அர்ச்சனை செலுத்த', 0) on conflict (name_en) do nothing;

@@ -43,9 +43,6 @@
 delete from deities a using deities b
 where a.id > b.id and a.name_en = b.name_en;
 
-delete from pooja_timings a using pooja_timings b
-where a.id > b.id and a.list_type = b.list_type and a.name_en = b.name_en;
-
 delete from sevas a using sevas b
 where a.id > b.id and a.name_en = b.name_en;
 
@@ -61,13 +58,6 @@ do $$
 begin
   if not exists (select 1 from pg_constraint where conname = 'deities_name_en_key') then
     alter table deities add constraint deities_name_en_key unique (name_en);
-  end if;
-end $$;
-
-do $$
-begin
-  if not exists (select 1 from pg_constraint where conname = 'pooja_timings_list_name_key') then
-    alter table pooja_timings add constraint pooja_timings_list_name_key unique (list_type, name_en);
   end if;
 end $$;
 
