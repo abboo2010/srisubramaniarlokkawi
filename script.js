@@ -477,7 +477,11 @@ function updateBottomNav(name){
 function renderHomeTimings(){
   const homeTimings = document.getElementById("homeTimings");
   homeTimings.innerHTML = "";
-  POOJA_TIMINGS_TODAY.forEach(p=>{
+  // On Fridays (Malaysia time, whatever the device is set to) show the Friday schedule.
+  const isFriday = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "Asia/Kuala_Lumpur" }).format(new Date()) === "Fri";
+  const friday = POOJA_TIMINGS_WEEKLY.friday;
+  const list = isFriday && friday && friday.length ? friday : POOJA_TIMINGS_TODAY;
+  list.forEach(p=>{
     homeTimings.appendChild(el(`<div class="list-row"><b>${poojaName(p.name)}</b><span>${p.time}</span></div>`));
   });
 }
@@ -2406,6 +2410,8 @@ function refreshLiveContentIfIdle(){
   Promise.resolve(loadLiveContent()).finally(() => { liveContentRefreshInFlight = false; });
 }
 setInterval(refreshLiveContentIfIdle, LIVE_CONTENT_REFRESH_MS);
+// Switch the Home timings at midnight on a screen left open, even if offline.
+setInterval(() => safeRender("homeTimings", renderHomeTimings), 60 * 1000);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") refreshLiveContentIfIdle();
 });
